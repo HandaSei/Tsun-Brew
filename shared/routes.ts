@@ -75,6 +75,20 @@ export const api = {
         404: errorSchemas.notFound,
       },
     },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/teas/:id',
+      input: insertTeaSchema.partial().extend({
+        attributes: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
+      }),
+      responses: {
+        200: z.custom<typeof teas.$inferSelect>(),
+        400: errorSchemas.validation,
+        401: errorSchemas.unauthorized,
+        403: errorSchemas.forbidden,
+        404: errorSchemas.notFound,
+      },
+    },
     create: {
       method: 'POST' as const,
       path: '/api/teas',

@@ -22,6 +22,8 @@ export const teas = pgTable("teas", {
   origin: text("origin"),
   cultivar: text("cultivar"),
   averageScore: integer("average_score").default(0), // scaled 0-100 or 0-10
+  recommendedTemp: integer("recommended_temp"), // in Celsius
+  recommendedDuration: integer("recommended_duration"), // in seconds
   createdById: integer("created_by_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });

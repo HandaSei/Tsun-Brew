@@ -29,6 +29,23 @@ export async function registerRoutes(
     res.json(tea);
   });
 
+  app.patch(api.teas.update.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    if (req.user.role !== 'admin' && req.user.role !== 'mod') return res.sendStatus(403);
+    
+    try {
+      const input = api.teas.update.input.parse(req.body);
+      const tea = await storage.updateTea(Number(req.params.id), input);
+      res.json(tea);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors[0].message });
+      } else {
+        throw err;
+      }
+    }
+  });
+
   app.post(api.teas.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     

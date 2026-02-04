@@ -18,6 +18,7 @@ export interface IStorage {
   getTeas(): Promise<Tea[]>;
   getTea(id: number): Promise<(Tea & { attributes: any[] }) | undefined>;
   createTea(tea: InsertTea & { attributes?: { key: string, value: string }[] }): Promise<Tea>;
+  updateTea(id: number, tea: Partial<InsertTea> & { attributes?: { key: string, value: string }[] }): Promise<Tea>;
   
   // Logs / My List
   getTeaLog(userId: number, teaId: number): Promise<TeaLog | undefined>;
@@ -81,6 +82,27 @@ export class DatabaseStorage implements IStorage {
     }
 
     return newTea;
+  }
+
+  async updateTea(id: number, tea: Partial<InsertTea> & { attributes?: { key: string, value: string }[] }): Promise<Tea> {
+    const { attributes, ...teaData } = tea;
+    
+    const [updatedTea] = await db.update(teas)
+      .set(teaData)
+      .where(eq(teas.id, id))
+      .returning();
+
+    if (attributes) {
+      // Simple approach: delete all and re-insert
+      await db.delete(teaAttributes).where(eq(teaAttributes.teaId, id));
+      if (attributes.length > 0) {
+        await db.insert(teaAttributes).values(
+          attributes.map(attr => ({ ...attr, teaId: id }))
+        );
+      }
+    }
+
+    return updatedTea;
   }
 
   async getTeaLog(userId: number, teaId: number): Promise<TeaLog | undefined> {
