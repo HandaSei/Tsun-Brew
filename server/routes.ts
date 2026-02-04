@@ -58,7 +58,8 @@ export async function registerRoutes(
 
   app.post(api.logs.update.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const input = api.logs.update.input.parse(req.body);
+    const logUpdateSchema = api.logs.update.input.omit({ userId: true });
+    const input = logUpdateSchema.parse(req.body);
     const log = await storage.upsertTeaLog({ ...input, userId: req.user.id });
     res.json(log);
   });
