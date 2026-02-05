@@ -1,9 +1,10 @@
 import type { Express } from "express";
-import { createServer, type Server } from "http";
+import { type Server } from "http";
 import { setupAuth, seedAdmin } from "./auth";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
+import { type User } from "@shared/schema";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -31,7 +32,8 @@ export async function registerRoutes(
 
   app.patch(api.teas.update.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    if (req.user.role !== 'admin' && req.user.role !== 'mod') return res.sendStatus(403);
+    const user = req.user as User;
+    if (user.role !== 'admin' && user.role !== 'mod') return res.sendStatus(403);
     
     try {
       const input = api.teas.update.input.parse(req.body);
@@ -48,14 +50,11 @@ export async function registerRoutes(
 
   app.post(api.teas.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
     
     try {
       const input = api.teas.create.input.parse(req.body);
-      // User must be at least a user, but maybe we restrict creation? 
-      // User asked: "people... should be also able to score it" - implies people add teas?
-      // "create an entry for an tea... people should pe also able to score it"
-      // Let's allow any logged in user to add a tea for now.
-      const tea = await storage.createTea({ ...input, createdById: req.user.id });
+      const tea = await storage.createTea({ ...input, createdById: user.id });
       res.status(201).json(tea);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -69,15 +68,16 @@ export async function registerRoutes(
   // === Logs (My List) ===
   app.get(api.logs.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const logs = await storage.getTeaLogs(req.user.id);
+    const user = req.user as User;
+    const logs = await storage.getTeaLogs(user.id);
     res.json(logs);
   });
 
   app.post(api.logs.update.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const logUpdateSchema = api.logs.update.input.omit({ userId: true });
-    const input = logUpdateSchema.parse(req.body);
-    const log = await storage.upsertTeaLog({ ...input, userId: req.user.id });
+    const user = req.user as User;
+    const input = api.logs.update.input.parse(req.body);
+    const log = await storage.upsertTeaLog({ ...input, userId: user.id });
     res.json(log);
   });
 
@@ -89,8 +89,9 @@ export async function registerRoutes(
 
   app.post(api.guides.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
     const input = api.guides.create.input.parse(req.body);
-    const guide = await storage.createGuide({ ...input, userId: req.user.id });
+    const guide = await storage.createGuide({ ...input, userId: user.id });
     res.status(201).json(guide);
   });
 
@@ -102,23 +103,28 @@ export async function registerRoutes(
 
   app.post(api.reviews.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
     const input = api.reviews.create.input.parse(req.body);
-    const review = await storage.createReview({ ...input, userId: req.user.id });
+    const review = await storage.createReview({ ...input, userId: user.id });
     res.status(201).json(review);
   });
 
   // === Admin ===
   app.get(api.admin.getUsers.path, async (req, res) => {
-    if (!req.isAuthenticated() || req.user.role !== 'admin') return res.sendStatus(403);
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
     const users = await storage.getUsers();
     res.json(users);
   });
 
   app.patch(api.admin.updateRole.path, async (req, res) => {
-    if (!req.isAuthenticated() || req.user.role !== 'admin') return res.sendStatus(403);
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
     const input = api.admin.updateRole.input.parse(req.body);
-    const user = await storage.updateUserRole(Number(req.params.id), input.role);
-    res.json(user);
+    const updatedUser = await storage.updateUserRole(Number(req.params.id), input.role);
+    res.json(updatedUser);
   });
 
   return httpServer;

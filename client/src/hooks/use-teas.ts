@@ -8,7 +8,8 @@ export function useTeas() {
     queryFn: async () => {
       const res = await fetch(api.teas.list.path);
       if (!res.ok) throw new Error("Failed to fetch teas");
-      return api.teas.list.responses[200].parse(await res.json());
+      const json = await res.json();
+      return json as Tea[];
     },
   });
 }
@@ -20,9 +21,37 @@ export function useTea(id: number) {
       const url = buildUrl(api.teas.get.path, { id });
       const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch tea details");
-      return api.teas.get.responses[200].parse(await res.json());
+      const json = await res.json();
+      return json as Tea & { attributes: any[] };
     },
     enabled: !!id,
+  });
+}
+
+export function useUpdateTea() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...data }: { id: number } & Partial<InsertTea>) => {
+      const url = buildUrl(api.teas.update.path, { id });
+      const res = await fetch(url, {
+        method: api.teas.update.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to update tea");
+      const json = await res.json();
+      return json as Tea;
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: [api.teas.list.path] });
+      queryClient.invalidateQueries({ queryKey: [api.teas.get.path, id] });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
   });
 }
 
@@ -39,7 +68,8 @@ export function useCreateTea() {
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to create tea");
-      return api.teas.create.responses[201].parse(await res.json());
+      const json = await res.json();
+      return json as Tea;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.teas.list.path] });

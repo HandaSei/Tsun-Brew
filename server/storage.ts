@@ -17,21 +17,21 @@ export interface IStorage {
   // Teas
   getTeas(): Promise<Tea[]>;
   getTea(id: number): Promise<(Tea & { attributes: any[] }) | undefined>;
-  createTea(tea: InsertTea & { attributes?: { key: string, value: string }[] }): Promise<Tea>;
+  createTea(tea: InsertTea & { createdById: number, attributes?: { key: string, value: string }[] }): Promise<Tea>;
   updateTea(id: number, tea: Partial<InsertTea> & { attributes?: { key: string, value: string }[] }): Promise<Tea>;
   
   // Logs / My List
   getTeaLog(userId: number, teaId: number): Promise<TeaLog | undefined>;
   getTeaLogs(userId: number): Promise<(TeaLog & { tea: Tea })[]>;
-  upsertTeaLog(log: InsertTeaLog & { incrementBrew?: boolean }): Promise<TeaLog>;
+  upsertTeaLog(log: InsertTeaLog & { userId: number, incrementBrew?: boolean }): Promise<TeaLog>;
 
   // Guides
   getGuides(teaId: number): Promise<(Guide & { author: User })[]>;
-  createGuide(guide: InsertGuide): Promise<Guide>;
+  createGuide(guide: InsertGuide & { userId: number }): Promise<Guide>;
 
   // Reviews
   getReviews(teaId: number): Promise<(Review & { user: User })[]>;
-  createReview(review: InsertReview): Promise<Review>;
+  createReview(review: InsertReview & { userId: number }): Promise<Review>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -46,7 +46,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(user: InsertUser & { role?: string }): Promise<User> {
-    const [newUser] = await db.insert(users).values(user).returning();
+    const [newUser] = await db.insert(users).values(user as any).returning();
     return newUser;
   }
 
@@ -71,9 +71,9 @@ export class DatabaseStorage implements IStorage {
     return { ...tea, attributes };
   }
 
-  async createTea(tea: InsertTea & { attributes?: { key: string, value: string }[] }): Promise<Tea> {
+  async createTea(tea: InsertTea & { createdById: number, attributes?: { key: string, value: string }[] }): Promise<Tea> {
     const { attributes, ...teaData } = tea;
-    const [newTea] = await db.insert(teas).values(teaData).returning();
+    const [newTea] = await db.insert(teas).values(teaData as any).returning();
 
     if (attributes && attributes.length > 0) {
       await db.insert(teaAttributes).values(
@@ -88,7 +88,7 @@ export class DatabaseStorage implements IStorage {
     const { attributes, ...teaData } = tea;
     
     const [updatedTea] = await db.update(teas)
-      .set(teaData)
+      .set(teaData as any)
       .where(eq(teas.id, id))
       .returning();
 
@@ -125,7 +125,7 @@ export class DatabaseStorage implements IStorage {
     return results.map(r => ({ ...r.log, tea: r.tea }));
   }
 
-  async upsertTeaLog(log: InsertTeaLog & { incrementBrew?: boolean }): Promise<TeaLog> {
+  async upsertTeaLog(log: InsertTeaLog & { userId: number, incrementBrew?: boolean }): Promise<TeaLog> {
     const existing = await this.getTeaLog(log.userId, log.teaId);
     
     if (existing) {
@@ -145,7 +145,7 @@ export class DatabaseStorage implements IStorage {
         ...log,
         totalBrews: log.incrementBrew ? 1 : 0,
         lastBrewedAt: log.incrementBrew ? new Date() : null
-      }).returning();
+      } as any).returning();
       return created;
     }
   }
@@ -163,8 +163,8 @@ export class DatabaseStorage implements IStorage {
     return results.map(r => ({ ...r.guide, author: r.author }));
   }
 
-  async createGuide(guide: InsertGuide): Promise<Guide> {
-    const [newGuide] = await db.insert(brewingGuides).values(guide).returning();
+  async createGuide(guide: InsertGuide & { userId: number }): Promise<Guide> {
+    const [newGuide] = await db.insert(brewingGuides).values(guide as any).returning();
     return newGuide;
   }
 
@@ -181,8 +181,8 @@ export class DatabaseStorage implements IStorage {
     return results.map(r => ({ ...r.review, user: r.user }));
   }
 
-  async createReview(review: InsertReview): Promise<Review> {
-    const [newReview] = await db.insert(reviews).values(review).returning();
+  async createReview(review: InsertReview & { userId: number }): Promise<Review> {
+    const [newReview] = await db.insert(reviews).values(review as any).returning();
     return newReview;
   }
 }
