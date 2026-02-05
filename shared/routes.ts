@@ -116,6 +116,11 @@ export const api = {
       path: '/api/logs',
       input: insertTeaLogSchema.extend({
         incrementBrew: z.boolean().optional(),
+        timerSettings: z.object({
+          temp: z.number().optional(),
+          duration: z.number().optional(),
+          type: z.string().optional(),
+        }).optional(),
       }),
       responses: {
         200: z.custom<typeof teaLogs.$inferSelect>(),

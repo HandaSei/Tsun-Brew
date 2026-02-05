@@ -1,5 +1,5 @@
 import { useRoute } from "wouter";
-import { useTea } from "@/hooks/use-teas";
+import { useTea, useUpdateTea } from "@/hooks/use-teas";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrewTimer } from "@/components/BrewTimer";
-import { useUpdateLog } from "@/hooks/use-logs";
+import { useUpdateLog, useLogs } from "@/hooks/use-logs";
 import { 
   Loader2, 
   Leaf, 
@@ -16,9 +16,11 @@ import {
   Clock, 
   BookOpen, 
   Star,
-  Plus
+  Plus,
+  Settings,
+  Edit2
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Radar,
   RadarChart,
@@ -27,7 +29,15 @@ import {
   PolarRadiusAxis,
   ResponsiveContainer,
 } from "recharts";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertTeaSchema } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 
 // Example data for the chart - in a real app this would come from reviews
 const chartData = [
@@ -43,9 +53,45 @@ export default function TeaDetails() {
   const [, params] = useRoute("/tea/:id");
   const id = parseInt(params?.id || "0");
   const { data: tea, isLoading } = useTea(id);
+  const { data: logs } = useLogs();
   const { user } = useAuth();
   const updateLog = useUpdateLog();
+  const updateTea = useUpdateTea();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("info");
+  const [isEditing, setIsEditing] = useState(false);
+
+  const teaLog = logs?.find(l => l.teaId === id);
+  const isAdmin = user?.role === 'admin' || user?.role === 'mod';
+
+  const form = useForm({
+    resolver: zodResolver(insertTeaSchema.partial()),
+    defaultValues: {
+      name: tea?.name || "",
+      type: tea?.type || "",
+      description: tea?.description || "",
+      origin: tea?.origin || "",
+      cultivar: tea?.cultivar || "",
+      photoUrl: tea?.photoUrl || "",
+      recommendedTemp: tea?.recommendedTemp || 85,
+      recommendedDuration: tea?.recommendedDuration || 60,
+    }
+  });
+
+  useEffect(() => {
+    if (tea) {
+      form.reset({
+        name: tea.name,
+        type: tea.type,
+        description: tea.description,
+        origin: tea.origin || "",
+        cultivar: tea.cultivar || "",
+        photoUrl: tea.photoUrl || "",
+        recommendedTemp: tea.recommendedTemp || 85,
+        recommendedDuration: tea.recommendedDuration || 60,
+      });
+    }
+  }, [tea, form]);
 
   if (isLoading) {
     return (
@@ -66,6 +112,20 @@ export default function TeaDetails() {
       status: 'want_to_try'
     });
   };
+
+  const onEditSubmit = (data: any) => {
+    updateTea.mutate({ id: tea.id, ...data }, {
+      onSuccess: () => {
+        setIsEditing(false);
+        toast({ title: "Success", description: "Tea updated successfully" });
+      }
+    });
+  };
+
+  // Determine initial values for timer
+  const personalSettings = teaLog?.timerSettings as any;
+  const initialSeconds = personalSettings?.duration || tea.recommendedDuration || 60;
+  const initialTemp = personalSettings?.temp || tea.recommendedTemp || 85;
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -93,11 +153,131 @@ export default function TeaDetails() {
                   <Badge variant="outline" className="mb-3 border-primary/20 text-primary">{tea.type}</Badge>
                   <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground">{tea.name}</h1>
                 </div>
-                {user && (
-                  <Button onClick={handleAddToMyList} disabled={updateLog.isPending} variant="outline" className="gap-2">
-                    {updateLog.isPending ? "Adding..." : <><Plus className="w-4 h-4" /> Add to List</>}
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  {isAdmin && (
+                    <Dialog open={isEditing} onOpenChange={setIsEditing}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="icon" className="rounded-full">
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Edit Tea Details</DialogTitle>
+                        </DialogHeader>
+                        <Form {...form}>
+                          <form onSubmit={form.handleSubmit(onEditSubmit)} className="space-y-4 pt-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="name"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Name</FormLabel>
+                                    <FormControl><Input {...field} /></FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="type"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Type</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select type" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {['Green', 'Black', 'Oolong', 'White', 'Yellow', 'Dark'].map(t => (
+                                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <FormField
+                              control={form.control}
+                              name="description"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Description</FormLabel>
+                                  <FormControl><Textarea {...field} /></FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="origin"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Origin</FormLabel>
+                                    <FormControl><Input {...field} /></FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="cultivar"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Cultivar</FormLabel>
+                                    <FormControl><Input {...field} /></FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="recommendedTemp"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Recommended Temp (°C)</FormLabel>
+                                    <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="recommendedDuration"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Recommended Duration (s)</FormLabel>
+                                    <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <FormField
+                              control={form.control}
+                              name="photoUrl"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Photo URL</FormLabel>
+                                  <FormControl><Input {...field} /></FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <Button type="submit" className="w-full" disabled={updateTea.isPending}>
+                              {updateTea.isPending ? "Saving..." : "Save Changes"}
+                            </Button>
+                          </form>
+                        </Form>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                  {user && (
+                    <Button onClick={handleAddToMyList} disabled={updateLog.isPending} variant="outline" className="gap-2">
+                      {updateLog.isPending ? "Adding..." : <><Plus className="w-4 h-4" /> Add to List</>}
+                    </Button>
+                  )}
+                </div>
               </div>
               
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -175,18 +355,17 @@ export default function TeaDetails() {
                 <div className="glass-card p-6 rounded-2xl">
                   <h3 className="font-display text-2xl mb-4">Brewing Attributes</h3>
                   <div className="space-y-4">
-                    {/* Mock data for now */}
                     <div className="flex justify-between border-b border-border/40 pb-2">
-                      <span className="text-muted-foreground">Oxidation</span>
-                      <span className="font-medium">Light</span>
+                      <span className="text-muted-foreground">Type</span>
+                      <span className="font-medium">{tea.type}</span>
                     </div>
                     <div className="flex justify-between border-b border-border/40 pb-2">
-                      <span className="text-muted-foreground">Harvest Season</span>
-                      <span className="font-medium">Spring 2024</span>
+                      <span className="text-muted-foreground">Recommended Temp</span>
+                      <span className="font-medium">{tea.recommendedTemp || 85}°C</span>
                     </div>
                     <div className="flex justify-between border-b border-border/40 pb-2">
-                      <span className="text-muted-foreground">Roast Level</span>
-                      <span className="font-medium">None</span>
+                      <span className="text-muted-foreground">Recommended Duration</span>
+                      <span className="font-medium">{tea.recommendedDuration || 60}s</span>
                     </div>
                   </div>
                 </div>
@@ -197,17 +376,22 @@ export default function TeaDetails() {
           <TabsContent value="brew" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div className="glass-card p-8 rounded-2xl flex flex-col items-center">
-                <h3 className="font-display text-2xl mb-2">Gongfu Brewing</h3>
-                <div className="flex items-center gap-6 text-sm text-muted-foreground mb-8">
+                <h3 className="font-display text-2xl mb-2">Brewing Session</h3>
+                <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
                   <div className="flex items-center gap-1.5">
-                    <Thermometer className="w-4 h-4" /> 85°C
+                    <Thermometer className="w-4 h-4" /> {initialTemp}°C
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4" /> 20s + 5s
+                    <Clock className="w-4 h-4" /> {initialSeconds}s
                   </div>
                 </div>
                 
-                <BrewTimer teaId={tea.id} initialSeconds={20} />
+                <BrewTimer 
+                  teaId={tea.id} 
+                  initialSeconds={initialSeconds} 
+                  initialTemp={initialTemp}
+                  showControls={!!user}
+                />
               </div>
 
               <div className="space-y-6">
@@ -217,9 +401,8 @@ export default function TeaDetails() {
                     Official Guide
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    For best results, use 5g of tea per 100ml of water. Rinse briefly. 
-                    Steep for 20s for the first infusion, adding 5s for each subsequent steep. 
-                    Enjoy the orchid aroma that develops after the 2nd steep.
+                    Recommended: {tea.recommendedTemp || 85}°C for {tea.recommendedDuration || 60} seconds.
+                    {tea.description.length > 50 && " " + tea.description.substring(0, 100) + "..."}
                   </p>
                 </div>
               </div>

@@ -7,15 +7,31 @@ import { useUpdateLog } from "@/hooks/use-logs";
 
 interface BrewTimerProps {
   initialSeconds?: number;
+  initialTemp?: number;
   teaId: number;
   onComplete?: () => void;
+  onSettingsChange?: (settings: { temp: number; duration: number }) => void;
+  showControls?: boolean;
 }
 
-export function BrewTimer({ initialSeconds = 180, teaId, onComplete }: BrewTimerProps) {
+export function BrewTimer({ 
+  initialSeconds = 180, 
+  initialTemp = 85,
+  teaId, 
+  onComplete,
+  onSettingsChange,
+  showControls = false
+}: BrewTimerProps) {
   const [seconds, setSeconds] = useState(initialSeconds);
+  const [temp, setTemp] = useState(initialTemp);
   const [isActive, setIsActive] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
   const updateLog = useUpdateLog();
+
+  // Reset when initial values change
+  useEffect(() => {
+    setSeconds(initialSeconds);
+    setTemp(initialTemp);
+  }, [initialSeconds, initialTemp]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -33,13 +49,20 @@ export function BrewTimer({ initialSeconds = 180, teaId, onComplete }: BrewTimer
   }, [isActive, seconds]);
 
   const handleComplete = () => {
-    // Play sound or notification here
     updateLog.mutate({
       teaId,
       incrementBrew: true,
       status: 'drinking'
     });
     if (onComplete) onComplete();
+  };
+
+  const handleSaveSettings = () => {
+    updateLog.mutate({
+      teaId,
+      timerSettings: { temp, duration: seconds }
+    });
+    if (onSettingsChange) onSettingsChange({ temp, duration: seconds });
   };
 
   const toggleTimer = () => setIsActive(!isActive);
@@ -59,6 +82,30 @@ export function BrewTimer({ initialSeconds = 180, teaId, onComplete }: BrewTimer
 
   return (
     <div className="flex flex-col items-center gap-6 p-4">
+      {showControls && (
+        <div className="flex gap-4 mb-2 w-full max-w-xs">
+          <div className="flex-1 space-y-1">
+            <label className="text-xs font-medium text-muted-foreground uppercase">Temp (°C)</label>
+            <input 
+              type="number" 
+              value={temp} 
+              onChange={(e) => setTemp(parseInt(e.target.value) || 0)}
+              className="w-full bg-secondary/50 border-none rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary"
+            />
+          </div>
+          <div className="flex-1 space-y-1">
+            <label className="text-xs font-medium text-muted-foreground uppercase">Secs</label>
+            <input 
+              type="number" 
+              value={seconds} 
+              onChange={(e) => setSeconds(parseInt(e.target.value) || 0)}
+              className="w-full bg-secondary/50 border-none rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary"
+              disabled={isActive}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="w-48 h-48 relative">
         <CircularProgressbar
           value={progress}
@@ -90,6 +137,18 @@ export function BrewTimer({ initialSeconds = 180, teaId, onComplete }: BrewTimer
         >
           <RotateCcw className="w-5 h-5 text-muted-foreground" />
         </Button>
+
+        {showControls && (
+          <Button
+            onClick={handleSaveSettings}
+            variant="ghost"
+            size="sm"
+            className="text-xs text-primary"
+            disabled={updateLog.isPending}
+          >
+            Save as My Pref
+          </Button>
+        )}
       </div>
 
       <p className="text-sm text-muted-foreground text-center max-w-xs">

@@ -34,46 +34,57 @@ export default function MyList() {
   const wantToTry = logs?.filter(log => log.status === 'want_to_try') || [];
   const completed = logs?.filter(log => log.status === 'completed') || [];
 
-  const TeaListItem = ({ log }: { log: any }) => (
-    <div className="glass-card p-4 rounded-xl flex items-center gap-4 group transition-all hover:shadow-lg">
-      <Link href={`/tea/${log.tea.id}`} className="flex-1 flex items-center gap-4">
-        <div className="w-16 h-16 rounded-lg overflow-hidden bg-secondary">
-          {log.tea.photoUrl ? (
-            <img src={log.tea.photoUrl} alt={log.tea.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary/30">
-              <Coffee className="w-6 h-6" />
-            </div>
-          )}
-        </div>
-        <div>
-          <h3 className="font-display font-bold text-lg group-hover:text-primary transition-colors">{log.tea.name}</h3>
-          <p className="text-sm text-muted-foreground">{log.tea.type}</p>
-        </div>
-      </Link>
-      
-      <div className="flex items-center gap-4">
-        <div className="text-right hidden sm:block">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">Brews</p>
-          <p className="font-mono font-medium text-lg">{log.totalBrews || 0}</p>
-        </div>
+  const TeaListItem = ({ log }: { log: any }) => {
+    const personalSettings = log.timerSettings as any;
+    const initialSeconds = personalSettings?.duration || log.tea.recommendedDuration || 60;
+    const initialTemp = personalSettings?.temp || log.tea.recommendedTemp || 85;
 
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="icon" variant="outline" className="rounded-full w-10 h-10 border-primary/20 hover:bg-primary hover:text-white">
-              <Timer className="w-4 h-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <div className="pt-6">
-              <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
-              <BrewTimer teaId={log.tea.id} initialSeconds={180} />
-            </div>
-          </DialogContent>
-        </Dialog>
+    return (
+      <div className="glass-card p-4 rounded-xl flex items-center gap-4 group transition-all hover:shadow-lg">
+        <Link href={`/tea/${log.tea.id}`} className="flex-1 flex items-center gap-4">
+          <div className="w-16 h-16 rounded-lg overflow-hidden bg-secondary">
+            {log.tea.photoUrl ? (
+              <img src={log.tea.photoUrl} alt={log.tea.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary/30">
+                <Coffee className="w-6 h-6" />
+              </div>
+            )}
+          </div>
+          <div>
+            <h3 className="font-display font-bold text-lg group-hover:text-primary transition-colors">{log.tea.name}</h3>
+            <p className="text-sm text-muted-foreground">{log.tea.type}</p>
+          </div>
+        </Link>
+        
+        <div className="flex items-center gap-4">
+          <div className="text-right hidden sm:block">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Brews</p>
+            <p className="font-mono font-medium text-lg">{log.totalBrews || 0}</p>
+          </div>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="icon" variant="outline" className="rounded-full w-10 h-10 border-primary/20 hover:bg-primary hover:text-white">
+                <Timer className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <div className="pt-6">
+                <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
+                <BrewTimer 
+                  teaId={log.tea.id} 
+                  initialSeconds={initialSeconds} 
+                  initialTemp={initialTemp}
+                  showControls={true}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
