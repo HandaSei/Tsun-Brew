@@ -2,36 +2,56 @@ import { useState, useEffect } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Coffee } from "lucide-react";
+import { Play, Pause, RotateCcw, Droplets, Zap, Leaf } from "lucide-react";
 import { useUpdateLog } from "@/hooks/use-logs";
+import { type Tea, type TeaLog } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
 
 interface BrewTimerProps {
-  initialSeconds?: number;
-  initialTemp?: number;
-  teaId: number;
+  tea: Tea;
+  teaLog?: TeaLog;
   onComplete?: () => void;
-  onSettingsChange?: (settings: { temp: number; duration: number }) => void;
   showControls?: boolean;
 }
 
 export function BrewTimer({ 
-  initialSeconds = 180, 
-  initialTemp = 85,
-  teaId, 
+  tea,
+  teaLog,
   onComplete,
-  onSettingsChange,
   showControls = false
 }: BrewTimerProps) {
-  const [seconds, setSeconds] = useState(initialSeconds);
-  const [temp, setTemp] = useState(initialTemp);
+  const personalSettings = teaLog?.timerSettings as any;
+  const initialMethod = personalSettings?.method || 'oriental';
+  const initialInfusion = teaLog?.currentInfusion || 1;
+
+  const [method, setMethod] = useState<'oriental' | 'occidental'>(initialMethod);
+  const [infusion, setInfusion] = useState(initialInfusion);
   const [isActive, setIsActive] = useState(false);
+  const [isWashing, setIsWashing] = useState(false);
+  
+  const getInitialSeconds = () => {
+    if (isWashing) return tea.washingDuration || 10;
+    const base = method === 'oriental' ? (tea.orientalDuration || 20) : (tea.occidentalDuration || 180);
+    const inc = method === 'oriental' ? (tea.orientalInfusionIncrement || 10) : (tea.occidentalInfusionIncrement || 30);
+    return base + (infusion - 1) * inc;
+  };
+
+  const getInitialTemp = () => {
+    return method === 'oriental' ? (tea.orientalTemp || 95) : (tea.occidentalTemp || 85);
+  };
+
+  const [seconds, setSeconds] = useState(getInitialSeconds());
+  const [totalSeconds, setTotalSeconds] = useState(getInitialSeconds());
+  const [temp, setTemp] = useState(getInitialTemp());
+  
   const updateLog = useUpdateLog();
 
-  // Reset when initial values change
   useEffect(() => {
-    setSeconds(initialSeconds);
-    setTemp(initialTemp);
-  }, [initialSeconds, initialTemp]);
+    const s = getInitialSeconds();
+    setSeconds(s);
+    setTotalSeconds(s);
+    setTemp(getInitialTemp());
+  }, [method, infusion, isWashing, tea]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -49,30 +69,40 @@ export function BrewTimer({
   }, [isActive, seconds]);
 
   const handleComplete = () => {
-    updateLog.mutate({
-      teaId,
-      incrementBrew: true,
-      status: 'drinking'
-    });
+    if (!isWashing) {
+      updateLog.mutate({
+        teaId: tea.id,
+        incrementBrew: true,
+        currentInfusion: infusion + 1,
+        status: 'drinking'
+      });
+      setInfusion(i => i + 1);
+    } else {
+      setIsWashing(false);
+    }
     if (onComplete) onComplete();
   };
 
   const handleSaveSettings = () => {
     updateLog.mutate({
-      teaId,
-      timerSettings: { temp, duration: seconds }
+      teaId: tea.id,
+      timerSettings: { temp, method, infusion }
     });
-    if (onSettingsChange) onSettingsChange({ temp, duration: seconds });
   };
 
   const toggleTimer = () => setIsActive(!isActive);
   
   const resetTimer = () => {
     setIsActive(false);
-    setSeconds(initialSeconds);
+    setSeconds(getInitialSeconds());
   };
 
-  const progress = ((initialSeconds - seconds) / initialSeconds) * 100;
+  const startWash = () => {
+    setIsWashing(true);
+    setIsActive(true);
+  };
+
+  const progress = ((totalSeconds - seconds) / totalSeconds) * 100;
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
@@ -81,52 +111,75 @@ export function BrewTimer({
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 p-4">
-      {showControls && (
-        <div className="flex gap-4 mb-2 w-full max-w-xs">
-          <div className="flex-1 space-y-1">
-            <label className="text-xs font-medium text-muted-foreground uppercase">Temp (°C)</label>
-            <input 
-              type="number" 
-              value={temp} 
-              onChange={(e) => setTemp(parseInt(e.target.value) || 0)}
-              className="w-full bg-secondary/50 border-none rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary"
-            />
-          </div>
-          <div className="flex-1 space-y-1">
-            <label className="text-xs font-medium text-muted-foreground uppercase">Secs</label>
-            <input 
-              type="number" 
-              value={seconds} 
-              onChange={(e) => setSeconds(parseInt(e.target.value) || 0)}
-              className="w-full bg-secondary/50 border-none rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary"
-              disabled={isActive}
-            />
+    <div className="flex flex-col items-center gap-6 p-4 w-full">
+      <div className="flex flex-wrap justify-center gap-2 mb-4">
+        <Button 
+          variant={method === 'oriental' ? 'default' : 'outline'} 
+          size="sm" 
+          onClick={() => setMethod('oriental')}
+          className="rounded-full gap-2"
+        >
+          <Zap className="w-4 h-4" /> Oriental
+        </Button>
+        <Button 
+          variant={method === 'occidental' ? 'default' : 'outline'} 
+          size="sm" 
+          onClick={() => setMethod('occidental')}
+          className="rounded-full gap-2"
+        >
+          <Leaf className="w-4 h-4" /> Occidental
+        </Button>
+        {tea.washingStep && !teaLog?.totalBrews && (
+          <Button 
+            variant={isWashing ? 'secondary' : 'outline'} 
+            size="sm" 
+            onClick={startWash}
+            className="rounded-full gap-2 border-blue-200 text-blue-700"
+          >
+            <Droplets className="w-4 h-4" /> Wash
+          </Button>
+        )}
+      </div>
+
+      <div className="flex items-center gap-8 mb-4">
+        <div className="text-center">
+          <p className="text-xs uppercase text-muted-foreground font-bold mb-1">Infusion</p>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setInfusion(Math.max(1, infusion - 1))}>-</Button>
+            <span className="text-xl font-bold">{infusion}</span>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setInfusion(infusion + 1)}>+</Button>
           </div>
         </div>
-      )}
+        <div className="text-center">
+          <p className="text-xs uppercase text-muted-foreground font-bold mb-1">Temp</p>
+          <p className="text-xl font-bold">{temp}°C</p>
+        </div>
+      </div>
 
-      <div className="w-48 h-48 relative">
+      <div className="w-64 h-64 relative">
         <CircularProgressbar
           value={progress}
           text={formatTime(seconds)}
           styles={buildStyles({
             textSize: '1.5rem',
-            pathColor: 'hsl(var(--primary))',
+            pathColor: isWashing ? '#3b82f6' : 'hsl(var(--primary))',
             textColor: 'hsl(var(--foreground))',
             trailColor: 'hsl(var(--muted))',
             pathTransitionDuration: 0.5,
           })}
         />
+        {isWashing && (
+          <Badge className="absolute top-0 right-0 bg-blue-500">Washing</Badge>
+        )}
       </div>
 
       <div className="flex items-center gap-4">
         <Button
           onClick={toggleTimer}
           size="lg"
-          className="rounded-full w-14 h-14 p-0 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+          className="rounded-full w-16 h-16 p-0 shadow-lg hover:shadow-xl transition-all hover:scale-105"
         >
-          {isActive ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-1" />}
+          {isActive ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
         </Button>
         
         <Button
@@ -146,15 +199,15 @@ export function BrewTimer({
             className="text-xs text-primary"
             disabled={updateLog.isPending}
           >
-            Save as My Pref
+            Save Preference
           </Button>
         )}
       </div>
 
-      <p className="text-sm text-muted-foreground text-center max-w-xs">
+      <p className="text-sm text-muted-foreground text-center max-w-xs italic">
         {isActive 
-          ? "Relax and watch the leaves unfurl..." 
-          : "Ready to brew? Start the timer."}
+          ? "The essence of the leaves is coming alive..." 
+          : isWashing ? "Rinsing the soul of the tea." : "Select your method and infusion to begin."}
       </p>
     </div>
   );
