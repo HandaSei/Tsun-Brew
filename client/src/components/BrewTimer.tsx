@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Droplets, Zap, Leaf } from "lucide-react";
+import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X } from "lucide-react";
 import { useUpdateLog } from "@/hooks/use-logs";
 import { type Tea, type TeaLog } from "@shared/schema";
+import { Input } from "@/components/ui/input";
 
 interface BrewTimerProps {
   tea: Tea;
@@ -27,19 +28,22 @@ export function BrewTimer({
   const [infusion, setInfusion] = useState(initialInfusion);
   const [isActive, setIsActive] = useState(false);
   
-  const getInitialSeconds = () => {
-    const base = method === 'oriental' ? (tea.orientalDuration || 20) : (tea.occidentalDuration || 180);
-    const inc = method === 'oriental' ? (tea.orientalInfusionIncrement || 10) : (tea.occidentalInfusionIncrement || 30);
-    return base + (infusion - 1) * inc;
-  };
+  // Editable fields for personal use
+  const [oDuration, setODuration] = useState(personalSettings?.orientalDuration ?? tea.orientalDuration ?? 20);
+  const [oIncrement, setOIncrement] = useState(personalSettings?.orientalIncrement ?? tea.orientalInfusionIncrement ?? 10);
+  const [occInfusions, setOccInfusions] = useState<number[]>(personalSettings?.occidentalInfusions ?? (tea.occidentalInfusions as number[]) ?? [tea.occidentalDuration ?? 180]);
+  const [temp, setTemp] = useState(personalSettings?.temp ?? (method === 'oriental' ? tea.orientalTemp : tea.occidentalTemp) ?? 85);
 
-  const getInitialTemp = () => {
-    return method === 'oriental' ? (tea.orientalTemp || 95) : (tea.occidentalTemp || 85);
+  const getInitialSeconds = () => {
+    if (method === 'oriental') {
+      return oDuration + (infusion - 1) * oIncrement;
+    } else {
+      return occInfusions[Math.min(infusion - 1, occInfusions.length - 1)] || 180;
+    }
   };
 
   const [seconds, setSeconds] = useState(getInitialSeconds());
   const [totalSeconds, setTotalSeconds] = useState(getInitialSeconds());
-  const [temp, setTemp] = useState(getInitialTemp());
   
   const updateLog = useUpdateLog();
 
@@ -47,8 +51,7 @@ export function BrewTimer({
     const s = getInitialSeconds();
     setSeconds(s);
     setTotalSeconds(s);
-    setTemp(getInitialTemp());
-  }, [method, infusion, tea]);
+  }, [method, infusion, tea, oDuration, oIncrement, occInfusions]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -79,7 +82,14 @@ export function BrewTimer({
   const handleSaveSettings = () => {
     updateLog.mutate({
       teaId: tea.id,
-      timerSettings: { temp, method, infusion }
+      timerSettings: { 
+        temp, 
+        method, 
+        infusion,
+        orientalDuration: oDuration,
+        orientalIncrement: oIncrement,
+        occidentalInfusions: occInfusions
+      }
     });
   };
 
@@ -106,7 +116,7 @@ export function BrewTimer({
         <Button 
           variant={method === 'oriental' ? 'default' : 'outline'} 
           size="sm" 
-          onClick={() => setMethod('oriental')}
+          onClick={() => { setMethod('oriental'); setTemp(tea.orientalTemp || 95); }}
           className="rounded-full gap-2"
         >
           <Zap className="w-4 h-4" /> Oriental
@@ -114,29 +124,70 @@ export function BrewTimer({
         <Button 
           variant={method === 'occidental' ? 'default' : 'outline'} 
           size="sm" 
-          onClick={() => setMethod('occidental')}
+          onClick={() => { setMethod('occidental'); setTemp(tea.occidentalTemp || 85); }}
           className="rounded-full gap-2"
         >
           <Leaf className="w-4 h-4" /> Occidental
         </Button>
       </div>
 
-      <div className="flex items-center gap-8 mb-4">
-        <div className="text-center">
-          <p className="text-xs uppercase text-muted-foreground font-bold mb-1">Infusion</p>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setInfusion(Math.max(1, infusion - 1))}>-</Button>
-            <span className="text-xl font-bold">{infusion}</span>
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setInfusion(infusion + 1)}>+</Button>
+      {showControls && (
+        <div className="grid grid-cols-2 gap-4 w-full max-w-sm p-4 bg-secondary/20 rounded-xl border border-border/50 animate-in fade-in slide-in-from-top-2">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase text-muted-foreground">Temperature (°C)</label>
+            <Input type="number" value={temp} onChange={e => setTemp(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
           </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase text-muted-foreground">Infusion</label>
+            <div className="flex items-center gap-2 h-8">
+              <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setInfusion(Math.max(1, infusion - 1))}>-</Button>
+              <span className="text-xs font-bold">{infusion}</span>
+              <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setInfusion(infusion + 1)}>+</Button>
+            </div>
+          </div>
+          
+          {method === 'oriental' ? (
+            <>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground">Initial (s)</label>
+                <Input type="number" value={oDuration} onChange={e => setODuration(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground">Increment (s)</label>
+                <Input type="number" value={oIncrement} onChange={e => setOIncrement(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
+              </div>
+            </>
+          ) : (
+            <div className="col-span-2 space-y-2">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground">Occidental Infusions (s)</label>
+              <div className="flex flex-wrap gap-2">
+                {occInfusions.map((dur, idx) => (
+                  <div key={idx} className="flex items-center gap-1 bg-background rounded border p-1">
+                    <Input 
+                      type="number" 
+                      value={dur} 
+                      onChange={e => {
+                        const newInfusions = [...occInfusions];
+                        newInfusions[idx] = parseInt(e.target.value) || 0;
+                        setOccInfusions(newInfusions);
+                      }}
+                      className="h-6 w-12 text-[10px] border-none p-0 text-center"
+                    />
+                    <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => setOccInfusions(occInfusions.filter((_, i) => i !== idx))}>
+                      <X className="w-2 h-2" />
+                    </Button>
+                  </div>
+                ))}
+                <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setOccInfusions([...occInfusions, 180])}>
+                  <Plus className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="text-center">
-          <p className="text-xs uppercase text-muted-foreground font-bold mb-1">Temp</p>
-          <p className="text-xl font-bold">{temp}°C</p>
-        </div>
-      </div>
+      )}
 
-      {tea.washingStep && infusion === 1 && (
+      {method === 'oriental' && tea.washingStep && infusion === 1 && (
         <div className="mb-4 p-3 bg-blue-50/50 border border-blue-100 rounded-lg flex items-center gap-3 text-blue-700 text-sm animate-in fade-in slide-in-from-top-2">
           <Droplets className="w-4 h-4" />
           Recommended wash: {tea.washingDuration || 10} seconds
@@ -191,7 +242,7 @@ export function BrewTimer({
       <p className="text-sm text-muted-foreground text-center max-w-xs italic">
         {isActive 
           ? "The essence of the leaves is coming alive..." 
-          : "Select your method and infusion to begin."}
+          : "Ready to brew? Check your settings and begin."}
       </p>
     </div>
   );

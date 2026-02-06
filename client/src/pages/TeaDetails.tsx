@@ -20,7 +20,8 @@ import {
   Settings,
   Edit2,
   Droplets,
-  Zap
+  Zap,
+  X
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import {
@@ -357,48 +358,57 @@ export default function TeaDetails() {
                               </TabsContent>
 
                               <TabsContent value="occidental" className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <FormField
-                                    control={form.control}
-                                    name="occidentalTemp"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Temp (°C)</FormLabel>
-                                        <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name="occidentalDuration"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Initial Duration (s)</FormLabel>
-                                        <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name="occidentalInfusionIncrement"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Infusion Increment (s)</FormLabel>
-                                        <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name="occidentalMaxInfusions"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Max Infusions</FormLabel>
-                                        <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
+                                <div className="space-y-2">
+                                  <label className="text-sm font-medium">Infusion Durations (s)</label>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(form.watch('occidentalInfusions') as number[] || []).map((dur: number, idx: number) => (
+                                      <div key={idx} className="flex items-center gap-1 bg-secondary/20 rounded p-1">
+                                        <Input 
+                                          type="number" 
+                                          value={dur} 
+                                          onChange={e => {
+                                            const infs = [...(form.getValues('occidentalInfusions') as number[])];
+                                            infs[idx] = parseInt(e.target.value) || 0;
+                                            form.setValue('occidentalInfusions', infs);
+                                          }}
+                                          className="h-8 w-16 text-xs"
+                                        />
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon" 
+                                          className="h-6 w-6" 
+                                          onClick={() => {
+                                            const infs = (form.getValues('occidentalInfusions') as number[]).filter((_, i) => i !== idx);
+                                            form.setValue('occidentalInfusions', infs);
+                                          }}
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                    <Button 
+                                      type="button"
+                                      variant="outline" 
+                                      size="sm" 
+                                      onClick={() => {
+                                        const current = form.getValues('occidentalInfusions') as number[] || [];
+                                        form.setValue('occidentalInfusions', [...current, 180]);
+                                      }}
+                                    >
+                                      <Plus className="w-3 h-3 mr-1" /> Add
+                                    </Button>
+                                  </div>
                                 </div>
+                                <FormField
+                                  control={form.control}
+                                  name="occidentalTemp"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Temp (°C)</FormLabel>
+                                      <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
+                                    </FormItem>
+                                  )}
+                                />
                               </TabsContent>
                             </Tabs>
                             <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={updateTea.isPending}>

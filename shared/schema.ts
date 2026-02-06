@@ -24,28 +24,27 @@ export const teas = pgTable("teas", {
   averageScore: integer("average_score").default(0),
   
   // Brewing Parameters
-  recommendedTemp: integer("recommended_temp"), // Western/Default
-  recommendedDuration: integer("recommended_duration"), // Western/Default
+  recommendedTemp: integer("recommended_temp"), // General default
+  recommendedDuration: integer("recommended_duration"), // General default
   
-  // New: Oriental/Occidental structure
+  // Oriental/Gongfu
   orientalTemp: integer("oriental_temp"),
   orientalDuration: integer("oriental_duration"),
-  orientalInfusionIncrement: integer("oriental_infusion_increment"), // seconds to add per infusion
+  orientalInfusionIncrement: integer("oriental_infusion_increment"), 
   orientalMaxInfusions: integer("oriental_max_infusions"),
   
+  // Occidental/Western
   occidentalTemp: integer("occidental_temp"),
   occidentalDuration: integer("occidental_duration"),
-  occidentalInfusionIncrement: integer("occidental_infusion_increment"),
-  occidentalMaxInfusions: integer("occidental_max_infusions"),
+  occidentalInfusions: jsonb("occidental_infusions"), // Array of seconds: [180, 240, 300]
   
   washingStep: boolean("washing_step").default(false),
-  washingDuration: integer("washing_duration"), // in seconds
+  washingDuration: integer("washing_duration"),
   
   createdById: integer("created_by_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// For custom attributes/info table
 export const teaAttributes = pgTable("tea_attributes", {
   id: serial("id").primaryKey(),
   teaId: integer("tea_id").notNull().references(() => teas.id),
@@ -57,11 +56,11 @@ export const teaLogs = pgTable("tea_logs", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   teaId: integer("tea_id").notNull().references(() => teas.id),
-  personalScore: jsonb("personal_score"), // { visual: 8, taste: 9, story: 7 }
-  status: text("status").notNull().default("want_to_try"), // 'drinking', 'completed', 'want_to_try'
+  personalScore: jsonb("personal_score"),
+  status: text("status").notNull().default("want_to_try"),
   totalBrews: integer("total_brews").default(0),
   currentInfusion: integer("current_infusion").default(1),
-  timerSettings: jsonb("timer_settings"), // { temp: 85, method: 'oriental', infusion: 1 }
+  timerSettings: jsonb("timer_settings"), // { temp, method, infusion, orientalDuration, orientalIncrement, occidentalInfusions }
   lastBrewedAt: timestamp("last_brewed_at"),
 });
 
@@ -80,7 +79,7 @@ export const reviews = pgTable("reviews", {
   teaId: integer("tea_id").notNull().references(() => teas.id),
   userId: integer("user_id").notNull().references(() => users.id),
   content: text("content").notNull(),
-  rating: integer("rating").notNull(), // 1-10 or 1-100
+  rating: integer("rating").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
