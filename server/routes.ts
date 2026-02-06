@@ -76,6 +76,13 @@ export async function registerRoutes(
   app.post(api.logs.update.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const user = req.user as User;
+    
+    // Check if adding new log (not updating existing one)
+    const existingLog = await storage.getTeaLog(user.id, req.body.teaId);
+    if (!req.body.id && existingLog) {
+      return res.status(400).json({ message: "This tea is already in your list." });
+    }
+
     const input = api.logs.update.input.parse(req.body);
     const log = await storage.upsertTeaLog({ ...input, userId: user.id });
     res.json(log);

@@ -161,26 +161,35 @@ export function BrewTimer({
             <div className="col-span-2 space-y-2">
               <label className="text-[10px] font-bold uppercase text-muted-foreground">Occidental Infusions (s)</label>
               <div className="flex flex-wrap gap-2">
-                {occInfusions.map((dur, idx) => (
-                  <div key={idx} className="flex items-center gap-1 bg-background rounded border p-1">
-                    <Input 
-                      type="number" 
-                      value={dur} 
-                      onChange={e => {
-                        const newInfusions = [...occInfusions];
-                        newInfusions[idx] = parseInt(e.target.value) || 0;
-                        setOccInfusions(newInfusions);
-                      }}
-                      className="h-6 w-12 text-[10px] border-none p-0 text-center"
-                    />
-                    <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => setOccInfusions(occInfusions.filter((_, i) => i !== idx))}>
-                      <X className="w-2 h-2" />
-                    </Button>
-                  </div>
-                ))}
-                <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setOccInfusions([...occInfusions, 180])}>
-                  <Plus className="w-3 h-3" />
-                </Button>
+                {occInfusions.map((dur, idx) => {
+                  const label = idx === 0 ? "1st" : idx === 1 ? "2nd" : idx === 2 ? "3rd" : `${idx + 1}th`;
+                  return (
+                    <div key={idx} className="flex flex-col gap-1">
+                      <span className="text-[8px] text-muted-foreground font-bold text-center">{label}</span>
+                      <div className="flex items-center gap-1 bg-background rounded border p-1">
+                        <Input 
+                          type="number" 
+                          value={dur} 
+                          onChange={e => {
+                            const newInfusions = [...occInfusions];
+                            newInfusions[idx] = parseInt(e.target.value) || 0;
+                            setOccInfusions(newInfusions);
+                          }}
+                          className="h-6 w-12 text-[10px] border-none p-0 text-center"
+                        />
+                        <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => setOccInfusions(occInfusions.filter((_, i) => i !== idx))}>
+                          <X className="w-2 h-2" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="flex flex-col gap-1">
+                  <span className="text-[8px] invisible">add</span>
+                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setOccInfusions([...occInfusions, 180])}>
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
               </div>
             </div>
           )}
