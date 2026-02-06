@@ -35,10 +35,6 @@ export default function MyList() {
   const completed = logs?.filter(log => log.status === 'completed') || [];
 
   const TeaListItem = ({ log }: { log: any }) => {
-    const personalSettings = log.timerSettings as any;
-    const initialSeconds = personalSettings?.duration || log.tea.recommendedDuration || 60;
-    const initialTemp = personalSettings?.temp || log.tea.recommendedTemp || 85;
-
     return (
       <div className="glass-card p-4 rounded-xl flex items-center gap-4 group transition-all hover:shadow-lg">
         <Link href={`/tea/${log.tea.id}`} className="flex-1 flex items-center gap-4">
@@ -69,13 +65,12 @@ export default function MyList() {
                 <Timer className="w-4 h-4" />
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <div className="pt-6">
                 <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
                 <BrewTimer 
-                  teaId={log.tea.id} 
-                  initialSeconds={initialSeconds} 
-                  initialTemp={initialTemp}
+                  tea={log.tea}
+                  teaLog={log}
                   showControls={true}
                 />
               </div>

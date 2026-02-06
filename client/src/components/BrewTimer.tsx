@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Play, Pause, RotateCcw, Droplets, Zap, Leaf } from "lucide-react";
 import { useUpdateLog } from "@/hooks/use-logs";
 import { type Tea, type TeaLog } from "@shared/schema";
-import { Badge } from "@/components/ui/badge";
 
 interface BrewTimerProps {
   tea: Tea;
@@ -27,10 +26,8 @@ export function BrewTimer({
   const [method, setMethod] = useState<'oriental' | 'occidental'>(initialMethod);
   const [infusion, setInfusion] = useState(initialInfusion);
   const [isActive, setIsActive] = useState(false);
-  const [isWashing, setIsWashing] = useState(false);
   
   const getInitialSeconds = () => {
-    if (isWashing) return tea.washingDuration || 10;
     const base = method === 'oriental' ? (tea.orientalDuration || 20) : (tea.occidentalDuration || 180);
     const inc = method === 'oriental' ? (tea.orientalInfusionIncrement || 10) : (tea.occidentalInfusionIncrement || 30);
     return base + (infusion - 1) * inc;
@@ -51,7 +48,7 @@ export function BrewTimer({
     setSeconds(s);
     setTotalSeconds(s);
     setTemp(getInitialTemp());
-  }, [method, infusion, isWashing, tea]);
+  }, [method, infusion, tea]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -69,17 +66,13 @@ export function BrewTimer({
   }, [isActive, seconds]);
 
   const handleComplete = () => {
-    if (!isWashing) {
-      updateLog.mutate({
-        teaId: tea.id,
-        incrementBrew: true,
-        currentInfusion: infusion + 1,
-        status: 'drinking'
-      });
-      setInfusion(i => i + 1);
-    } else {
-      setIsWashing(false);
-    }
+    updateLog.mutate({
+      teaId: tea.id,
+      incrementBrew: true,
+      currentInfusion: infusion + 1,
+      status: 'drinking'
+    });
+    setInfusion(i => i + 1);
     if (onComplete) onComplete();
   };
 
@@ -94,12 +87,9 @@ export function BrewTimer({
   
   const resetTimer = () => {
     setIsActive(false);
-    setSeconds(getInitialSeconds());
-  };
-
-  const startWash = () => {
-    setIsWashing(true);
-    setIsActive(true);
+    const s = getInitialSeconds();
+    setSeconds(s);
+    setTotalSeconds(s);
   };
 
   const progress = ((totalSeconds - seconds) / totalSeconds) * 100;
@@ -129,16 +119,6 @@ export function BrewTimer({
         >
           <Leaf className="w-4 h-4" /> Occidental
         </Button>
-        {tea.washingStep && !teaLog?.totalBrews && (
-          <Button 
-            variant={isWashing ? 'secondary' : 'outline'} 
-            size="sm" 
-            onClick={startWash}
-            className="rounded-full gap-2 border-blue-200 text-blue-700"
-          >
-            <Droplets className="w-4 h-4" /> Wash
-          </Button>
-        )}
       </div>
 
       <div className="flex items-center gap-8 mb-4">
@@ -156,21 +136,25 @@ export function BrewTimer({
         </div>
       </div>
 
+      {tea.washingStep && infusion === 1 && (
+        <div className="mb-4 p-3 bg-blue-50/50 border border-blue-100 rounded-lg flex items-center gap-3 text-blue-700 text-sm animate-in fade-in slide-in-from-top-2">
+          <Droplets className="w-4 h-4" />
+          Recommended wash: {tea.washingDuration || 10} seconds
+        </div>
+      )}
+
       <div className="w-64 h-64 relative">
         <CircularProgressbar
           value={progress}
           text={formatTime(seconds)}
           styles={buildStyles({
             textSize: '1.5rem',
-            pathColor: isWashing ? '#3b82f6' : 'hsl(var(--primary))',
+            pathColor: 'hsl(var(--primary))',
             textColor: 'hsl(var(--foreground))',
             trailColor: 'hsl(var(--muted))',
             pathTransitionDuration: 0.5,
           })}
         />
-        {isWashing && (
-          <Badge className="absolute top-0 right-0 bg-blue-500">Washing</Badge>
-        )}
       </div>
 
       <div className="flex items-center gap-4">
@@ -207,7 +191,7 @@ export function BrewTimer({
       <p className="text-sm text-muted-foreground text-center max-w-xs italic">
         {isActive 
           ? "The essence of the leaves is coming alive..." 
-          : isWashing ? "Rinsing the soul of the tea." : "Select your method and infusion to begin."}
+          : "Select your method and infusion to begin."}
       </p>
     </div>
   );

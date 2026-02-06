@@ -61,7 +61,7 @@ export const teaLogs = pgTable("tea_logs", {
   status: text("status").notNull().default("want_to_try"), // 'drinking', 'completed', 'want_to_try'
   totalBrews: integer("total_brews").default(0),
   currentInfusion: integer("current_infusion").default(1),
-  timerSettings: jsonb("timer_settings"), // { temp: 85, duration: 60, type: 'gongfu', infusion: 1 }
+  timerSettings: jsonb("timer_settings"), // { temp: 85, method: 'oriental', infusion: 1 }
   lastBrewedAt: timestamp("last_brewed_at"),
 });
 
