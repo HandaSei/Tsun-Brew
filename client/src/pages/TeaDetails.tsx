@@ -361,7 +361,7 @@ export default function TeaDetails() {
                                 <div className="space-y-2">
                                   <label className="text-sm font-medium">Infusion Durations (s)</label>
                                   <div className="flex flex-wrap gap-4">
-                                    {(form.watch('occidentalInfusions') as number[] || []).map((dur: number, idx: number) => {
+                                    {((form.watch('occidentalInfusions' as any) as number[]) || []).map((dur: number, idx: number) => {
                                       const label = idx === 0 ? "1st" : idx === 1 ? "2nd" : idx === 2 ? "3rd" : `${idx + 1}th`;
                                       return (
                                         <div key={idx} className="flex flex-col gap-1 items-center">
@@ -371,19 +371,20 @@ export default function TeaDetails() {
                                               type="number" 
                                               value={dur} 
                                               onChange={e => {
-                                                const infs = [...(form.getValues('occidentalInfusions') as number[])];
+                                                const infs = [...(form.getValues('occidentalInfusions' as any) as number[])];
                                                 infs[idx] = parseInt(e.target.value) || 0;
-                                                form.setValue('occidentalInfusions', infs);
+                                                form.setValue('occidentalInfusions' as any, infs);
                                               }}
                                               className="h-8 w-16 text-xs"
                                             />
                                             <Button 
+                                              type="button"
                                               variant="ghost" 
                                               size="icon" 
                                               className="h-6 w-6" 
                                               onClick={() => {
-                                                const infs = (form.getValues('occidentalInfusions') as number[]).filter((_, i) => i !== idx);
-                                                form.setValue('occidentalInfusions', infs);
+                                                const infs = (form.getValues('occidentalInfusions' as any) as number[]).filter((_, i) => i !== idx);
+                                                form.setValue('occidentalInfusions' as any, infs);
                                               }}
                                             >
                                               <X className="w-3 h-3" />
@@ -399,8 +400,8 @@ export default function TeaDetails() {
                                         size="sm" 
                                         className="h-10"
                                         onClick={() => {
-                                          const current = form.getValues('occidentalInfusions') as number[] || [];
-                                          form.setValue('occidentalInfusions', [...current, 180]);
+                                          const current = form.getValues('occidentalInfusions' as any) as number[] || [];
+                                          form.setValue('occidentalInfusions' as any, [...current, 180]);
                                         }}
                                       >
                                         <Plus className="w-3 h-3 mr-1" /> Add

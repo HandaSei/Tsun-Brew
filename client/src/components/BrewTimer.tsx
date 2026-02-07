@@ -33,6 +33,7 @@ export function BrewTimer({
   const [oIncrement, setOIncrement] = useState(personalSettings?.orientalIncrement ?? tea.orientalInfusionIncrement ?? 10);
   const [occInfusions, setOccInfusions] = useState<number[]>(personalSettings?.occidentalInfusions ?? (tea.occidentalInfusions as number[]) ?? [tea.occidentalDuration ?? 180]);
   const [temp, setTemp] = useState(personalSettings?.temp ?? (method === 'oriental' ? tea.orientalTemp : tea.occidentalTemp) ?? 85);
+  const [washingDuration, setWashingDuration] = useState(personalSettings?.washingDuration ?? tea.washingDuration ?? 10);
 
   const getInitialSeconds = () => {
     if (method === 'oriental') {
@@ -57,7 +58,7 @@ export function BrewTimer({
     let interval: NodeJS.Timeout | null = null;
     if (isActive && seconds > 0) {
       interval = setInterval(() => {
-        setSeconds((s) => s - 1);
+        setSeconds((s: number) => s - 1);
       }, 1000);
     } else if (seconds === 0 && isActive) {
       setIsActive(false);
@@ -88,7 +89,8 @@ export function BrewTimer({
         infusion,
         orientalDuration: oDuration,
         orientalIncrement: oIncrement,
-        occidentalInfusions: occInfusions
+        occidentalInfusions: occInfusions,
+        washingDuration: washingDuration
       }
     });
   };
@@ -216,9 +218,22 @@ export function BrewTimer({
       )}
 
       {method === 'oriental' && tea.washingStep && infusion === 1 && (
-        <div className="mb-4 p-3 bg-blue-50/50 border border-blue-100 rounded-lg flex items-center gap-3 text-blue-700 text-sm animate-in fade-in slide-in-from-top-2">
-          <Droplets className="w-4 h-4" />
-          Recommended wash: {tea.washingDuration || 10} seconds
+        <div className="mb-4 p-4 bg-blue-50/50 border border-blue-100 rounded-xl flex flex-col gap-3 animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-3 text-blue-700 text-sm font-medium">
+            <Droplets className="w-4 h-4" />
+            Recommended wash: {washingDuration} seconds
+          </div>
+          {showControls && (
+            <div className="flex items-center gap-3">
+              <label className="text-[10px] font-bold uppercase text-blue-600/70">Edit Wash (s)</label>
+              <Input 
+                type="number" 
+                value={washingDuration} 
+                onChange={e => setWashingDuration(parseInt(e.target.value) || 0)} 
+                className="h-7 w-16 text-xs bg-white/50 border-blue-200"
+              />
+            </div>
+          )}
         </div>
       )}
 
