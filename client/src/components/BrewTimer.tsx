@@ -82,6 +82,7 @@ export function BrewTimer({
 
   const handleSaveSettings = () => {
     updateLog.mutate({
+      id: teaLog?.id,
       teaId: tea.id,
       timerSettings: { 
         temp, 

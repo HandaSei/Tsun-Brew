@@ -430,8 +430,15 @@ export default function TeaDetails() {
                     </Dialog>
                   )}
                   {user && (
-                    <Button onClick={handleAddToMyList} disabled={updateLog.isPending} variant="outline" className="gap-2 shadow-sm rounded-full">
-                      {updateLog.isPending ? "Adding..." : <><Plus className="w-4 h-4" /> Add to List</>}
+                    <Button 
+                      onClick={handleAddToMyList} 
+                      disabled={updateLog.isPending} 
+                      variant={teaLog ? "ghost" : "outline"} 
+                      className="gap-2 shadow-sm rounded-full"
+                    >
+                      {updateLog.isPending ? "Updating..." : (
+                        teaLog ? "In My List" : <><Plus className="w-4 h-4" /> Add to List</>
+                      )}
                     </Button>
                   )}
                 </div>
