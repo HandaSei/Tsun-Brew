@@ -144,6 +144,8 @@ export class DatabaseStorage implements IStorage {
         .set(updates)
         .where(eq(teaLogs.id, existing.id))
         .returning();
+      
+      if (!updated) throw new Error("Failed to update tea log");
       return updated;
     } else {
       const [created] = await db.insert(teaLogs).values({
@@ -151,6 +153,8 @@ export class DatabaseStorage implements IStorage {
         totalBrews: log.incrementBrew ? 1 : 0,
         lastBrewedAt: log.incrementBrew ? new Date() : null
       } as any).returning();
+      
+      if (!created) throw new Error("Failed to create tea log");
       return created;
     }
   }

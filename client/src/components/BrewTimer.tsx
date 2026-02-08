@@ -4,6 +4,7 @@ import "react-circular-progressbar/dist/styles.css";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X } from "lucide-react";
 import { useUpdateLog } from "@/hooks/use-logs";
+import { useToast } from "@/hooks/use-toast";
 import { type Tea, type TeaLog } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 
@@ -47,6 +48,7 @@ export function BrewTimer({
   const [totalSeconds, setTotalSeconds] = useState(getInitialSeconds());
   
   const updateLog = useUpdateLog();
+  const { toast } = useToast();
 
   // Update initial settings when teaLog changes (on load/refresh)
   useEffect(() => {
@@ -106,6 +108,13 @@ export function BrewTimer({
         washingDuration: washingDuration
       },
       status: teaLog?.status || 'want_to_try'
+    }, {
+      onSuccess: () => {
+        toast({ title: "Success", description: "Your custom timer has been saved." });
+      },
+      onError: (err: any) => {
+        toast({ title: "Error", description: err.message || "Failed to save timer", variant: "destructive" });
+      }
     });
   };
 
