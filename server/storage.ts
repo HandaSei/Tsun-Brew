@@ -129,7 +129,12 @@ export class DatabaseStorage implements IStorage {
     const existing = await this.getTeaLog(log.userId, log.teaId);
     
     if (existing) {
-      let updates: any = { ...log };
+      const updates: any = {};
+      if (log.status) updates.status = log.status;
+      if (log.personalScore) updates.personalScore = log.personalScore;
+      if (log.currentInfusion !== undefined) updates.currentInfusion = log.currentInfusion;
+      if (log.timerSettings) updates.timerSettings = log.timerSettings;
+
       if (log.incrementBrew) {
         updates.totalBrews = (existing.totalBrews || 0) + 1;
         updates.lastBrewedAt = new Date();

@@ -48,6 +48,18 @@ export function BrewTimer({
   
   const updateLog = useUpdateLog();
 
+  // Update initial settings when teaLog changes (on load/refresh)
+  useEffect(() => {
+    if (personalSettings) {
+      setTemp(personalSettings.temp ?? temp);
+      setMethod(personalSettings.method ?? method);
+      setODuration(personalSettings.orientalDuration ?? oDuration);
+      setOIncrement(personalSettings.orientalIncrement ?? oIncrement);
+      setOccInfusions(personalSettings.occidentalInfusions ?? occInfusions);
+      setWashingDuration(personalSettings.washingDuration ?? washingDuration);
+    }
+  }, [teaLog]);
+
   useEffect(() => {
     const s = getInitialSeconds();
     setSeconds(s);
@@ -92,7 +104,8 @@ export function BrewTimer({
         orientalIncrement: oIncrement,
         occidentalInfusions: occInfusions,
         washingDuration: washingDuration
-      }
+      },
+      status: teaLog?.status || 'want_to_try'
     });
   };
 
