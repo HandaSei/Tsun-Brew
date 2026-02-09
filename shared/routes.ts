@@ -120,6 +120,12 @@ export const api = {
           temp: z.number().optional(),
           duration: z.number().optional(),
           type: z.string().optional(),
+          method: z.string().optional(),
+          infusion: z.number().optional(),
+          orientalDuration: z.number().optional(),
+          orientalIncrement: z.number().optional(),
+          occidentalInfusions: z.array(z.number()).optional(),
+          washingDuration: z.number().optional(),
         }).optional(),
       }),
       responses: {

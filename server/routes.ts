@@ -77,9 +77,12 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const user = req.user as User;
     
-    // Check if adding new log (not updating existing one)
     const existingLog = await storage.getTeaLog(user.id, req.body.teaId);
-    if (!req.body.id && existingLog) {
+    
+    const isUpdate = req.body.timerSettings || req.body.incrementBrew || req.body.personalScore || 
+                     (req.body.status && existingLog);
+    
+    if (!isUpdate && existingLog) {
       return res.status(400).json({ message: "This tea is already in your list." });
     }
 

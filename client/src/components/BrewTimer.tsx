@@ -53,7 +53,6 @@ export function BrewTimer({
   // Update initial settings when teaLog changes (on load/refresh)
   useEffect(() => {
     if (personalSettings) {
-      console.log("Loading personal settings:", personalSettings);
       setTemp(personalSettings.temp ?? temp);
       setMethod(personalSettings.method ?? method);
       setODuration(personalSettings.orientalDuration ?? oDuration);
@@ -97,7 +96,6 @@ export function BrewTimer({
 
   const handleSaveSettings = () => {
     updateLog.mutate({
-      id: teaLog?.id,
       teaId: tea.id,
       timerSettings: { 
         temp, 
@@ -109,7 +107,7 @@ export function BrewTimer({
         washingDuration: washingDuration
       },
       status: teaLog?.status || 'want_to_try'
-    }, {
+    } as any, {
       onSuccess: () => {
         toast({ title: "Success", description: "Your custom timer has been saved." });
       },
