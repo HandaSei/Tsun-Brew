@@ -53,6 +53,7 @@ export function BrewTimer({
   // Update initial settings when teaLog changes (on load/refresh)
   useEffect(() => {
     if (personalSettings) {
+      console.log("Loading personal settings:", personalSettings);
       setTemp(personalSettings.temp ?? temp);
       setMethod(personalSettings.method ?? method);
       setODuration(personalSettings.orientalDuration ?? oDuration);
@@ -60,7 +61,7 @@ export function BrewTimer({
       setOccInfusions(personalSettings.occidentalInfusions ?? occInfusions);
       setWashingDuration(personalSettings.washingDuration ?? washingDuration);
     }
-  }, [teaLog]);
+  }, [teaLog?.timerSettings]);
 
   useEffect(() => {
     const s = getInitialSeconds();
