@@ -35,8 +35,6 @@ export function BrewTimer({
   const [occInfusions, setOccInfusions] = useState<number[]>(personalSettings?.occidentalInfusions ?? (tea.occidentalInfusions as number[]) ?? [tea.occidentalDuration ?? 180]);
   const [temp, setTemp] = useState(personalSettings?.temp ?? (method === 'oriental' ? tea.orientalTemp : tea.occidentalTemp) ?? 85);
   const [washingDuration, setWashingDuration] = useState(personalSettings?.washingDuration ?? tea.washingDuration ?? 10);
-  const [leafQuantity, setLeafQuantity] = useState(personalSettings?.leafQuantity ?? tea.recommendedLeafQuantity ?? 5);
-  const [waterVolume, setWaterVolume] = useState(personalSettings?.waterVolume ?? tea.recommendedWaterVolume ?? 150);
 
   const getInitialSeconds = () => {
     if (method === 'oriental') {
@@ -61,8 +59,6 @@ export function BrewTimer({
       setOIncrement(personalSettings.orientalIncrement ?? oIncrement);
       setOccInfusions(personalSettings.occidentalInfusions ?? occInfusions);
       setWashingDuration(personalSettings.washingDuration ?? washingDuration);
-      setLeafQuantity(personalSettings.leafQuantity ?? leafQuantity);
-      setWaterVolume(personalSettings.waterVolume ?? waterVolume);
     }
   }, [teaLog?.timerSettings]);
 
@@ -108,9 +104,7 @@ export function BrewTimer({
         orientalDuration: oDuration,
         orientalIncrement: oIncrement,
         occidentalInfusions: occInfusions,
-        washingDuration: washingDuration,
-        leafQuantity,
-        waterVolume
+        washingDuration: washingDuration
       },
       status: teaLog?.status || 'want_to_try'
     } as any, {
@@ -142,16 +136,6 @@ export function BrewTimer({
 
   return (
     <div className="flex flex-col items-center gap-6 p-4 w-full">
-      {!showControls && (
-        <div className="flex gap-4 text-sm font-medium text-muted-foreground mb-2">
-          <div className="flex items-center gap-1">
-            <Leaf className="w-4 h-4" /> {leafQuantity}g
-          </div>
-          <div className="flex items-center gap-1">
-            <Droplets className="w-4 h-4" /> {waterVolume}ml
-          </div>
-        </div>
-      )}
       <div className="flex flex-wrap justify-center gap-2 mb-4">
         <Button 
           variant={method === 'oriental' ? 'default' : 'outline'} 
@@ -173,14 +157,6 @@ export function BrewTimer({
 
       {showControls && (
         <div className="grid grid-cols-2 gap-4 w-full max-w-sm p-4 bg-secondary/20 rounded-xl border border-border/50 animate-in fade-in slide-in-from-top-2">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-muted-foreground">Leaf (g)</label>
-            <Input type="number" value={leafQuantity} onChange={e => setLeafQuantity(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-muted-foreground">Water (ml)</label>
-            <Input type="number" value={waterVolume} onChange={e => setWaterVolume(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
-          </div>
           <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase text-muted-foreground">Temperature (°C)</label>
             <Input type="number" value={temp} onChange={e => setTemp(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
