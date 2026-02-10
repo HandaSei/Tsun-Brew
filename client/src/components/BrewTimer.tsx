@@ -35,6 +35,8 @@ export function BrewTimer({
   const [occInfusions, setOccInfusions] = useState<number[]>(personalSettings?.occidentalInfusions ?? (tea.occidentalInfusions as number[]) ?? [tea.occidentalDuration ?? 180]);
   const [temp, setTemp] = useState(personalSettings?.temp ?? (method === 'oriental' ? tea.orientalTemp : tea.occidentalTemp) ?? 85);
   const [washingDuration, setWashingDuration] = useState(personalSettings?.washingDuration ?? tea.washingDuration ?? 10);
+  const [leafAmount, setLeafAmount] = useState(personalSettings?.leafAmount ?? tea.recommendedLeafAmount ?? "");
+  const [waterAmount, setWaterAmount] = useState(personalSettings?.waterAmount ?? tea.recommendedWaterAmount ?? "");
 
   const getInitialSeconds = () => {
     if (method === 'oriental') {
@@ -59,6 +61,8 @@ export function BrewTimer({
       setOIncrement(personalSettings.orientalIncrement ?? oIncrement);
       setOccInfusions(personalSettings.occidentalInfusions ?? occInfusions);
       setWashingDuration(personalSettings.washingDuration ?? washingDuration);
+      setLeafAmount(personalSettings.leafAmount ?? leafAmount);
+      setWaterAmount(personalSettings.waterAmount ?? waterAmount);
     }
   }, [teaLog?.timerSettings]);
 
@@ -104,7 +108,9 @@ export function BrewTimer({
         orientalDuration: oDuration,
         orientalIncrement: oIncrement,
         occidentalInfusions: occInfusions,
-        washingDuration: washingDuration
+        washingDuration: washingDuration,
+        leafAmount: leafAmount || undefined,
+        waterAmount: waterAmount || undefined,
       },
       status: teaLog?.status || 'want_to_try'
     } as any, {
@@ -159,7 +165,7 @@ export function BrewTimer({
         <div className="grid grid-cols-2 gap-4 w-full max-w-sm p-4 bg-secondary/20 rounded-xl border border-border/50 animate-in fade-in slide-in-from-top-2">
           <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase text-muted-foreground">Temperature (°C)</label>
-            <Input type="number" value={temp} onChange={e => setTemp(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
+            <Input type="number" value={temp} onChange={e => setTemp(parseInt(e.target.value) || 0)} className="h-8 text-xs" data-testid="input-timer-temp" />
           </div>
           <div className="space-y-2 flex flex-col items-center justify-center">
             <label className="text-[10px] font-bold uppercase text-muted-foreground">Infusion</label>
@@ -236,6 +242,17 @@ export function BrewTimer({
               </div>
             </div>
           )}
+
+          <div className="col-span-2 grid grid-cols-2 gap-4 pt-2 border-t border-border/30">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground">Leaf Amount</label>
+              <Input value={leafAmount} onChange={e => setLeafAmount(e.target.value)} placeholder={tea.recommendedLeafAmount || "e.g. 5g"} className="h-8 text-xs" data-testid="input-timer-leaf" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground">Water Amount</label>
+              <Input value={waterAmount} onChange={e => setWaterAmount(e.target.value)} placeholder={tea.recommendedWaterAmount || "e.g. 100ml"} className="h-8 text-xs" data-testid="input-timer-water" />
+            </div>
+          </div>
         </div>
       )}
 
@@ -303,6 +320,23 @@ export function BrewTimer({
           </Button>
         )}
       </div>
+
+      {(leafAmount || waterAmount || tea.recommendedLeafAmount || tea.recommendedWaterAmount) && !showControls && (
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          {(leafAmount || tea.recommendedLeafAmount) && (
+            <span className="flex items-center gap-1.5">
+              <Leaf className="w-3.5 h-3.5" />
+              {leafAmount || tea.recommendedLeafAmount}
+            </span>
+          )}
+          {(waterAmount || tea.recommendedWaterAmount) && (
+            <span className="flex items-center gap-1.5">
+              <Droplets className="w-3.5 h-3.5" />
+              {waterAmount || tea.recommendedWaterAmount}
+            </span>
+          )}
+        </div>
+      )}
 
       <p className="text-sm text-muted-foreground text-center max-w-xs italic">
         {isActive 
