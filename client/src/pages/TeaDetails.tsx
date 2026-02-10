@@ -159,6 +159,15 @@ export default function TeaDetails() {
   };
 
   const personalSettings = teaLog?.timerSettings as any;
+  const method = personalSettings?.method || 'oriental';
+  
+  const initialSeconds = personalSettings?.duration || 
+    (method === 'oriental' ? tea.orientalDuration : tea.occidentalDuration) || 
+    tea.recommendedDuration || 60;
+    
+  const initialTemp = personalSettings?.temp || 
+    (method === 'oriental' ? tea.orientalTemp : tea.occidentalTemp) || 
+    tea.recommendedTemp || 85;
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -530,17 +539,14 @@ export default function TeaDetails() {
           </TabsList>
 
           <TabsContent value="info" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="max-w-4xl mx-auto">
-              <div className="glass-card p-8 rounded-3xl">
-                <h3 className="font-display text-2xl mb-8 flex items-center gap-3">
-                  <Zap className="w-6 h-6 text-primary" />
-                  Flavor Profile
-                </h3>
-                <div className="h-[400px] w-full">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="glass-card p-6 rounded-2xl">
+                <h3 className="font-display text-2xl mb-6">Flavor Profile</h3>
+                <div className="h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
                       <PolarGrid stroke="hsl(var(--border))" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 14 }} />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
                       <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
                       <Radar
                         name={tea.name}
@@ -551,6 +557,42 @@ export default function TeaDetails() {
                       />
                     </RadarChart>
                   </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="glass-card p-6 rounded-2xl">
+                  <h3 className="font-display text-2xl mb-4">Brewing Parameters</h3>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                      <h4 className="font-bold text-primary flex items-center gap-2">
+                        <Zap className="w-4 h-4" /> Oriental
+                      </h4>
+                      <div className="text-sm space-y-1">
+                        <p><span className="text-muted-foreground">Temp:</span> {tea.orientalTemp || 95}°C</p>
+                        <p><span className="text-muted-foreground">Initial:</span> {tea.orientalDuration || 20}s</p>
+                        <p><span className="text-muted-foreground">Increment:</span> +{tea.orientalInfusionIncrement || 10}s</p>
+                        <p><span className="text-muted-foreground">Max:</span> {tea.orientalMaxInfusions || 8} infusions</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3 p-4 bg-secondary/20 rounded-xl border border-border">
+                      <h4 className="font-bold text-foreground flex items-center gap-2">
+                        <Leaf className="w-4 h-4" /> Occidental
+                      </h4>
+                      <div className="text-sm space-y-1">
+                        <p><span className="text-muted-foreground">Temp:</span> {tea.occidentalTemp || 85}°C</p>
+                        <p><span className="text-muted-foreground">Initial:</span> {tea.occidentalDuration || 180}s</p>
+                        <p><span className="text-muted-foreground">Increment:</span> +{tea.occidentalInfusionIncrement || 30}s</p>
+                        <p><span className="text-muted-foreground">Max:</span> {tea.occidentalMaxInfusions || 3} infusions</p>
+                      </div>
+                    </div>
+                  </div>
+                  {tea.washingStep && (
+                    <div className="mt-4 p-3 bg-blue-50/50 border border-blue-100 rounded-lg flex items-center gap-3 text-blue-700 text-sm">
+                      <Droplets className="w-4 h-4" />
+                      Recommended wash: {tea.washingDuration || 10} seconds
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
