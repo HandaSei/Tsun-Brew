@@ -24,6 +24,7 @@ export interface IStorage {
   getTeaLog(userId: number, teaId: number): Promise<TeaLog | undefined>;
   getTeaLogs(userId: number): Promise<(TeaLog & { tea: Tea })[]>;
   upsertTeaLog(log: InsertTeaLog & { userId: number, incrementBrew?: boolean }): Promise<TeaLog>;
+  deleteTeaLog(userId: number, teaId: number): Promise<void>;
 
   // Guides
   getGuides(teaId: number): Promise<(Guide & { author: User })[]>;
@@ -157,6 +158,12 @@ export class DatabaseStorage implements IStorage {
       if (!created) throw new Error("Failed to create tea log");
       return created;
     }
+  }
+
+  async deleteTeaLog(userId: number, teaId: number): Promise<void> {
+    await db.delete(teaLogs).where(
+      and(eq(teaLogs.userId, userId), eq(teaLogs.teaId, teaId))
+    );
   }
 
   async getGuides(teaId: number): Promise<(Guide & { author: User })[]> {

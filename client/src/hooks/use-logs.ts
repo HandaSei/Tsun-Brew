@@ -45,3 +45,25 @@ export function useUpdateLog() {
     },
   });
 }
+
+export function useDeleteLog() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (teaId: number) => {
+      const res = await fetch(api.logs.delete.path.replace(":teaId", String(teaId)), {
+        method: api.logs.delete.method,
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to remove tea from list");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.logs.list.path] });
+      toast({ title: "Success", description: "Tea removed from your list" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+}

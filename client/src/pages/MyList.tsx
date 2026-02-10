@@ -1,8 +1,8 @@
-import { useLogs, useUpdateLog } from "@/hooks/use-logs";
+import { useLogs, useUpdateLog, useDeleteLog } from "@/hooks/use-logs";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical } from "lucide-react";
+import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical, Trash2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -11,6 +11,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -18,6 +19,7 @@ export default function MyList() {
   const { user } = useAuth();
   const { data: logs, isLoading } = useLogs();
   const updateLog = useUpdateLog();
+  const deleteLog = useDeleteLog();
   const [, setLocation] = useLocation();
 
   if (!user) {
@@ -39,7 +41,6 @@ export default function MyList() {
   // Group logs by status
   const drinking = logs?.filter(log => log.status === 'drinking') || [];
   const wantToTry = logs?.filter(log => log.status === 'want_to_try') || [];
-  const completed = logs?.filter(log => log.status === 'completed') || [];
   const notRebuying = logs?.filter(log => log.status === 'not_rebuying') || [];
 
   const TeaListItem = ({ log }: { log: any }) => {
@@ -48,6 +49,12 @@ export default function MyList() {
         teaId: log.tea.id,
         status: newStatus
       } as any);
+    };
+
+    const handleDelete = () => {
+      if (confirm(`Remove ${log.tea.name} from your list?`)) {
+        deleteLog.mutate(log.tea.id);
+      }
     };
 
     return (
@@ -106,11 +113,13 @@ export default function MyList() {
                 <DropdownMenuItem onClick={() => handleStatusChange('want_to_try')}>
                   Move to Want to Try
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('completed')}>
-                  Move to Finished
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleStatusChange('not_rebuying')}>
                   Move to Not Rebuying
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete from List
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -172,23 +181,6 @@ export default function MyList() {
               )}
             </div>
           </section>
-
-          {/* Completed */}
-          {completed.length > 0 && (
-            <section>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 rounded-full bg-slate-100 text-slate-700">
-                  <CheckCircle className="w-5 h-5" />
-                </div>
-                <h2 className="text-2xl font-display font-bold text-muted-foreground">Finished</h2>
-                <Badge variant="secondary" className="ml-auto rounded-full">{completed.length}</Badge>
-              </div>
-              
-              <div className="grid gap-4 opacity-75">
-                {completed.map(log => <TeaListItem key={log.id} log={log} />)}
-              </div>
-            </section>
-          )}
 
           {/* Not Rebuying */}
           {notRebuying.length > 0 && (

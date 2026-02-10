@@ -91,6 +91,20 @@ export async function registerRoutes(
     res.json(log);
   });
 
+  app.delete(api.logs.delete.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    const teaId = Number(req.params.teaId);
+    
+    const existingLog = await storage.getTeaLog(user.id, teaId);
+    if (!existingLog) {
+      return res.status(404).json({ message: "Tea log not found." });
+    }
+
+    await storage.deleteTeaLog(user.id, teaId);
+    res.sendStatus(200);
+  });
+
   // === Guides ===
   app.get(api.guides.list.path, async (req, res) => {
     const guides = await storage.getGuides(Number(req.params.teaId));
