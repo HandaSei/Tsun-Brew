@@ -21,10 +21,17 @@ import {
   Edit2,
   Droplets,
   Zap,
-  X,
-  Coffee
+  X
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+} from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,6 +43,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertTeaSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
+// Example data for the chart
+const chartData = [
+  { subject: 'Aroma', A: 120, fullMark: 150 },
+  { subject: 'Taste', A: 98, fullMark: 150 },
+  { subject: 'Visual', A: 86, fullMark: 150 },
+  { subject: 'Body', A: 99, fullMark: 150 },
+  { subject: 'Finish', A: 85, fullMark: 150 },
+  { subject: 'Energy', A: 65, fullMark: 150 },
+];
+
 export default function TeaDetails() {
   const [, params] = useRoute("/tea/:id");
   const id = parseInt(params?.id || "0");
@@ -45,7 +62,7 @@ export default function TeaDetails() {
   const updateLog = useUpdateLog();
   const updateTea = useUpdateTea();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("brew");
+  const [activeTab, setActiveTab] = useState("info");
   const [isEditing, setIsEditing] = useState(false);
 
   const teaLog = logs?.find(l => l.teaId === id);
@@ -76,7 +93,6 @@ export default function TeaDetails() {
       orientalWaterAmount: "",
       occidentalLeafAmount: "",
       occidentalWaterAmount: "",
-      caffeineLevel: "Medium",
     }
   });
 
@@ -105,7 +121,6 @@ export default function TeaDetails() {
         orientalWaterAmount: tea.orientalWaterAmount || "",
         occidentalLeafAmount: tea.occidentalLeafAmount || "",
         occidentalWaterAmount: tea.occidentalWaterAmount || "",
-        caffeineLevel: tea.caffeineLevel || "Medium",
       });
     }
   }, [tea, form]);
@@ -174,14 +189,7 @@ export default function TeaDetails() {
             <div className="flex-1 space-y-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="flex gap-2 mb-3">
-                    <Badge variant="outline" className="border-primary/20 text-primary">{tea.type}</Badge>
-                    {tea.caffeineLevel && (
-                      <Badge variant="secondary" className="bg-secondary/50 text-secondary-foreground">
-                        {tea.caffeineLevel} Caffeine
-                      </Badge>
-                    )}
-                  </div>
+                  <Badge variant="outline" className="mb-3 border-primary/20 text-primary">{tea.type}</Badge>
                   <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground">{tea.name}</h1>
                 </div>
                 <div className="flex gap-2">
@@ -262,36 +270,15 @@ export default function TeaDetails() {
                                   />
                                   <FormField
                                     control={form.control}
-                                    name="caffeineLevel"
+                                    name="cultivar"
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel>Caffeine Level</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                          <FormControl>
-                                            <SelectTrigger>
-                                              <SelectValue placeholder="Select level" />
-                                            </SelectTrigger>
-                                          </FormControl>
-                                          <SelectContent>
-                                            {['None', 'Low', 'Medium', 'High'].map(l => (
-                                              <SelectItem key={l} value={l}>{l}</SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
+                                        <FormLabel>Cultivar</FormLabel>
+                                        <FormControl><Input {...field} /></FormControl>
                                       </FormItem>
                                     )}
                                   />
                                 </div>
-                                <FormField
-                                  control={form.control}
-                                  name="cultivar"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Cultivar</FormLabel>
-                                      <FormControl><Input {...field} /></FormControl>
-                                    </FormItem>
-                                  )}
-                                />
                                 <FormField
                                   control={form.control}
                                   name="photoUrl"
@@ -538,6 +525,12 @@ export default function TeaDetails() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-transparent border-b border-border w-full justify-start rounded-none h-auto p-0 mb-8 gap-6">
             <TabsTrigger 
+              value="info" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-3 text-lg"
+            >
+              Details & Profile
+            </TabsTrigger>
+            <TabsTrigger 
               value="brew" 
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-3 text-lg"
             >
@@ -545,21 +538,32 @@ export default function TeaDetails() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="brew" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="grid md:grid-cols-3 gap-8 items-start">
-              <div className="md:col-span-2 glass-card p-8 rounded-2xl flex flex-col items-center">
-                <h3 className="font-display text-2xl mb-6 self-start">Brewing Session</h3>
-                <BrewTimer 
-                  tea={tea}
-                  teaLog={teaLog}
-                  showControls={!!user}
-                />
+          <TabsContent value="info" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="glass-card p-6 rounded-2xl">
+                <h3 className="font-display text-2xl mb-6">Flavor Profile</h3>
+                <div className="h-[300px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
+                      <PolarGrid stroke="hsl(var(--border))" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                      <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
+                      <Radar
+                        name={tea.name}
+                        dataKey="A"
+                        stroke="hsl(var(--primary))"
+                        fill="hsl(var(--primary))"
+                        fillOpacity={0.3}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
 
               <div className="space-y-6">
                 <div className="glass-card p-6 rounded-2xl">
                   <h3 className="font-display text-2xl mb-4">Brewing Parameters</h3>
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
                       <h4 className="font-bold text-primary flex items-center gap-2">
                         <Zap className="w-4 h-4" /> Oriental
@@ -591,6 +595,17 @@ export default function TeaDetails() {
                   )}
                 </div>
               </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="brew" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="glass-card p-8 rounded-2xl flex flex-col items-center max-w-2xl mx-auto">
+              <h3 className="font-display text-2xl mb-6">Brewing Session</h3>
+              <BrewTimer 
+                tea={tea}
+                teaLog={teaLog}
+                showControls={!!user}
+              />
             </div>
           </TabsContent>
         </Tabs>
