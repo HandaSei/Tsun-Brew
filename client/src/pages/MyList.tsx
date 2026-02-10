@@ -1,16 +1,23 @@
-import { useLogs } from "@/hooks/use-logs";
+import { useLogs, useUpdateLog } from "@/hooks/use-logs";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Timer, Coffee, CheckCircle } from "lucide-react";
+import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { BrewTimer } from "@/components/BrewTimer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function MyList() {
   const { user } = useAuth();
   const { data: logs, isLoading } = useLogs();
+  const updateLog = useUpdateLog();
   const [, setLocation] = useLocation();
 
   if (!user) {
@@ -33,8 +40,16 @@ export default function MyList() {
   const drinking = logs?.filter(log => log.status === 'drinking') || [];
   const wantToTry = logs?.filter(log => log.status === 'want_to_try') || [];
   const completed = logs?.filter(log => log.status === 'completed') || [];
+  const notRebuying = logs?.filter(log => log.status === 'not_rebuying') || [];
 
   const TeaListItem = ({ log }: { log: any }) => {
+    const handleStatusChange = (newStatus: string) => {
+      updateLog.mutate({
+        teaId: log.tea.id,
+        status: newStatus
+      } as any);
+    };
+
     return (
       <div className="glass-card p-4 rounded-xl flex items-center gap-4 group transition-all hover:shadow-lg">
         <Link href={`/tea/${log.tea.id}`} className="flex-1 flex items-center gap-4">
@@ -53,29 +68,53 @@ export default function MyList() {
           </div>
         </Link>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <div className="text-right hidden sm:block">
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Brews</p>
             <p className="font-mono font-medium text-lg">{log.totalBrews || 0}</p>
           </div>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="icon" variant="outline" className="rounded-full w-10 h-10 border-primary/20 hover:bg-primary hover:text-white">
-                <Timer className="w-4 h-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <div className="pt-6">
-                <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
-                <BrewTimer 
-                  tea={log.tea}
-                  teaLog={log}
-                  showControls={true}
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="icon" variant="outline" className="rounded-full w-10 h-10 border-primary/20 hover:bg-primary hover:text-white">
+                  <Timer className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <div className="pt-6">
+                  <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
+                  <BrewTimer 
+                    tea={log.tea}
+                    teaLog={log}
+                    showControls={true}
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" className="rounded-full w-10 h-10">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleStatusChange('drinking')}>
+                  Move to Drinking
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('want_to_try')}>
+                  Move to Want to Try
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('completed')}>
+                  Move to Finished
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('not_rebuying')}>
+                  Move to Not Rebuying
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     );
@@ -147,6 +186,23 @@ export default function MyList() {
               
               <div className="grid gap-4 opacity-75">
                 {completed.map(log => <TeaListItem key={log.id} log={log} />)}
+              </div>
+            </section>
+          )}
+
+          {/* Not Rebuying */}
+          {notRebuying.length > 0 && (
+            <section>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-full bg-red-100 text-red-700">
+                  <XCircle className="w-5 h-5" />
+                </div>
+                <h2 className="text-2xl font-display font-bold text-muted-foreground">Not Rebuying</h2>
+                <Badge variant="secondary" className="ml-auto rounded-full">{notRebuying.length}</Badge>
+              </div>
+              
+              <div className="grid gap-4 opacity-60">
+                {notRebuying.map(log => <TeaListItem key={log.id} log={log} />)}
               </div>
             </section>
           )}
