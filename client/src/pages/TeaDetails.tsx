@@ -89,10 +89,8 @@ export default function TeaDetails() {
       occidentalMaxInfusions: 3,
       washingStep: false,
       washingDuration: 10,
-      orientalLeafAmount: "",
-      orientalWaterAmount: "",
-      occidentalLeafAmount: "",
-      occidentalWaterAmount: "",
+      recommendedLeafAmount: "",
+      recommendedWaterAmount: "",
     }
   });
 
@@ -117,10 +115,8 @@ export default function TeaDetails() {
         occidentalMaxInfusions: tea.occidentalMaxInfusions || 3,
         washingStep: !!tea.washingStep,
         washingDuration: tea.washingDuration || 10,
-        orientalLeafAmount: tea.orientalLeafAmount || "",
-        orientalWaterAmount: tea.orientalWaterAmount || "",
-        occidentalLeafAmount: tea.occidentalLeafAmount || "",
-        occidentalWaterAmount: tea.occidentalWaterAmount || "",
+        recommendedLeafAmount: tea.recommendedLeafAmount || "",
+        recommendedWaterAmount: tea.recommendedWaterAmount || "",
       });
     }
   }, [tea, form]);
@@ -289,6 +285,30 @@ export default function TeaDetails() {
                                     </FormItem>
                                   )}
                                 />
+                                <div className="grid grid-cols-2 gap-4">
+                                  <FormField
+                                    control={form.control}
+                                    name="recommendedLeafAmount"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Leaf Amount (e.g. 5g)</FormLabel>
+                                        <FormControl><Input {...field} placeholder="e.g. 5g" data-testid="input-leaf-amount" /></FormControl>
+                                        <FormDescription>Recommended leaf quantity</FormDescription>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name="recommendedWaterAmount"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Water Amount (e.g. 100ml)</FormLabel>
+                                        <FormControl><Input {...field} placeholder="e.g. 100ml" data-testid="input-water-amount" /></FormControl>
+                                        <FormDescription>Recommended water volume</FormDescription>
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
                                 <div className="p-4 bg-secondary/20 rounded-lg space-y-4">
                                   <FormField
                                     control={form.control}
@@ -362,26 +382,6 @@ export default function TeaDetails() {
                                       </FormItem>
                                     )}
                                   />
-                                  <FormField
-                                    control={form.control}
-                                    name="orientalLeafAmount"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Oriental Leaf Amount</FormLabel>
-                                        <FormControl><Input {...field} placeholder="e.g. 5g" /></FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name="orientalWaterAmount"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Oriental Water Amount</FormLabel>
-                                        <FormControl><Input {...field} placeholder="e.g. 100ml" /></FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
                                 </div>
                               </TabsContent>
 
@@ -444,26 +444,6 @@ export default function TeaDetails() {
                                     <FormItem>
                                       <FormLabel>Temp (°C)</FormLabel>
                                       <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={form.control}
-                                  name="occidentalLeafAmount"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Occidental Leaf Amount</FormLabel>
-                                      <FormControl><Input {...field} placeholder="e.g. 2g" /></FormControl>
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={form.control}
-                                  name="occidentalWaterAmount"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Occidental Water Amount</FormLabel>
-                                      <FormControl><Input {...field} placeholder="e.g. 250ml" /></FormControl>
                                     </FormItem>
                                   )}
                                 />

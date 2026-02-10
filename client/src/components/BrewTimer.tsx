@@ -35,8 +35,8 @@ export function BrewTimer({
   const [occInfusions, setOccInfusions] = useState<number[]>(personalSettings?.occidentalInfusions ?? (tea.occidentalInfusions as number[]) ?? [tea.occidentalDuration ?? 180]);
   const [temp, setTemp] = useState(personalSettings?.temp ?? (method === 'oriental' ? tea.orientalTemp : tea.occidentalTemp) ?? 85);
   const [washingDuration, setWashingDuration] = useState(personalSettings?.washingDuration ?? tea.washingDuration ?? 10);
-  const [leafAmount, setLeafAmount] = useState(personalSettings?.leafAmount ?? (method === 'oriental' ? tea.orientalLeafAmount : tea.occidentalLeafAmount) ?? "");
-  const [waterAmount, setWaterAmount] = useState(personalSettings?.waterAmount ?? (method === 'oriental' ? tea.orientalWaterAmount : tea.occidentalWaterAmount) ?? "");
+  const [leafAmount, setLeafAmount] = useState(personalSettings?.leafAmount ?? tea.recommendedLeafAmount ?? "");
+  const [waterAmount, setWaterAmount] = useState(personalSettings?.waterAmount ?? tea.recommendedWaterAmount ?? "");
 
   const getInitialSeconds = () => {
     if (method === 'oriental') {
@@ -246,23 +246,11 @@ export function BrewTimer({
           <div className="col-span-2 grid grid-cols-2 gap-4 pt-2 border-t border-border/30">
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase text-muted-foreground">Leaf Amount</label>
-              <Input 
-                value={leafAmount} 
-                onChange={e => setLeafAmount(e.target.value)} 
-                placeholder={(method === 'oriental' ? tea.orientalLeafAmount : tea.occidentalLeafAmount) || "e.g. 5g"} 
-                className="h-8 text-xs" 
-                data-testid="input-timer-leaf" 
-              />
+              <Input value={leafAmount} onChange={e => setLeafAmount(e.target.value)} placeholder={tea.recommendedLeafAmount || "e.g. 5g"} className="h-8 text-xs" data-testid="input-timer-leaf" />
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase text-muted-foreground">Water Amount</label>
-              <Input 
-                value={waterAmount} 
-                onChange={e => setWaterAmount(e.target.value)} 
-                placeholder={(method === 'oriental' ? tea.orientalWaterAmount : tea.occidentalWaterAmount) || "e.g. 100ml"} 
-                className="h-8 text-xs" 
-                data-testid="input-timer-water" 
-              />
+              <Input value={waterAmount} onChange={e => setWaterAmount(e.target.value)} placeholder={tea.recommendedWaterAmount || "e.g. 100ml"} className="h-8 text-xs" data-testid="input-timer-water" />
             </div>
           </div>
         </div>
@@ -333,18 +321,18 @@ export function BrewTimer({
         )}
       </div>
 
-      {(leafAmount || waterAmount || tea.orientalLeafAmount || tea.occidentalLeafAmount || tea.orientalWaterAmount || tea.occidentalWaterAmount) && !showControls && (
+      {(leafAmount || waterAmount || tea.recommendedLeafAmount || tea.recommendedWaterAmount) && !showControls && (
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          {(leafAmount || tea.orientalLeafAmount || tea.occidentalLeafAmount) && (
+          {(leafAmount || tea.recommendedLeafAmount) && (
             <span className="flex items-center gap-1.5">
               <Leaf className="w-3.5 h-3.5" />
-              {leafAmount || (method === 'oriental' ? tea.orientalLeafAmount : tea.occidentalLeafAmount)}
+              {leafAmount || tea.recommendedLeafAmount}
             </span>
           )}
-          {(waterAmount || tea.orientalWaterAmount || tea.occidentalWaterAmount) && (
+          {(waterAmount || tea.recommendedWaterAmount) && (
             <span className="flex items-center gap-1.5">
               <Droplets className="w-3.5 h-3.5" />
-              {waterAmount || (method === 'oriental' ? tea.orientalWaterAmount : tea.occidentalWaterAmount)}
+              {waterAmount || tea.recommendedWaterAmount}
             </span>
           )}
         </div>

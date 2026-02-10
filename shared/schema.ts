@@ -41,10 +41,8 @@ export const teas = pgTable("teas", {
   washingStep: boolean("washing_step").default(false),
   washingDuration: integer("washing_duration"),
   
-  orientalLeafAmount: text("oriental_leaf_amount"),
-  orientalWaterAmount: text("oriental_water_amount"),
-  occidentalLeafAmount: text("occidental_leaf_amount"),
-  occidentalWaterAmount: text("occidental_water_amount"),
+  recommendedLeafAmount: text("recommended_leaf_amount"),
+  recommendedWaterAmount: text("recommended_water_amount"),
   
   createdById: integer("created_by_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
