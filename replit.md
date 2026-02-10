@@ -9,6 +9,11 @@ Tsun Brew is a full-stack web application for tea enthusiasts to discover, track
 - Added hero_phrases table for rotating typewriter-animated phrases on home page
 - Admin/mod can manage hero phrases (add, edit, delete) via edit button on home page
 - Leaf amount and water amount are now method-specific (oriental/occidental) in both tea details and brew timer
+- Added dual theme system (dark/light) with ThemeProvider, localStorage persistence, and system preference detection (defaults to dark)
+- Dark theme: matte near-black with subtle green and yellow tones; Light theme: creamy white with subtle yellow and green
+- Theme toggle (Sun/Moon icon) in navigation next to username
+- All hardcoded colors replaced with semantic CSS variable tokens for full theme compatibility
+- Leaf amount and water amount are now method-specific (oriental/occidental) in both tea details and brew timer
 
 ## User Preferences
 
