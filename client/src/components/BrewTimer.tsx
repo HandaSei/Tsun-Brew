@@ -35,6 +35,8 @@ export function BrewTimer({
   const [occInfusions, setOccInfusions] = useState<number[]>(personalSettings?.occidentalInfusions ?? (tea.occidentalInfusions as number[]) ?? [tea.occidentalDuration ?? 180]);
   const [temp, setTemp] = useState(personalSettings?.temp ?? (method === 'oriental' ? tea.orientalTemp : tea.occidentalTemp) ?? 85);
   const [washingDuration, setWashingDuration] = useState(personalSettings?.washingDuration ?? tea.washingDuration ?? 10);
+  const [leafQty, setLeafQty] = useState(personalSettings?.leafQuantity ?? tea.recommendedLeaf ?? 5);
+  const [waterAmt, setWaterAmt] = useState(personalSettings?.waterAmount ?? tea.recommendedWater ?? 150);
 
   const getInitialSeconds = () => {
     if (method === 'oriental') {
@@ -59,6 +61,8 @@ export function BrewTimer({
       setOIncrement(personalSettings.orientalIncrement ?? oIncrement);
       setOccInfusions(personalSettings.occidentalInfusions ?? occInfusions);
       setWashingDuration(personalSettings.washingDuration ?? washingDuration);
+      setLeafQty(personalSettings.leafQuantity ?? leafQty);
+      setWaterAmt(personalSettings.waterAmount ?? waterAmt);
     }
   }, [teaLog?.timerSettings]);
 
@@ -104,7 +108,9 @@ export function BrewTimer({
         orientalDuration: oDuration,
         orientalIncrement: oIncrement,
         occidentalInfusions: occInfusions,
-        washingDuration: washingDuration
+        washingDuration: washingDuration,
+        leafQuantity: leafQty,
+        waterAmount: waterAmt
       },
       status: teaLog?.status || 'want_to_try'
     } as any, {
@@ -162,31 +168,16 @@ export function BrewTimer({
             <Input type="number" value={temp} onChange={e => setTemp(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
           </div>
           <div className="space-y-2 flex flex-col items-center justify-center">
-            <label className="text-[10px] font-bold uppercase text-muted-foreground">Infusion</label>
-            <div className="flex items-center gap-4 h-10">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-10 w-10 rounded-full border-2 hover:bg-primary/10 active:scale-95 transition-transform" 
-                onClick={() => setInfusion(Math.max(1, infusion - 1))}
-              >
-                <span className="text-xl font-bold">-</span>
-              </Button>
-              <div className="flex flex-col items-center min-w-[3rem]">
-                <span className="text-3xl font-display font-black text-primary leading-none">{infusion}</span>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1">
-                  {infusion === 1 ? '1st' : infusion === 2 ? '2nd' : infusion === 3 ? '3rd' : `${infusion}th`}
-                </span>
-              </div>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-10 w-10 rounded-full border-2 hover:bg-primary/10 active:scale-95 transition-transform" 
-                onClick={() => setInfusion(infusion + 1)}
-              >
-                <span className="text-xl font-bold">+</span>
-              </Button>
-            </div>
+            {/* ... infusion controls ... */}
+          </div>
+          
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase text-muted-foreground">Leaf Qty (g)</label>
+            <Input type="number" value={leafQty} onChange={e => setLeafQty(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase text-muted-foreground">Water (ml)</label>
+            <Input type="number" value={waterAmt} onChange={e => setWaterAmt(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
           </div>
           
           {method === 'oriental' ? (

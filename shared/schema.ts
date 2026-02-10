@@ -41,6 +41,10 @@ export const teas = pgTable("teas", {
   washingStep: boolean("washing_step").default(false),
   washingDuration: integer("washing_duration"),
   
+  // Quantity Parameters
+  recommendedLeaf: integer("recommended_leaf"), // in grams
+  recommendedWater: integer("recommended_water"), // in ml
+
   createdById: integer("created_by_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
