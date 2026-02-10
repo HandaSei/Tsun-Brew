@@ -5,7 +5,8 @@ import {
   insertTeaLogSchema, 
   insertGuideSchema, 
   insertReviewSchema,
-  users, teas, teaLogs, brewingGuides, reviews 
+  insertHeroPhraseSchema,
+  users, teas, teaLogs, brewingGuides, reviews, heroPhrases
 } from './schema';
 
 export const errorSchemas = {
@@ -180,6 +181,41 @@ export const api = {
       path: '/api/teas/:teaId/reviews',
       responses: {
         200: z.array(z.custom<typeof reviews.$inferSelect & { user: { username: string } }>()),
+      },
+    },
+  },
+  heroPhrases: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/hero-phrases',
+      responses: {
+        200: z.array(z.custom<typeof heroPhrases.$inferSelect>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/hero-phrases',
+      input: insertHeroPhraseSchema,
+      responses: {
+        201: z.custom<typeof heroPhrases.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/hero-phrases/:id',
+      input: insertHeroPhraseSchema.partial(),
+      responses: {
+        200: z.custom<typeof heroPhrases.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/hero-phrases/:id',
+      responses: {
+        200: z.void(),
+        403: errorSchemas.forbidden,
       },
     },
   },

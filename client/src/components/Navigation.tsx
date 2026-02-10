@@ -42,7 +42,7 @@ export function Navigation() {
             <Leaf className="w-5 h-5" />
           </div>
           <span className="font-display text-2xl font-bold tracking-tight text-foreground">
-            Teahouse
+            Tsun Brew
           </span>
         </Link>
 

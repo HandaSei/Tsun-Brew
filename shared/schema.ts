@@ -88,6 +88,12 @@ export const reviews = pgTable("reviews", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const heroPhrases = pgTable("hero_phrases", {
+  id: serial("id").primaryKey(),
+  text: text("text").notNull(),
+  sortOrder: integer("sort_order").default(0),
+});
+
 // === RELATIONS ===
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -148,6 +154,7 @@ export const insertTeaSchema = createInsertSchema(teas).omit({ id: true, created
 export const insertTeaLogSchema = createInsertSchema(teaLogs).omit({ id: true, lastBrewedAt: true, userId: true });
 export const insertGuideSchema = createInsertSchema(brewingGuides).omit({ id: true, createdAt: true, userId: true });
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true, userId: true });
+export const insertHeroPhraseSchema = createInsertSchema(heroPhrases).omit({ id: true });
 
 // === TYPES ===
 
@@ -159,5 +166,7 @@ export type TeaLog = typeof teaLogs.$inferSelect;
 export type InsertTeaLog = z.infer<typeof insertTeaLogSchema>;
 export type Guide = typeof brewingGuides.$inferSelect;
 export type InsertGuide = z.infer<typeof insertGuideSchema>;
+export type HeroPhrase = typeof heroPhrases.$inferSelect;
+export type InsertHeroPhrase = z.infer<typeof insertHeroPhraseSchema>;
 export type Review = typeof reviews.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;

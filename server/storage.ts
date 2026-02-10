@@ -1,7 +1,8 @@
 import { 
-  users, teas, teaLogs, brewingGuides, reviews, teaAttributes,
+  users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases,
   type User, type InsertUser, type Tea, type InsertTea, type TeaLog, type InsertTeaLog,
-  type Guide, type InsertGuide, type Review, type InsertReview
+  type Guide, type InsertGuide, type Review, type InsertReview,
+  type HeroPhrase, type InsertHeroPhrase
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
@@ -33,6 +34,12 @@ export interface IStorage {
   // Reviews
   getReviews(teaId: number): Promise<(Review & { user: User })[]>;
   createReview(review: InsertReview & { userId: number }): Promise<Review>;
+
+  // Hero Phrases
+  getHeroPhrases(): Promise<HeroPhrase[]>;
+  createHeroPhrase(phrase: InsertHeroPhrase): Promise<HeroPhrase>;
+  updateHeroPhrase(id: number, phrase: Partial<InsertHeroPhrase>): Promise<HeroPhrase>;
+  deleteHeroPhrase(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -200,6 +207,24 @@ export class DatabaseStorage implements IStorage {
   async createReview(review: InsertReview & { userId: number }): Promise<Review> {
     const [newReview] = await db.insert(reviews).values(review as any).returning();
     return newReview;
+  }
+
+  async getHeroPhrases(): Promise<HeroPhrase[]> {
+    return await db.select().from(heroPhrases).orderBy(heroPhrases.sortOrder);
+  }
+
+  async createHeroPhrase(phrase: InsertHeroPhrase): Promise<HeroPhrase> {
+    const [newPhrase] = await db.insert(heroPhrases).values(phrase as any).returning();
+    return newPhrase;
+  }
+
+  async updateHeroPhrase(id: number, phrase: Partial<InsertHeroPhrase>): Promise<HeroPhrase> {
+    const [updated] = await db.update(heroPhrases).set(phrase as any).where(eq(heroPhrases.id, id)).returning();
+    return updated;
+  }
+
+  async deleteHeroPhrase(id: number): Promise<void> {
+    await db.delete(heroPhrases).where(eq(heroPhrases.id, id));
   }
 }
 

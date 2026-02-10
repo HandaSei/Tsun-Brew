@@ -133,6 +133,38 @@ export async function registerRoutes(
     res.status(201).json(review);
   });
 
+  // === Hero Phrases ===
+  app.get(api.heroPhrases.list.path, async (req, res) => {
+    const phrases = await storage.getHeroPhrases();
+    res.json(phrases);
+  });
+
+  app.post(api.heroPhrases.create.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin' && user.role !== 'mod') return res.sendStatus(403);
+    const input = api.heroPhrases.create.input.parse(req.body);
+    const phrase = await storage.createHeroPhrase(input);
+    res.status(201).json(phrase);
+  });
+
+  app.patch(api.heroPhrases.update.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin' && user.role !== 'mod') return res.sendStatus(403);
+    const input = api.heroPhrases.update.input.parse(req.body);
+    const phrase = await storage.updateHeroPhrase(Number(req.params.id), input);
+    res.json(phrase);
+  });
+
+  app.delete(api.heroPhrases.delete.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin' && user.role !== 'mod') return res.sendStatus(403);
+    await storage.deleteHeroPhrase(Number(req.params.id));
+    res.sendStatus(200);
+  });
+
   // === Admin ===
   app.get(api.admin.getUsers.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

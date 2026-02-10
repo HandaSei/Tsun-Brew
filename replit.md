@@ -1,8 +1,14 @@
-# Teahouse - Tea Discovery & Tracking App
+# Tsun Brew - Tea Discovery & Tracking App
 
 ## Overview
 
-Teahouse is a full-stack web application for tea enthusiasts to discover, track, and brew teas. Users can browse a tea library, log their tastings with personal scores, track brewing sessions with a timer, and share brewing guides and reviews. The app features role-based access control with admin, moderator, and user roles.
+Tsun Brew is a full-stack web application for tea enthusiasts to discover, track, and brew teas. Users can browse a tea library, log their tastings with personal scores, track brewing sessions with a timer, and share brewing guides and reviews. The app features role-based access control with admin, moderator, and user roles.
+
+## Recent Changes
+- Renamed from "Teahouse" to "Tsun Brew"
+- Added hero_phrases table for rotating typewriter-animated phrases on home page
+- Admin/mod can manage hero phrases (add, edit, delete) via edit button on home page
+- Leaf amount and water amount are now method-specific (oriental/occidental) in both tea details and brew timer
 
 ## User Preferences
 

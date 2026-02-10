@@ -34,7 +34,7 @@ export default function AuthPage() {
             <Leaf className="w-12 h-12" />
           </div>
           <h1 className="text-5xl font-display font-bold text-primary-foreground drop-shadow-md">
-            Teahouse
+            Tsun Brew
           </h1>
           <p className="text-xl text-primary-foreground/80 max-w-md mx-auto font-light">
             A sanctuary for tea lovers to discover, track, and brew their perfect cup.
