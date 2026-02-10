@@ -173,7 +173,29 @@ export function BrewTimer({
             <label className="text-[10px] font-bold uppercase text-muted-foreground">Temperature (°C)</label>
             <Input type="number" value={temp} onChange={e => setTemp(parseInt(e.target.value) || 0)} className="h-8 text-xs" data-testid="input-timer-temp" />
           </div>
-          <div className="space-y-2 flex flex-col items-center justify-center">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase text-muted-foreground">Type</label>
+            <div className="h-8 flex items-center px-2 bg-background/50 rounded border border-border/50 text-[10px] text-foreground truncate uppercase font-bold tracking-tight">
+              {tea.type}
+            </div>
+          </div>
+          {tea.origin && (
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground">Origin</label>
+              <div className="h-8 flex items-center px-2 bg-background/50 rounded border border-border/50 text-[10px] text-foreground truncate">
+                {tea.origin}
+              </div>
+            </div>
+          )}
+          {tea.cultivar && (
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground">Cultivar</label>
+              <div className="h-8 flex items-center px-2 bg-background/50 rounded border border-border/50 text-[10px] text-foreground truncate">
+                {tea.cultivar}
+              </div>
+            </div>
+          )}
+          <div className="space-y-2 flex flex-col items-center justify-center col-span-2 mt-2">
             <label className="text-[10px] font-bold uppercase text-muted-foreground">Infusion</label>
             <div className="flex items-center gap-4 h-10">
               <Button 
@@ -339,32 +361,94 @@ export function BrewTimer({
         )}
       </div>
 
-      {(() => {
-        const currentLeaf = method === 'oriental' ? (orientalLeafAmount || tea.orientalLeafAmount) : (occidentalLeafAmount || tea.occidentalLeafAmount);
-        const currentWater = method === 'oriental' ? (orientalWaterAmount || tea.orientalWaterAmount) : (occidentalWaterAmount || tea.occidentalWaterAmount);
-        return (currentLeaf || currentWater) && !showControls ? (
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            {currentLeaf && (
-              <span className="flex items-center gap-1.5">
-                <Leaf className="w-3.5 h-3.5" />
-                {currentLeaf}
-              </span>
-            )}
-            {currentWater && (
-              <span className="flex items-center gap-1.5">
-                <Droplets className="w-3.5 h-3.5" />
-                {currentWater}
-              </span>
-            )}
-          </div>
-        ) : null;
-      })()}
-
-      <p className="text-sm text-muted-foreground text-center max-w-xs italic">
+      <p className="text-sm text-muted-foreground text-center max-w-xs italic mb-2">
         {isActive 
           ? "The essence of the leaves is coming alive..." 
           : "Ready to brew? Check your settings and begin."}
       </p>
+
+      <div className="w-full max-w-sm mt-4 p-5 bg-secondary/10 rounded-2xl border border-border/50 space-y-4 animate-in fade-in slide-in-from-bottom-2">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+            <Settings className="w-3.5 h-3.5" />
+            {method === 'oriental' ? 'Oriental (Gongfu)' : 'Occidental (Western)'} Parameters
+          </h4>
+          <Badge variant="outline" className="text-[10px] h-5 bg-background/50 border-primary/20 text-primary">
+            Recommended
+          </Badge>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
+          <div className="space-y-1">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Temperature</p>
+            <p className="font-medium flex items-center gap-1.5">
+              <Thermometer className="w-3.5 h-3.5 text-orange-500" />
+              {method === 'oriental' ? tea.orientalTemp : tea.occidentalTemp}°C
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Initial Duration</p>
+            <p className="font-medium flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-blue-500" />
+              {method === 'oriental' ? tea.orientalDuration : tea.occidentalDuration}s
+            </p>
+          </div>
+          
+          {method === 'oriental' ? (
+            <>
+              <div className="space-y-1">
+                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Increment</p>
+                <p className="font-medium flex items-center gap-1.5">
+                  <Plus className="w-3.5 h-3.5 text-green-500" />
+                  +{tea.orientalInfusionIncrement}s
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Max Infusions</p>
+                <p className="font-medium flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-yellow-500" />
+                  {tea.orientalMaxInfusions}
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="space-y-1">
+                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Max Infusions</p>
+                <p className="font-medium flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-yellow-500" />
+                  {tea.occidentalMaxInfusions}
+                </p>
+              </div>
+              <div className="space-y-1" /> {/* Spacer */}
+            </>
+          )}
+
+          <div className="space-y-1">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Leaf Amount</p>
+            <p className="font-medium flex items-center gap-1.5">
+              <Leaf className="w-3.5 h-3.5 text-emerald-600" />
+              {method === 'oriental' ? tea.orientalLeafAmount : tea.occidentalLeafAmount || "Standard"}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Water Amount</p>
+            <p className="font-medium flex items-center gap-1.5">
+              <Droplets className="w-3.5 h-3.5 text-cyan-600" />
+              {method === 'oriental' ? tea.orientalWaterAmount : tea.occidentalWaterAmount || "Standard"}
+            </p>
+          </div>
+        </div>
+
+        {method === 'oriental' && tea.washingStep && (
+          <div className="pt-3 border-t border-border/30">
+            <div className="p-3 bg-blue-50/50 border border-blue-100/50 rounded-xl flex items-center gap-3 text-blue-700 text-xs font-medium">
+              <Droplets className="w-3.5 h-3.5" />
+              Recommended wash: {tea.washingDuration || 10} seconds
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -17,16 +17,10 @@ import {
 
 export default function MyList() {
   const { user } = useAuth();
-  const { data: logs, isLoading, refetch } = useLogs();
+  const { data: logs, isLoading } = useLogs();
   const updateLog = useUpdateLog();
   const deleteLog = useDeleteLog();
   const [, setLocation] = useLocation();
-
-  useEffect(() => {
-    if (user) {
-      refetch();
-    }
-  }, [user, refetch, setLocation]);
 
   if (!user) {
     setLocation("/auth");
