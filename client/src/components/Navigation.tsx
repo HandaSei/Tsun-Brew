@@ -3,20 +3,26 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { 
   Leaf, 
-  Search, 
   User as UserIcon, 
   LogOut, 
   ShieldCheck,
   Menu,
-  X
+  Sun,
+  Moon
 } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useTheme } from "@/components/ThemeProvider";
 
 export function Navigation() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const { resolvedTheme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
 
   const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
     const isActive = location === href;
@@ -34,11 +40,10 @@ export function Navigation() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-white/80 backdrop-blur-xl">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="bg-primary/10 p-2 rounded-full text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+          <div className="bg-primary/10 p-2 rounded-full text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
             <Leaf className="w-5 h-5" />
           </div>
           <span className="font-display text-2xl font-bold tracking-tight text-foreground">
@@ -46,40 +51,66 @@ export function Navigation() {
           </span>
         </Link>
 
-        {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-6">
           <NavLink href="/">Discovery</NavLink>
           {user && <NavLink href="/list">My Tea List</NavLink>}
           {user?.role === 'admin' && <NavLink href="/admin">Admin</NavLink>}
         </nav>
 
-        {/* Auth Buttons */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
           {user ? (
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-muted-foreground">
-                Hi, {user.username}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground" data-testid="text-username">
+                {user.username}
               </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                title={resolvedTheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+                data-testid="button-theme-toggle"
+              >
+                {resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </Button>
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={() => logout.mutate()}
                 title="Log out"
+                data-testid="button-logout"
               >
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>
           ) : (
-            <Link href="/auth">
-              <Button size="sm" className="font-medium px-6 rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
-                Join Us
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                title={resolvedTheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+                data-testid="button-theme-toggle"
+              >
+                {resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </Button>
-            </Link>
+              <Link href="/auth">
+                <Button size="sm" className="font-medium px-6 rounded-full shadow-lg shadow-primary/20 transition-all">
+                  Join Us
+                </Button>
+              </Link>
+            </div>
           )}
         </div>
 
-        {/* Mobile Menu */}
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            data-testid="button-theme-toggle-mobile"
+          >
+            {resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </Button>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">

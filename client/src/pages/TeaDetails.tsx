@@ -173,10 +173,10 @@ export default function TeaDetails() {
     <div className="min-h-screen bg-background pb-20">
       <Navigation />
       
-      <div className="bg-white border-b border-border/50">
+      <div className="bg-card border-b border-border/50">
         <div className="container mx-auto px-4 py-8 md:py-12">
           <div className="flex flex-col md:flex-row gap-8 items-start">
-            <div className="w-full md:w-1/3 aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl shadow-black/5 bg-secondary/30 relative">
+            <div className="w-full md:w-1/3 aspect-[4/3] rounded-md overflow-hidden shadow-2xl shadow-foreground/5 bg-secondary/30 relative">
               {tea.photoUrl ? (
                 <img src={tea.photoUrl} alt={tea.name} className="w-full h-full object-cover" />
               ) : (
@@ -294,7 +294,7 @@ export default function TeaDetails() {
                                     control={form.control}
                                     name="washingStep"
                                     render={({ field }) => (
-                                      <FormItem className="flex items-center justify-between rounded-lg border p-3 shadow-sm bg-white">
+                                      <FormItem className="flex items-center justify-between rounded-md border p-3 shadow-sm bg-card">
                                         <div className="space-y-0.5">
                                           <FormLabel>Washing Step</FormLabel>
                                           <FormDescription>Optional initial rinse of the leaves</FormDescription>
@@ -588,7 +588,7 @@ export default function TeaDetails() {
                     </div>
                   </div>
                   {tea.washingStep && (
-                    <div className="mt-4 p-3 bg-blue-50/50 border border-blue-100 rounded-lg flex items-center gap-3 text-blue-700 text-sm">
+                    <div className="mt-4 p-3 bg-[hsl(var(--wash-bg))] border border-[hsl(var(--wash-border))] rounded-md flex items-center gap-3 text-[hsl(var(--wash-text))] text-sm">
                       <Droplets className="w-4 h-4" />
                       Recommended wash: {tea.washingDuration || 10} seconds
                     </div>

@@ -275,19 +275,19 @@ export function BrewTimer({
       )}
 
       {method === 'oriental' && tea.washingStep && infusion === 1 && (
-        <div className="mb-4 p-4 bg-blue-50/50 border border-blue-100 rounded-xl flex flex-col gap-3 animate-in fade-in slide-in-from-top-2">
-          <div className="flex items-center gap-3 text-blue-700 text-sm font-medium">
+        <div className="mb-4 p-4 bg-[hsl(var(--wash-bg))] border border-[hsl(var(--wash-border))] rounded-md flex flex-col gap-3 animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-3 text-[hsl(var(--wash-text))] text-sm font-medium">
             <Droplets className="w-4 h-4" />
             Recommended wash: {washingDuration} seconds
           </div>
           {showControls && (
             <div className="flex items-center gap-3">
-              <label className="text-[10px] font-bold uppercase text-blue-600/70">Edit Wash (s)</label>
+              <label className="text-[10px] font-bold uppercase text-[hsl(var(--wash-text)/0.7)]">Edit Wash (s)</label>
               <Input 
                 type="number" 
                 value={washingDuration} 
                 onChange={e => setWashingDuration(parseInt(e.target.value) || 0)} 
-                className="h-7 w-16 text-xs bg-white/50 border-blue-200"
+                className="h-7 w-16 text-xs bg-background/50 border-[hsl(var(--wash-border))]"
               />
             </div>
           )}

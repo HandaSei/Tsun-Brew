@@ -30,7 +30,7 @@ export default function AuthPage() {
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1576092768241-dec231879fc3?q=80&w=2574&auto=format&fit=crop')] bg-cover bg-center opacity-20 mix-blend-multiply" />
         {/* Scenic tea field background */}
         <div className="relative z-10 text-center space-y-6">
-          <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center mx-auto shadow-xl text-white">
+          <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center mx-auto shadow-xl text-primary-foreground">
             <Leaf className="w-12 h-12" />
           </div>
           <h1 className="text-5xl font-display font-bold text-primary-foreground drop-shadow-md">
@@ -46,7 +46,7 @@ export default function AuthPage() {
       <div className="flex items-center justify-center p-6 bg-background">
         <Card className="w-full max-w-md border-none shadow-none bg-transparent">
           <CardHeader className="text-center pb-8">
-            <div className="lg:hidden w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 text-white">
+            <div className="lg:hidden w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 text-primary-foreground">
               <Leaf className="w-8 h-8" />
             </div>
             <CardTitle className="text-3xl font-display">Welcome Back</CardTitle>

@@ -84,7 +84,7 @@ export default function MyList() {
           <div className="flex items-center gap-2">
             <Dialog>
               <DialogTrigger asChild>
-                <Button size="icon" variant="outline" className="rounded-full w-10 h-10 border-primary/20 hover:bg-primary hover:text-white">
+                <Button size="icon" variant="outline" className="rounded-full border-primary/20">
                   <Timer className="w-4 h-4" />
                 </Button>
               </DialogTrigger>
@@ -167,7 +167,7 @@ export default function MyList() {
           {/* Want to Try */}
           <section>
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-full bg-amber-100 text-amber-700">
+              <div className="p-2 rounded-full bg-accent/15 text-accent">
                 <Plus className="w-5 h-5" />
               </div>
               <h2 className="text-2xl font-display font-bold">Want to Try</h2>
@@ -186,7 +186,7 @@ export default function MyList() {
           {notRebuying.length > 0 && (
             <section>
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 rounded-full bg-red-100 text-red-700">
+                <div className="p-2 rounded-full bg-destructive/10 text-destructive">
                   <XCircle className="w-5 h-5" />
                 </div>
                 <h2 className="text-2xl font-display font-bold text-muted-foreground">Not Rebuying</h2>
