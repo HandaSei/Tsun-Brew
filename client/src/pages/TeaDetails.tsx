@@ -89,6 +89,8 @@ export default function TeaDetails() {
       occidentalMaxInfusions: 3,
       washingStep: false,
       washingDuration: 10,
+      recommendedLeafQuantity: 5,
+      recommendedWaterVolume: 150,
     }
   });
 
@@ -113,6 +115,8 @@ export default function TeaDetails() {
         occidentalMaxInfusions: tea.occidentalMaxInfusions || 3,
         washingStep: !!tea.washingStep,
         washingDuration: tea.washingDuration || 10,
+        recommendedLeafQuantity: tea.recommendedLeafQuantity || 5,
+        recommendedWaterVolume: tea.recommendedWaterVolume || 150,
       });
     }
   }, [tea, form]);
@@ -249,6 +253,28 @@ export default function TeaDetails() {
                                     </FormItem>
                                   )}
                                 />
+                                <div className="grid grid-cols-2 gap-4">
+                                  <FormField
+                                    control={form.control}
+                                    name="recommendedLeafQuantity"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Recommended Leaf (g)</FormLabel>
+                                        <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name="recommendedWaterVolume"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Recommended Water (ml)</FormLabel>
+                                        <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
                                 <div className="grid grid-cols-2 gap-4">
                                   <FormField
                                     control={form.control}

@@ -26,6 +26,8 @@ export const teas = pgTable("teas", {
   // Brewing Parameters
   recommendedTemp: integer("recommended_temp"), // General default
   recommendedDuration: integer("recommended_duration"), // General default
+  recommendedLeafQuantity: integer("recommended_leaf_quantity"), // in grams
+  recommendedWaterVolume: integer("recommended_water_volume"), // in ml
   
   // Oriental/Gongfu
   orientalTemp: integer("oriental_temp"),
