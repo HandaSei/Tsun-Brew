@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, type User } from "@shared/routes";
+import { api } from "@shared/routes";
+import { type User } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { Navigation } from "@/components/Navigation";
 import { Loader2, ShieldAlert } from "lucide-react";

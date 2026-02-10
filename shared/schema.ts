@@ -143,7 +143,10 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
 // === SCHEMAS ===
 
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
-export const insertTeaSchema = createInsertSchema(teas).omit({ id: true, createdAt: true, averageScore: true, createdById: true });
+export const insertTeaSchema = createInsertSchema(teas).omit({ id: true, createdAt: true, averageScore: true, createdById: true }).extend({
+  recommendedLeaf: z.number().optional(),
+  recommendedWater: z.number().optional(),
+});
 export const insertTeaLogSchema = createInsertSchema(teaLogs).omit({ id: true, lastBrewedAt: true, userId: true });
 export const insertGuideSchema = createInsertSchema(brewingGuides).omit({ id: true, createdAt: true, userId: true });
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true, userId: true });
