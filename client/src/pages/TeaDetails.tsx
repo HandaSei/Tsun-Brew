@@ -21,17 +21,10 @@ import {
   Edit2,
   Droplets,
   Zap,
-  X
+  X,
+  Coffee
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-} from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,16 +36,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertTeaSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
-// Example data for the chart
-const chartData = [
-  { subject: 'Aroma', A: 120, fullMark: 150 },
-  { subject: 'Taste', A: 98, fullMark: 150 },
-  { subject: 'Visual', A: 86, fullMark: 150 },
-  { subject: 'Body', A: 99, fullMark: 150 },
-  { subject: 'Finish', A: 85, fullMark: 150 },
-  { subject: 'Energy', A: 65, fullMark: 150 },
-];
-
 export default function TeaDetails() {
   const [, params] = useRoute("/tea/:id");
   const id = parseInt(params?.id || "0");
@@ -62,7 +45,7 @@ export default function TeaDetails() {
   const updateLog = useUpdateLog();
   const updateTea = useUpdateTea();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("info");
+  const [activeTab, setActiveTab] = useState("brew");
   const [isEditing, setIsEditing] = useState(false);
 
   const teaLog = logs?.find(l => l.teaId === id);
@@ -555,12 +538,6 @@ export default function TeaDetails() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-transparent border-b border-border w-full justify-start rounded-none h-auto p-0 mb-8 gap-6">
             <TabsTrigger 
-              value="info" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-3 text-lg"
-            >
-              Details & Profile
-            </TabsTrigger>
-            <TabsTrigger 
               value="brew" 
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-3 text-lg"
             >
@@ -568,32 +545,21 @@ export default function TeaDetails() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="info" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="glass-card p-6 rounded-2xl">
-                <h3 className="font-display text-2xl mb-6">Flavor Profile</h3>
-                <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-                      <PolarGrid stroke="hsl(var(--border))" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                      <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
-                      <Radar
-                        name={tea.name}
-                        dataKey="A"
-                        stroke="hsl(var(--primary))"
-                        fill="hsl(var(--primary))"
-                        fillOpacity={0.3}
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </div>
+          <TabsContent value="brew" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="grid md:grid-cols-3 gap-8 items-start">
+              <div className="md:col-span-2 glass-card p-8 rounded-2xl flex flex-col items-center">
+                <h3 className="font-display text-2xl mb-6 self-start">Brewing Session</h3>
+                <BrewTimer 
+                  tea={tea}
+                  teaLog={teaLog}
+                  showControls={!!user}
+                />
               </div>
 
               <div className="space-y-6">
                 <div className="glass-card p-6 rounded-2xl">
                   <h3 className="font-display text-2xl mb-4">Brewing Parameters</h3>
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-4">
                     <div className="space-y-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
                       <h4 className="font-bold text-primary flex items-center gap-2">
                         <Zap className="w-4 h-4" /> Oriental
@@ -625,17 +591,6 @@ export default function TeaDetails() {
                   )}
                 </div>
               </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="brew" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="glass-card p-8 rounded-2xl flex flex-col items-center max-w-2xl mx-auto">
-              <h3 className="font-display text-2xl mb-6">Brewing Session</h3>
-              <BrewTimer 
-                tea={tea}
-                teaLog={teaLog}
-                showControls={!!user}
-              />
             </div>
           </TabsContent>
         </Tabs>
