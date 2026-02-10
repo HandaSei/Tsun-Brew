@@ -90,8 +90,9 @@ export default function TeaDetails() {
       washingStep: false,
       washingDuration: 10,
       orientalLeafAmount: "",
+      orientalWaterAmount: "",
       occidentalLeafAmount: "",
-      recommendedWaterAmount: "",
+      occidentalWaterAmount: "",
     }
   });
 
@@ -117,8 +118,9 @@ export default function TeaDetails() {
         washingStep: !!tea.washingStep,
         washingDuration: tea.washingDuration || 10,
         orientalLeafAmount: tea.orientalLeafAmount || "",
+        orientalWaterAmount: tea.orientalWaterAmount || "",
         occidentalLeafAmount: tea.occidentalLeafAmount || "",
-        recommendedWaterAmount: tea.recommendedWaterAmount || "",
+        occidentalWaterAmount: tea.occidentalWaterAmount || "",
       });
     }
   }, [tea, form]);
@@ -287,19 +289,6 @@ export default function TeaDetails() {
                                     </FormItem>
                                   )}
                                 />
-                                <div className="grid grid-cols-1 gap-4">
-                                  <FormField
-                                    control={form.control}
-                                    name="recommendedWaterAmount"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Recommended Water Amount (e.g. 100ml)</FormLabel>
-                                        <FormControl><Input {...field} placeholder="e.g. 100ml" data-testid="input-water-amount" /></FormControl>
-                                        <FormDescription>General recommended water volume</FormDescription>
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
                                 <div className="p-4 bg-secondary/20 rounded-lg space-y-4">
                                   <FormField
                                     control={form.control}
@@ -383,6 +372,16 @@ export default function TeaDetails() {
                                       </FormItem>
                                     )}
                                   />
+                                  <FormField
+                                    control={form.control}
+                                    name="orientalWaterAmount"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Oriental Water Amount</FormLabel>
+                                        <FormControl><Input {...field} placeholder="e.g. 100ml" /></FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
                                 </div>
                               </TabsContent>
 
@@ -455,6 +454,16 @@ export default function TeaDetails() {
                                     <FormItem>
                                       <FormLabel>Occidental Leaf Amount</FormLabel>
                                       <FormControl><Input {...field} placeholder="e.g. 2g" /></FormControl>
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="occidentalWaterAmount"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Occidental Water Amount</FormLabel>
+                                      <FormControl><Input {...field} placeholder="e.g. 250ml" /></FormControl>
                                     </FormItem>
                                   )}
                                 />

@@ -36,7 +36,7 @@ export function BrewTimer({
   const [temp, setTemp] = useState(personalSettings?.temp ?? (method === 'oriental' ? tea.orientalTemp : tea.occidentalTemp) ?? 85);
   const [washingDuration, setWashingDuration] = useState(personalSettings?.washingDuration ?? tea.washingDuration ?? 10);
   const [leafAmount, setLeafAmount] = useState(personalSettings?.leafAmount ?? (method === 'oriental' ? tea.orientalLeafAmount : tea.occidentalLeafAmount) ?? "");
-  const [waterAmount, setWaterAmount] = useState(personalSettings?.waterAmount ?? tea.recommendedWaterAmount ?? "");
+  const [waterAmount, setWaterAmount] = useState(personalSettings?.waterAmount ?? (method === 'oriental' ? tea.orientalWaterAmount : tea.occidentalWaterAmount) ?? "");
 
   const getInitialSeconds = () => {
     if (method === 'oriental') {
@@ -256,7 +256,13 @@ export function BrewTimer({
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase text-muted-foreground">Water Amount</label>
-              <Input value={waterAmount} onChange={e => setWaterAmount(e.target.value)} placeholder={tea.recommendedWaterAmount || "e.g. 100ml"} className="h-8 text-xs" data-testid="input-timer-water" />
+              <Input 
+                value={waterAmount} 
+                onChange={e => setWaterAmount(e.target.value)} 
+                placeholder={(method === 'oriental' ? tea.orientalWaterAmount : tea.occidentalWaterAmount) || "e.g. 100ml"} 
+                className="h-8 text-xs" 
+                data-testid="input-timer-water" 
+              />
             </div>
           </div>
         </div>
@@ -327,7 +333,7 @@ export function BrewTimer({
         )}
       </div>
 
-      {(leafAmount || waterAmount || tea.orientalLeafAmount || tea.occidentalLeafAmount || tea.recommendedWaterAmount) && !showControls && (
+      {(leafAmount || waterAmount || tea.orientalLeafAmount || tea.occidentalLeafAmount || tea.orientalWaterAmount || tea.occidentalWaterAmount) && !showControls && (
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           {(leafAmount || tea.orientalLeafAmount || tea.occidentalLeafAmount) && (
             <span className="flex items-center gap-1.5">
@@ -335,10 +341,10 @@ export function BrewTimer({
               {leafAmount || (method === 'oriental' ? tea.orientalLeafAmount : tea.occidentalLeafAmount)}
             </span>
           )}
-          {(waterAmount || tea.recommendedWaterAmount) && (
+          {(waterAmount || tea.orientalWaterAmount || tea.occidentalWaterAmount) && (
             <span className="flex items-center gap-1.5">
               <Droplets className="w-3.5 h-3.5" />
-              {waterAmount || tea.recommendedWaterAmount}
+              {waterAmount || (method === 'oriental' ? tea.orientalWaterAmount : tea.occidentalWaterAmount)}
             </span>
           )}
         </div>
