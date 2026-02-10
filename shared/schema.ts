@@ -41,10 +41,6 @@ export const teas = pgTable("teas", {
   washingStep: boolean("washing_step").default(false),
   washingDuration: integer("washing_duration"),
   
-  // Quantity Parameters
-  recommendedLeaf: integer("recommended_leaf"), // in grams
-  recommendedWater: integer("recommended_water"), // in ml
-
   createdById: integer("created_by_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -143,10 +139,7 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
 // === SCHEMAS ===
 
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
-export const insertTeaSchema = createInsertSchema(teas).omit({ id: true, createdAt: true, averageScore: true, createdById: true }).extend({
-  recommendedLeaf: z.number().optional(),
-  recommendedWater: z.number().optional(),
-});
+export const insertTeaSchema = createInsertSchema(teas).omit({ id: true, createdAt: true, averageScore: true, createdById: true });
 export const insertTeaLogSchema = createInsertSchema(teaLogs).omit({ id: true, lastBrewedAt: true, userId: true });
 export const insertGuideSchema = createInsertSchema(brewingGuides).omit({ id: true, createdAt: true, userId: true });
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true, userId: true });

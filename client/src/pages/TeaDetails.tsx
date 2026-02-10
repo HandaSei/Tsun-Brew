@@ -270,26 +270,6 @@ export default function TeaDetails() {
                                       </FormItem>
                                     )}
                                   />
-                                  <FormField
-                                    control={form.control}
-                                    name="recommendedLeaf"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Leaf Quantity (g)</FormLabel>
-                                        <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} /></FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name="recommendedWater"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Water Amount (ml)</FormLabel>
-                                        <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} /></FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
                                 </div>
                                 <FormField
                                   control={form.control}
