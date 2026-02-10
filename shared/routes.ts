@@ -126,8 +126,10 @@ export const api = {
           orientalIncrement: z.number().optional(),
           occidentalInfusions: z.array(z.number()).optional(),
           washingDuration: z.number().optional(),
-          leafAmount: z.string().optional(),
-          waterAmount: z.string().optional(),
+          orientalLeafAmount: z.string().optional(),
+          orientalWaterAmount: z.string().optional(),
+          occidentalLeafAmount: z.string().optional(),
+          occidentalWaterAmount: z.string().optional(),
         }).optional(),
       }),
       responses: {
