@@ -45,6 +45,7 @@ export const teas = pgTable("teas", {
   orientalWaterAmount: text("oriental_water_amount"),
   occidentalLeafAmount: text("occidental_leaf_amount"),
   occidentalWaterAmount: text("occidental_water_amount"),
+  caffeineLevel: text("caffeine_level"), // 'None', 'Low', 'Medium', 'High'
   
   createdById: integer("created_by_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),

@@ -93,6 +93,7 @@ export default function TeaDetails() {
       orientalWaterAmount: "",
       occidentalLeafAmount: "",
       occidentalWaterAmount: "",
+      caffeineLevel: "Medium",
     }
   });
 
@@ -121,6 +122,7 @@ export default function TeaDetails() {
         orientalWaterAmount: tea.orientalWaterAmount || "",
         occidentalLeafAmount: tea.occidentalLeafAmount || "",
         occidentalWaterAmount: tea.occidentalWaterAmount || "",
+        caffeineLevel: tea.caffeineLevel || "Medium",
       });
     }
   }, [tea, form]);
@@ -189,7 +191,14 @@ export default function TeaDetails() {
             <div className="flex-1 space-y-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <Badge variant="outline" className="mb-3 border-primary/20 text-primary">{tea.type}</Badge>
+                  <div className="flex gap-2 mb-3">
+                    <Badge variant="outline" className="border-primary/20 text-primary">{tea.type}</Badge>
+                    {tea.caffeineLevel && (
+                      <Badge variant="secondary" className="bg-secondary/50 text-secondary-foreground">
+                        {tea.caffeineLevel} Caffeine
+                      </Badge>
+                    )}
+                  </div>
                   <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground">{tea.name}</h1>
                 </div>
                 <div className="flex gap-2">
@@ -270,15 +279,36 @@ export default function TeaDetails() {
                                   />
                                   <FormField
                                     control={form.control}
-                                    name="cultivar"
+                                    name="caffeineLevel"
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel>Cultivar</FormLabel>
-                                        <FormControl><Input {...field} /></FormControl>
+                                        <FormLabel>Caffeine Level</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                          <FormControl>
+                                            <SelectTrigger>
+                                              <SelectValue placeholder="Select level" />
+                                            </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                            {['None', 'Low', 'Medium', 'High'].map(l => (
+                                              <SelectItem key={l} value={l}>{l}</SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
                                       </FormItem>
                                     )}
                                   />
                                 </div>
+                                <FormField
+                                  control={form.control}
+                                  name="cultivar"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Cultivar</FormLabel>
+                                      <FormControl><Input {...field} /></FormControl>
+                                    </FormItem>
+                                  )}
+                                />
                                 <FormField
                                   control={form.control}
                                   name="photoUrl"
