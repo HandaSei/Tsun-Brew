@@ -77,26 +77,19 @@ export default function Home() {
       <section className="relative py-20 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent -z-10" />
         <div className="container mx-auto max-w-4xl text-center space-y-6">
-          <div className="relative inline-block">
-            <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground min-h-[3.5rem] md:min-h-[4.5rem] flex items-center justify-center" data-testid="text-hero-heading">
-              {phraseTexts.length > 0 ? (
-                <TypewriterPhrase phrases={phraseTexts} intervalSeconds={30} />
-              ) : (
-                <span className="text-muted-foreground/50">...</span>
-              )}
-            </h1>
-            {isAdmin && (
-              <Dialog open={phrasesOpen} onOpenChange={setPhrasesOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute -right-12 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-100 transition-opacity"
-                    data-testid="button-edit-phrases"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                </DialogTrigger>
+          {isAdmin && (
+            <Dialog open={phrasesOpen} onOpenChange={setPhrasesOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="opacity-40 hover:opacity-100 transition-opacity gap-1.5 mx-auto"
+                  data-testid="button-edit-phrases"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                  Manage Phrases
+                </Button>
+              </DialogTrigger>
                 <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Manage Hero Phrases</DialogTitle>
@@ -182,7 +175,13 @@ export default function Home() {
                 </DialogContent>
               </Dialog>
             )}
-          </div>
+          <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground min-h-[3.5rem] md:min-h-[4.5rem] flex items-center justify-center" data-testid="text-hero-heading">
+            {phraseTexts.length > 0 ? (
+              <TypewriterPhrase phrases={phraseTexts} intervalSeconds={30} />
+            ) : (
+              <span className="text-muted-foreground/50">...</span>
+            )}
+          </h1>
           
           <div className="flex items-center max-w-md mx-auto relative mt-8">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />

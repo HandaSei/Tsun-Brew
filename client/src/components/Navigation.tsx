@@ -13,11 +13,13 @@ import {
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useTheme } from "@/components/ThemeProvider";
+import { AuthModal } from "@/components/AuthModal";
 
 export function Navigation() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
 
   const toggleTheme = () => {
@@ -93,11 +95,14 @@ export function Navigation() {
               >
                 {resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </Button>
-              <Link href="/auth">
-                <Button size="sm" className="font-medium px-6 rounded-full shadow-lg shadow-primary/20 transition-all">
-                  Join Us
-                </Button>
-              </Link>
+              <Button
+                size="sm"
+                className="font-medium px-6 rounded-full shadow-lg shadow-primary/20 transition-all"
+                onClick={() => setAuthOpen(true)}
+                data-testid="button-sign-in"
+              >
+                Sign In
+              </Button>
             </div>
           )}
         </div>
@@ -138,15 +143,17 @@ export function Navigation() {
                     Sign Out
                   </Button>
                 ) : (
-                  <Link href="/auth" onClick={() => setIsOpen(false)}>
-                    <Button className="w-full">Sign In</Button>
-                  </Link>
+                  <Button className="w-full" onClick={() => { setIsOpen(false); setAuthOpen(true); }} data-testid="button-sign-in-mobile">
+                    Sign In
+                  </Button>
                 )}
               </div>
             </SheetContent>
           </Sheet>
         </div>
       </div>
+
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
     </header>
   );
 }

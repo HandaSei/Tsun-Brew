@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
-import AuthPage from "@/pages/Auth";
 import TeaDetails from "@/pages/TeaDetails";
 import MyList from "@/pages/MyList";
 import AdminPage from "@/pages/Admin";
@@ -15,7 +14,6 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/auth" component={AuthPage} />
       <Route path="/tea/:id" component={TeaDetails} />
       <Route path="/list" component={MyList} />
       <Route path="/admin" component={AdminPage} />

@@ -24,14 +24,6 @@ import {
   X
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-} from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,15 +35,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertTeaSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
-// Example data for the chart
-const chartData = [
-  { subject: 'Aroma', A: 120, fullMark: 150 },
-  { subject: 'Taste', A: 98, fullMark: 150 },
-  { subject: 'Visual', A: 86, fullMark: 150 },
-  { subject: 'Body', A: 99, fullMark: 150 },
-  { subject: 'Finish', A: 85, fullMark: 150 },
-  { subject: 'Energy', A: 65, fullMark: 150 },
-];
 
 export default function TeaDetails() {
   const [, params] = useRoute("/tea/:id");
@@ -64,6 +47,7 @@ export default function TeaDetails() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("info");
   const [isEditing, setIsEditing] = useState(false);
+  const [listSelectOpen, setListSelectOpen] = useState(false);
 
   const teaLog = logs?.find(l => l.teaId === id);
   const isAdmin = user?.role === 'admin' || user?.role === 'mod';
@@ -138,11 +122,12 @@ export default function TeaDetails() {
 
   if (!tea) return <div>Not found</div>;
 
-  const handleAddToMyList = () => {
+  const handleAddToList = (status: string) => {
     updateLog.mutate({
       teaId: tea.id,
-      status: 'want_to_try'
+      status
     });
+    setListSelectOpen(false);
   };
 
   const onEditSubmit = (data: any) => {
@@ -482,16 +467,71 @@ export default function TeaDetails() {
                     </Dialog>
                   )}
                   {user && (
-                    <Button 
-                      onClick={handleAddToMyList} 
-                      disabled={updateLog.isPending} 
-                      variant={teaLog ? "ghost" : "outline"} 
-                      className="gap-2 shadow-sm rounded-full"
-                    >
-                      {updateLog.isPending ? "Updating..." : (
-                        teaLog ? "In My List" : <><Plus className="w-4 h-4" /> Add to List</>
-                      )}
-                    </Button>
+                    teaLog ? (
+                      <Badge variant="outline" className="gap-1.5 py-1.5 px-4 border-primary/30 text-primary">
+                        <Leaf className="w-3.5 h-3.5" />
+                        {teaLog.status === 'drinking' ? 'Drinking' : teaLog.status === 'want_to_try' ? 'Want to Try' : 'Not Rebuying'}
+                      </Badge>
+                    ) : (
+                      <Dialog open={listSelectOpen} onOpenChange={setListSelectOpen}>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className="gap-2 shadow-sm rounded-full"
+                            disabled={updateLog.isPending}
+                            data-testid="button-add-to-list"
+                          >
+                            <Plus className="w-4 h-4" /> Add to List
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-sm">
+                          <DialogHeader>
+                            <DialogTitle>Add to which list?</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex flex-col gap-3 pt-2">
+                            <Button
+                              variant="outline"
+                              className="justify-start gap-3 h-auto py-3 px-4"
+                              onClick={() => handleAddToList('drinking')}
+                              disabled={updateLog.isPending}
+                              data-testid="button-list-drinking"
+                            >
+                              <Leaf className="w-5 h-5 text-primary" />
+                              <div className="text-left">
+                                <div className="font-medium">Drinking</div>
+                                <div className="text-xs text-muted-foreground">Currently brewing this tea</div>
+                              </div>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="justify-start gap-3 h-auto py-3 px-4"
+                              onClick={() => handleAddToList('want_to_try')}
+                              disabled={updateLog.isPending}
+                              data-testid="button-list-want-to-try"
+                            >
+                              <Star className="w-5 h-5 text-accent" />
+                              <div className="text-left">
+                                <div className="font-medium">Want to Try</div>
+                                <div className="text-xs text-muted-foreground">On my wishlist</div>
+                              </div>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="justify-start gap-3 h-auto py-3 px-4"
+                              onClick={() => handleAddToList('not_rebuying')}
+                              disabled={updateLog.isPending}
+                              data-testid="button-list-not-rebuying"
+                            >
+                              <X className="w-5 h-5 text-destructive" />
+                              <div className="text-left">
+                                <div className="font-medium">Not Rebuying</div>
+                                <div className="text-xs text-muted-foreground">Tried it, not for me</div>
+                              </div>
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    )
                   )}
                 </div>
               </div>
@@ -539,61 +579,51 @@ export default function TeaDetails() {
           </TabsList>
 
           <TabsContent value="info" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="max-w-2xl">
               <div className="glass-card p-6 rounded-2xl">
-                <h3 className="font-display text-2xl mb-6">Flavor Profile</h3>
-                <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-                      <PolarGrid stroke="hsl(var(--border))" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                      <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
-                      <Radar
-                        name={tea.name}
-                        dataKey="A"
-                        stroke="hsl(var(--primary))"
-                        fill="hsl(var(--primary))"
-                        fillOpacity={0.3}
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div className="glass-card p-6 rounded-2xl">
-                  <h3 className="font-display text-2xl mb-4">Brewing Parameters</h3>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
-                      <h4 className="font-bold text-primary flex items-center gap-2">
-                        <Zap className="w-4 h-4" /> Oriental
-                      </h4>
-                      <div className="text-sm space-y-1">
-                        <p><span className="text-muted-foreground">Temp:</span> {tea.orientalTemp || 95}°C</p>
-                        <p><span className="text-muted-foreground">Initial:</span> {tea.orientalDuration || 20}s</p>
-                        <p><span className="text-muted-foreground">Increment:</span> +{tea.orientalInfusionIncrement || 10}s</p>
-                        <p><span className="text-muted-foreground">Max:</span> {tea.orientalMaxInfusions || 8} infusions</p>
-                      </div>
-                    </div>
-                    <div className="space-y-3 p-4 bg-secondary/20 rounded-xl border border-border">
-                      <h4 className="font-bold text-foreground flex items-center gap-2">
-                        <Leaf className="w-4 h-4" /> Occidental
-                      </h4>
-                      <div className="text-sm space-y-1">
-                        <p><span className="text-muted-foreground">Temp:</span> {tea.occidentalTemp || 85}°C</p>
-                        <p><span className="text-muted-foreground">Initial:</span> {tea.occidentalDuration || 180}s</p>
-                        <p><span className="text-muted-foreground">Increment:</span> +{tea.occidentalInfusionIncrement || 30}s</p>
-                        <p><span className="text-muted-foreground">Max:</span> {tea.occidentalMaxInfusions || 3} infusions</p>
-                      </div>
+                <h3 className="font-display text-2xl mb-4">Brewing Parameters</h3>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                    <h4 className="font-bold text-primary flex items-center gap-2">
+                      <Zap className="w-4 h-4" /> Oriental (Gongfu)
+                    </h4>
+                    <div className="text-sm space-y-1.5">
+                      {tea.orientalLeafAmount && (
+                        <p><span className="text-muted-foreground">Leaf:</span> {tea.orientalLeafAmount}</p>
+                      )}
+                      {tea.orientalWaterAmount && (
+                        <p><span className="text-muted-foreground">Water:</span> {tea.orientalWaterAmount}</p>
+                      )}
+                      <p><span className="text-muted-foreground">Temp:</span> {tea.orientalTemp || 95}°C</p>
+                      <p><span className="text-muted-foreground">Initial:</span> {tea.orientalDuration || 20}s</p>
+                      <p><span className="text-muted-foreground">Increment:</span> +{tea.orientalInfusionIncrement || 10}s</p>
+                      <p><span className="text-muted-foreground">Max:</span> {tea.orientalMaxInfusions || 8} infusions</p>
                     </div>
                   </div>
-                  {tea.washingStep && (
-                    <div className="mt-4 p-3 bg-[hsl(var(--wash-bg))] border border-[hsl(var(--wash-border))] rounded-md flex items-center gap-3 text-[hsl(var(--wash-text))] text-sm">
-                      <Droplets className="w-4 h-4" />
-                      Recommended wash: {tea.washingDuration || 10} seconds
+                  <div className="space-y-3 p-4 bg-secondary/20 rounded-xl border border-border">
+                    <h4 className="font-bold text-foreground flex items-center gap-2">
+                      <Leaf className="w-4 h-4" /> Occidental (Western)
+                    </h4>
+                    <div className="text-sm space-y-1.5">
+                      {tea.occidentalLeafAmount && (
+                        <p><span className="text-muted-foreground">Leaf:</span> {tea.occidentalLeafAmount}</p>
+                      )}
+                      {tea.occidentalWaterAmount && (
+                        <p><span className="text-muted-foreground">Water:</span> {tea.occidentalWaterAmount}</p>
+                      )}
+                      <p><span className="text-muted-foreground">Temp:</span> {tea.occidentalTemp || 85}°C</p>
+                      <p><span className="text-muted-foreground">Initial:</span> {tea.occidentalDuration || 180}s</p>
+                      <p><span className="text-muted-foreground">Increment:</span> +{tea.occidentalInfusionIncrement || 30}s</p>
+                      <p><span className="text-muted-foreground">Max:</span> {tea.occidentalMaxInfusions || 3} infusions</p>
                     </div>
-                  )}
+                  </div>
                 </div>
+                {tea.washingStep && (
+                  <div className="mt-4 p-3 bg-[hsl(var(--wash-bg))] border border-[hsl(var(--wash-border))] rounded-md flex items-center gap-3 text-[hsl(var(--wash-text))] text-sm">
+                    <Droplets className="w-4 h-4" />
+                    Recommended wash: {tea.washingDuration || 10} seconds
+                  </div>
+                )}
               </div>
             </div>
           </TabsContent>
