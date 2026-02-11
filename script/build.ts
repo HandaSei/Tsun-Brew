@@ -50,8 +50,11 @@ async function buildAll() {
     entryPoints: ["server/index.ts"],
     platform: "node",
     bundle: true,
-    format: "cjs",
-    outfile: "dist/index.cjs",
+    format: "esm",
+    outfile: "dist/index.mjs",
+    banner: {
+      js: `import { createRequire as __cr } from 'module'; import { fileURLToPath as __fu } from 'url'; import { dirname as __dn } from 'path'; const require = __cr(import.meta.url); const __filename = __fu(import.meta.url); const __dirname = __dn(__filename);`,
+    },
     define: {
       "process.env.NODE_ENV": '"production"',
     },
@@ -59,6 +62,10 @@ async function buildAll() {
     external: externals,
     logLevel: "info",
   });
+
+  const { writeFile } = await import("fs/promises");
+  await writeFile("dist/index.cjs", `import("./index.mjs");\n`);
+
 }
 
 buildAll().catch((err) => {
