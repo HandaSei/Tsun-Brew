@@ -165,6 +165,53 @@ export async function registerRoutes(
     res.sendStatus(200);
   });
 
+  // === Tea Types ===
+  app.get(api.teaTypes.list.path, async (req, res) => {
+    const types = await storage.getTeaTypes();
+    res.json(types);
+  });
+
+  app.post(api.teaTypes.create.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const input = api.teaTypes.create.input.parse(req.body);
+    const teaType = await storage.createTeaType(input);
+    res.status(201).json(teaType);
+  });
+
+  app.patch(api.teaTypes.update.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const input = api.teaTypes.update.input.parse(req.body);
+    const teaType = await storage.updateTeaType(Number(req.params.id), input);
+    res.json(teaType);
+  });
+
+  app.delete(api.teaTypes.delete.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    await storage.deleteTeaType(Number(req.params.id));
+    res.sendStatus(200);
+  });
+
+  // === Site Settings ===
+  app.get(api.siteSettings.get.path, async (req, res) => {
+    const settings = await storage.getSiteSettings();
+    res.json(settings);
+  });
+
+  app.patch(api.siteSettings.update.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const input = api.siteSettings.update.input.parse(req.body);
+    const settings = await storage.updateSiteSettings(input);
+    res.json(settings);
+  });
+
   // === Admin ===
   app.get(api.admin.getUsers.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

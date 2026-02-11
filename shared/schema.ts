@@ -94,6 +94,24 @@ export const heroPhrases = pgTable("hero_phrases", {
   sortOrder: integer("sort_order").default(0),
 });
 
+export const teaTypes = pgTable("tea_types", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  colorHue: integer("color_hue").notNull().default(120),
+  colorSaturation: integer("color_saturation").notNull().default(20),
+  colorLightness: integer("color_lightness").notNull().default(40),
+  sortOrder: integer("sort_order").default(0),
+});
+
+export const siteSettings = pgTable("site_settings", {
+  id: serial("id").primaryKey(),
+  siteName: text("site_name").notNull().default("Tsun Brew"),
+  showSiteName: boolean("show_site_name").notNull().default(true),
+  statusTag: text("status_tag"),
+  logoUrl: text("logo_url"),
+  displayFont: text("display_font"),
+});
+
 // === RELATIONS ===
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -155,6 +173,8 @@ export const insertTeaLogSchema = createInsertSchema(teaLogs).omit({ id: true, l
 export const insertGuideSchema = createInsertSchema(brewingGuides).omit({ id: true, createdAt: true, userId: true });
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true, userId: true });
 export const insertHeroPhraseSchema = createInsertSchema(heroPhrases).omit({ id: true });
+export const insertTeaTypeSchema = createInsertSchema(teaTypes).omit({ id: true });
+export const insertSiteSettingsSchema = createInsertSchema(siteSettings).omit({ id: true });
 
 // === TYPES ===
 
@@ -170,3 +190,7 @@ export type HeroPhrase = typeof heroPhrases.$inferSelect;
 export type InsertHeroPhrase = z.infer<typeof insertHeroPhraseSchema>;
 export type Review = typeof reviews.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type TeaType = typeof teaTypes.$inferSelect;
+export type InsertTeaType = z.infer<typeof insertTeaTypeSchema>;
+export type SiteSettings = typeof siteSettings.$inferSelect;
+export type InsertSiteSettings = z.infer<typeof insertSiteSettingsSchema>;

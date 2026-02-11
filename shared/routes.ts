@@ -6,7 +6,16 @@ import {
   insertGuideSchema, 
   insertReviewSchema,
   insertHeroPhraseSchema,
-  users, teas, teaLogs, brewingGuides, reviews, heroPhrases
+  insertTeaTypeSchema,
+  insertSiteSettingsSchema,
+  users, teas, teaLogs, brewingGuides, reviews, heroPhrases, teaTypes, siteSettings
+} from './schema';
+
+export type { 
+  User, InsertUser, Tea, InsertTea, TeaLog, InsertTeaLog, 
+  Guide, InsertGuide, Review, InsertReview, 
+  HeroPhrase, InsertHeroPhrase, TeaType, InsertTeaType, 
+  SiteSettings, InsertSiteSettings 
 } from './schema';
 
 export const errorSchemas = {
@@ -215,6 +224,59 @@ export const api = {
       path: '/api/hero-phrases/:id',
       responses: {
         200: z.void(),
+        403: errorSchemas.forbidden,
+      },
+    },
+  },
+  teaTypes: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/tea-types',
+      responses: {
+        200: z.array(z.custom<typeof teaTypes.$inferSelect>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/tea-types',
+      input: insertTeaTypeSchema,
+      responses: {
+        201: z.custom<typeof teaTypes.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/tea-types/:id',
+      input: insertTeaTypeSchema.partial(),
+      responses: {
+        200: z.custom<typeof teaTypes.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/tea-types/:id',
+      responses: {
+        200: z.void(),
+        403: errorSchemas.forbidden,
+      },
+    },
+  },
+  siteSettings: {
+    get: {
+      method: 'GET' as const,
+      path: '/api/site-settings',
+      responses: {
+        200: z.custom<typeof siteSettings.$inferSelect>(),
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/site-settings',
+      input: insertSiteSettingsSchema.partial(),
+      responses: {
+        200: z.custom<typeof siteSettings.$inferSelect>(),
         403: errorSchemas.forbidden,
       },
     },

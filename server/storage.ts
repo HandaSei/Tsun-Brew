@@ -1,8 +1,10 @@
 import { 
-  users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases,
+  users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases, teaTypes, siteSettings,
   type User, type InsertUser, type Tea, type InsertTea, type TeaLog, type InsertTeaLog,
   type Guide, type InsertGuide, type Review, type InsertReview,
-  type HeroPhrase, type InsertHeroPhrase
+  type HeroPhrase, type InsertHeroPhrase,
+  type TeaType, type InsertTeaType,
+  type SiteSettings, type InsertSiteSettings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
@@ -40,6 +42,16 @@ export interface IStorage {
   createHeroPhrase(phrase: InsertHeroPhrase): Promise<HeroPhrase>;
   updateHeroPhrase(id: number, phrase: Partial<InsertHeroPhrase>): Promise<HeroPhrase>;
   deleteHeroPhrase(id: number): Promise<void>;
+
+  // Tea Types
+  getTeaTypes(): Promise<TeaType[]>;
+  createTeaType(teaType: InsertTeaType): Promise<TeaType>;
+  updateTeaType(id: number, teaType: Partial<InsertTeaType>): Promise<TeaType>;
+  deleteTeaType(id: number): Promise<void>;
+
+  // Site Settings
+  getSiteSettings(): Promise<SiteSettings>;
+  updateSiteSettings(settings: Partial<InsertSiteSettings>): Promise<SiteSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -225,6 +237,43 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHeroPhrase(id: number): Promise<void> {
     await db.delete(heroPhrases).where(eq(heroPhrases.id, id));
+  }
+
+  async getTeaTypes(): Promise<TeaType[]> {
+    return await db.select().from(teaTypes).orderBy(teaTypes.sortOrder);
+  }
+
+  async createTeaType(teaType: InsertTeaType): Promise<TeaType> {
+    const [newType] = await db.insert(teaTypes).values(teaType as any).returning();
+    return newType;
+  }
+
+  async updateTeaType(id: number, teaType: Partial<InsertTeaType>): Promise<TeaType> {
+    const [updated] = await db.update(teaTypes).set(teaType as any).where(eq(teaTypes.id, id)).returning();
+    return updated;
+  }
+
+  async deleteTeaType(id: number): Promise<void> {
+    await db.delete(teaTypes).where(eq(teaTypes.id, id));
+  }
+
+  async getSiteSettings(): Promise<SiteSettings> {
+    const [settings] = await db.select().from(siteSettings);
+    if (!settings) {
+      const [created] = await db.insert(siteSettings).values({
+        siteName: "Tsun Brew",
+        showSiteName: true,
+        statusTag: "Open Alpha Build",
+      } as any).returning();
+      return created;
+    }
+    return settings;
+  }
+
+  async updateSiteSettings(settings: Partial<InsertSiteSettings>): Promise<SiteSettings> {
+    const existing = await this.getSiteSettings();
+    const [updated] = await db.update(siteSettings).set(settings as any).where(eq(siteSettings.id, existing.id)).returning();
+    return updated;
   }
 }
 

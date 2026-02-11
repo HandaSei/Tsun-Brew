@@ -3,22 +3,15 @@ import { Tea } from "@shared/schema";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Droplet, Leaf } from "lucide-react";
+import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
 
 interface TeaCardProps {
   tea: Tea;
 }
 
 export function TeaCard({ tea }: TeaCardProps) {
-  const typeColors: Record<string, string> = {
-    Green: "bg-primary/10 text-primary border-primary/20",
-    Black: "bg-destructive/10 text-destructive border-destructive/20",
-    Oolong: "bg-accent/10 text-accent border-accent/20",
-    White: "bg-muted text-muted-foreground border-border",
-    Yellow: "bg-accent/15 text-accent border-accent/25",
-    Dark: "bg-secondary text-secondary-foreground border-border",
-  };
-
-  const badgeClass = typeColors[tea.type] || "bg-primary/10 text-primary";
+  const { data: teaTypes } = useTeaTypes();
+  const typeColor = getTeaTypeColor(teaTypes, tea.type);
 
   return (
     <Link href={`/tea/${tea.id}`} className="block group">
@@ -36,7 +29,7 @@ export function TeaCard({ tea }: TeaCardProps) {
             </div>
           )}
           <div className="absolute top-3 left-3">
-            <Badge className={`${badgeClass} border font-medium`}>{tea.type}</Badge>
+            <Badge className="border font-medium" style={typeColor.style} data-testid={`badge-type-${tea.id}`}>{tea.type}</Badge>
           </div>
         </div>
         

@@ -8,23 +8,36 @@ import {
   ShieldCheck,
   Menu,
   Sun,
-  Moon
+  Moon,
+  Sunset
 } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useTheme } from "@/components/ThemeProvider";
 import { AuthModal } from "@/components/AuthModal";
+import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import type { SiteSettings } from "@shared/schema";
 
 export function Navigation() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
-  const { resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, cycleTheme } = useTheme();
 
-  const toggleTheme = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
-  };
+  const { data: siteSettings } = useQuery<SiteSettings>({
+    queryKey: ["/api/site-settings"],
+  });
+
+  const siteName = siteSettings?.siteName || "Tsun Brew";
+  const statusTag = siteSettings?.statusTag || "";
+  const logoUrl = siteSettings?.logoUrl || "";
+
+  const themeIcon = resolvedTheme === "light" ? <Sun className="w-4 h-4" /> 
+    : resolvedTheme === "dusk" ? <Sunset className="w-4 h-4" /> 
+    : <Moon className="w-4 h-4" />;
+  const themeLabel = resolvedTheme === "light" ? "Light" : resolvedTheme === "dusk" ? "Dusk" : "Dark";
 
   const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
     const isActive = location === href;
@@ -45,12 +58,21 @@ export function Navigation() {
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="bg-primary/10 p-2 rounded-full text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-            <Leaf className="w-5 h-5" />
-          </div>
+          {logoUrl ? (
+            <img src={logoUrl} alt={siteName} className="w-9 h-9 rounded-full object-cover" />
+          ) : (
+            <div className="bg-primary/10 p-2 rounded-full text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+              <Leaf className="w-5 h-5" />
+            </div>
+          )}
           <span className="font-display text-2xl font-bold tracking-tight text-foreground">
-            Tsun Brew
+            {siteName}
           </span>
+          {statusTag && (
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal text-muted-foreground border-border/60">
+              {statusTag}
+            </Badge>
+          )}
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
@@ -68,11 +90,11 @@ export function Navigation() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={toggleTheme}
-                title={resolvedTheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+                onClick={cycleTheme}
+                title={`Theme: ${themeLabel}`}
                 data-testid="button-theme-toggle"
               >
-                {resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                {themeIcon}
               </Button>
               <Button 
                 variant="ghost" 
@@ -89,11 +111,11 @@ export function Navigation() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={toggleTheme}
-                title={resolvedTheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+                onClick={cycleTheme}
+                title={`Theme: ${themeLabel}`}
                 data-testid="button-theme-toggle"
               >
-                {resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                {themeIcon}
               </Button>
               <Button
                 size="sm"
@@ -111,10 +133,10 @@ export function Navigation() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={toggleTheme}
+            onClick={cycleTheme}
             data-testid="button-theme-toggle-mobile"
           >
-            {resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {themeIcon}
           </Button>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>

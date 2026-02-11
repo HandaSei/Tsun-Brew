@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertTeaSchema } from "@shared/schema";
 import { z } from "zod";
 import { useCreateTea } from "@/hooks/use-teas";
+import { useTeaTypes } from "@/hooks/use-tea-types";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +14,7 @@ const formSchema = insertTeaSchema;
 
 export function CreateTeaForm({ onSuccess }: { onSuccess: () => void }) {
   const createTea = useCreateTea();
+  const { data: teaTypesList } = useTeaTypes();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -65,9 +67,9 @@ export function CreateTeaForm({ onSuccess }: { onSuccess: () => void }) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {["Green", "Black", "Oolong", "White", "Yellow", "Dark"].map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
+                    {(teaTypesList || []).map((t) => (
+                      <SelectItem key={t.name} value={t.name}>
+                        {t.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

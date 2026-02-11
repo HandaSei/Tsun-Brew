@@ -343,19 +343,14 @@ export function BrewTimer({
         const currentLeaf = method === 'oriental' ? (orientalLeafAmount || tea.orientalLeafAmount) : (occidentalLeafAmount || tea.occidentalLeafAmount);
         const currentWater = method === 'oriental' ? (orientalWaterAmount || tea.orientalWaterAmount) : (occidentalWaterAmount || tea.occidentalWaterAmount);
         return (currentLeaf || currentWater) && !showControls ? (
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            {currentLeaf && (
-              <span className="flex items-center gap-1.5">
-                <Leaf className="w-3.5 h-3.5" />
-                {currentLeaf}
-              </span>
-            )}
-            {currentWater && (
-              <span className="flex items-center gap-1.5">
-                <Droplets className="w-3.5 h-3.5" />
-                {currentWater}
-              </span>
-            )}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Leaf className="w-3.5 h-3.5" />
+            {currentLeaf && currentWater
+              ? <span>{currentLeaf} of leaves for {currentWater} of water</span>
+              : currentLeaf
+                ? <span>{currentLeaf}</span>
+                : <span>{currentWater}</span>
+            }
           </div>
         ) : null;
       })()}

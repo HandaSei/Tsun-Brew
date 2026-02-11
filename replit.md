@@ -5,15 +5,17 @@
 Tsun Brew is a full-stack web application for tea enthusiasts to discover, track, and brew teas. Users can browse a tea library, log their tastings with personal scores, track brewing sessions with a timer, and share brewing guides and reviews. The app features role-based access control with admin, moderator, and user roles.
 
 ## Recent Changes
-- Renamed from "Teahouse" to "Tsun Brew"
-- Added hero_phrases table for rotating typewriter-animated phrases on home page
-- Admin/mod can manage hero phrases (add, edit, delete) via edit button on home page
-- Leaf amount and water amount are now method-specific (oriental/occidental) in both tea details and brew timer
-- Added dual theme system (dark/light) with ThemeProvider, localStorage persistence, and system preference detection (defaults to dark)
-- Dark theme: matte near-black with subtle green and yellow tones; Light theme: creamy white with subtle yellow and green
-- Theme toggle (Sun/Moon icon) in navigation next to username
-- All hardcoded colors replaced with semantic CSS variable tokens for full theme compatibility
-- Leaf amount and water amount are now method-specific (oriental/occidental) in both tea details and brew timer
+- Added database-driven tea types system with custom HSL colors (teaTypes table)
+- Admin Dashboard now has 3 tabs: Users, Tea Types (add/edit/delete with color sliders), Branding
+- Site branding controls: site name, status tag, logo URL, font family — stored in siteSettings table
+- Navigation dynamically displays site name, logo, and status tag badge from DB
+- Three-phase theme system: Light (warm cream) → Dusk (matte green-dark) → Dark (true black with smoky accents)
+- Theme toggle cycles through Sun/Sunset/Moon icons; localStorage migration from old "dark" to "dusk"
+- CSS uses .dusk (adds both .dusk and .dark classes) and .dark:not(.dusk) for true dark theme
+- Moved Brewing Parameters from Details tab into Brew Timer tab
+- Formatted leaf/water amounts as "Xg of leaves for Yml of water" when both values present
+- Tea type colors stored as HSL (colorHue, colorSaturation, colorLightness) integers
+- TeaCard, TeaDetails badges, and CreateTeaForm type select all use DB-driven tea types
 
 ## User Preferences
 
