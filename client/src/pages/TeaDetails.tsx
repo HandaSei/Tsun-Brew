@@ -1,6 +1,7 @@
 import { useRoute } from "wouter";
 import { useTea, useUpdateTea } from "@/hooks/use-teas";
 import { Navigation } from "@/components/Navigation";
+import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -155,7 +156,7 @@ export default function TeaDetails() {
     tea.recommendedTemp || 85;
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-20 flex flex-col">
       <Navigation />
       
       <div className="bg-card border-b border-border/50">
@@ -622,6 +623,7 @@ export default function TeaDetails() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

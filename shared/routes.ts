@@ -7,14 +7,17 @@ import {
   insertReviewSchema,
   insertHeroPhraseSchema,
   insertTeaTypeSchema,
+  insertFooterLinkSchema,
+  insertPageSchema,
   insertSiteSettingsSchema,
-  users, teas, teaLogs, brewingGuides, reviews, heroPhrases, teaTypes, siteSettings
+  users, teas, teaLogs, brewingGuides, reviews, heroPhrases, teaTypes, footerLinks, pages, siteSettings
 } from './schema';
 
 export type { 
   User, InsertUser, Tea, InsertTea, TeaLog, InsertTeaLog, 
   Guide, InsertGuide, Review, InsertReview, 
   HeroPhrase, InsertHeroPhrase, TeaType, InsertTeaType, 
+  FooterLink, InsertFooterLink, Page, InsertPage,
   SiteSettings, InsertSiteSettings 
 } from './schema';
 
@@ -277,6 +280,84 @@ export const api = {
       input: insertSiteSettingsSchema.partial(),
       responses: {
         200: z.custom<typeof siteSettings.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+  },
+  footerLinks: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/footer-links',
+      responses: {
+        200: z.array(z.custom<typeof footerLinks.$inferSelect>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/footer-links',
+      input: insertFooterLinkSchema,
+      responses: {
+        201: z.custom<typeof footerLinks.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/footer-links/:id',
+      input: insertFooterLinkSchema.partial(),
+      responses: {
+        200: z.custom<typeof footerLinks.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/footer-links/:id',
+      responses: {
+        200: z.void(),
+        403: errorSchemas.forbidden,
+      },
+    },
+  },
+  pages: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/pages',
+      responses: {
+        200: z.array(z.custom<typeof pages.$inferSelect>()),
+      },
+    },
+    get: {
+      method: 'GET' as const,
+      path: '/api/pages/:slug',
+      responses: {
+        200: z.custom<typeof pages.$inferSelect>(),
+        404: errorSchemas.notFound,
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/pages',
+      input: insertPageSchema,
+      responses: {
+        201: z.custom<typeof pages.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/pages/:slug',
+      input: insertPageSchema.partial(),
+      responses: {
+        200: z.custom<typeof pages.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/pages/:slug',
+      responses: {
+        200: z.void(),
         403: errorSchemas.forbidden,
       },
     },

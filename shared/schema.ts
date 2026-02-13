@@ -115,6 +115,21 @@ export const teaTypes = pgTable("tea_types", {
   sortOrder: integer("sort_order").default(0),
 });
 
+export const footerLinks = pgTable("footer_links", {
+  id: serial("id").primaryKey(),
+  label: text("label").notNull(),
+  pageSlug: text("page_slug").notNull(),
+  sortOrder: integer("sort_order").default(0),
+});
+
+export const pages = pgTable("pages", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  content: text("content").notNull().default(""),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const siteSettings = pgTable("site_settings", {
   id: serial("id").primaryKey(),
   siteName: text("site_name").notNull().default("Tsun Brew"),
@@ -188,6 +203,8 @@ export const insertGuideSchema = createInsertSchema(brewingGuides).omit({ id: tr
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true, userId: true });
 export const insertHeroPhraseSchema = createInsertSchema(heroPhrases).omit({ id: true });
 export const insertTeaTypeSchema = createInsertSchema(teaTypes).omit({ id: true });
+export const insertFooterLinkSchema = createInsertSchema(footerLinks).omit({ id: true });
+export const insertPageSchema = createInsertSchema(pages).omit({ id: true, updatedAt: true });
 export const insertSiteSettingsSchema = createInsertSchema(siteSettings).omit({ id: true });
 
 // === TYPES ===
@@ -208,5 +225,9 @@ export type Review = typeof reviews.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type TeaType = typeof teaTypes.$inferSelect;
 export type InsertTeaType = z.infer<typeof insertTeaTypeSchema>;
+export type FooterLink = typeof footerLinks.$inferSelect;
+export type InsertFooterLink = z.infer<typeof insertFooterLinkSchema>;
+export type Page = typeof pages.$inferSelect;
+export type InsertPage = z.infer<typeof insertPageSchema>;
 export type SiteSettings = typeof siteSettings.$inferSelect;
 export type InsertSiteSettings = z.infer<typeof insertSiteSettingsSchema>;

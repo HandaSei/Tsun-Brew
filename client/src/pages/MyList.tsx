@@ -1,6 +1,7 @@
 import { useLogs, useUpdateLog, useDeleteLog } from "@/hooks/use-logs";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical, Trash2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
@@ -130,7 +131,7 @@ export default function MyList() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-20 flex flex-col">
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
@@ -200,6 +201,7 @@ export default function MyList() {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

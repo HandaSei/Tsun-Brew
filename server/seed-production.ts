@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, teas, teaTypes, siteSettings, heroPhrases, teaLogs } from "@shared/schema";
+import { users, teas, teaTypes, siteSettings, heroPhrases, teaLogs, pages, footerLinks } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 
 export async function seedProductionData() {
@@ -114,6 +114,26 @@ export async function seedProductionData() {
       ]);
       console.log("  Tea logs seeded.");
     }
+  }
+
+  const existingPages = await db.select().from(pages);
+  if (existingPages.length === 0) {
+    await db.insert(pages).values({
+      slug: "about",
+      title: "About",
+      content: "Welcome to Tsun Brew - your tea discovery companion.\n\nWe are passionate about bringing the world of tea to enthusiasts everywhere. From delicate white teas to bold pu-erhs, our platform helps you discover, track, and brew teas from around the world.\n\nWhether you are just starting your tea journey or are a seasoned connoisseur, Tsun Brew provides the tools you need to explore and enjoy tea to its fullest.",
+    });
+    console.log("  Pages seeded.");
+  }
+
+  const existingFooterLinks = await db.select().from(footerLinks);
+  if (existingFooterLinks.length === 0) {
+    await db.insert(footerLinks).values({
+      label: "About",
+      pageSlug: "about",
+      sortOrder: 0,
+    });
+    console.log("  Footer links seeded.");
   }
 
   console.log("Production data seeding complete.");

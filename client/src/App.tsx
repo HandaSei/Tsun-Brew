@@ -9,6 +9,7 @@ import Home from "@/pages/Home";
 import TeaDetails from "@/pages/TeaDetails";
 import MyList from "@/pages/MyList";
 import AdminPage from "@/pages/Admin";
+import DynamicPage from "@/pages/DynamicPage";
 import { useEffect } from "react";
 import type { SiteSettings } from "@shared/schema";
 
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/tea/:id" component={TeaDetails} />
       <Route path="/list" component={MyList} />
       <Route path="/admin" component={AdminPage} />
+      <Route path="/page/:slug" component={DynamicPage} />
       <Route component={NotFound} />
     </Switch>
   );

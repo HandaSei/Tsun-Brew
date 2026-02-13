@@ -5,6 +5,11 @@
 Tsun Brew is a full-stack web application for tea enthusiasts to discover, track, and brew teas. Users can browse a tea library, log their tastings with personal scores, track brewing sessions with a timer, and share brewing guides and reviews. The app features role-based access control with admin, moderator, and user roles.
 
 ## Recent Changes
+- Added footer/bottom bar system: footerLinks and pages tables, Footer component, DynamicPage for /page/:slug routes
+- Admin "Bottom Bar" tab for managing footer links and creating/editing dynamic pages
+- Default "About" page and footer link seeded in production data
+- Favicon URL field in branding settings with dynamic favicon updates
+- Logo and top bar sizing: logo 12x12, top bar 4.5rem, footer logo 1.5x (4.5rem)
 - Reworked auth: persistent PostgreSQL sessions (connect-pg-simple), email verification OTP during registration, forgot password/username recovery via email
 - Users table now has `email` (unique) and `emailVerified` fields; `verificationCodes` table for OTP codes
 - Registration is two-step: enter details → receive 6-digit OTP via email → verify to create account
@@ -14,7 +19,7 @@ Tsun Brew is a full-stack web application for tea enthusiasts to discover, track
 - Sessions stored in PostgreSQL `user_sessions` table with 30-day cookie expiry (connect-pg-simple)
 - Build output changed from CJS to ESM (dist/index.mjs) with CJS wrapper for deployment compatibility
 - Added database-driven tea types system with custom HSL colors (teaTypes table)
-- Admin Dashboard has 3 tabs: Users, Tea Types (add/edit/delete with color sliders), Branding
+- Admin Dashboard has 4 tabs: Users, Tea Types (add/edit/delete with color sliders), Branding, Bottom Bar
 - Three-phase theme system: Light → Dusk → Dark with cycling toggle
 
 ## User Preferences

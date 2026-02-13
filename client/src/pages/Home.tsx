@@ -1,6 +1,7 @@
 import { useTeas } from "@/hooks/use-teas";
 import { TeaCard } from "@/components/TeaCard";
 import { Navigation } from "@/components/Navigation";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Loader2, Edit2, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -71,7 +72,7 @@ export default function Home() {
   const phraseTexts = heroPhrases?.map(p => p.text) || [];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
       
       <section className="relative py-20 px-4 overflow-hidden">
@@ -196,7 +197,7 @@ export default function Home() {
         </div>
       </section>
 
-      <main className="container mx-auto px-4 pb-20">
+      <main className="container mx-auto px-4 pb-20 flex-1">
         <div className="flex items-center justify-between gap-4 flex-wrap mb-8">
           <h2 className="text-3xl font-display font-bold">Latest Additions</h2>
           
@@ -235,6 +236,7 @@ export default function Home() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

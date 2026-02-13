@@ -1,9 +1,11 @@
 import { 
-  users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases, teaTypes, siteSettings, verificationCodes,
+  users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases, teaTypes, siteSettings, verificationCodes, footerLinks, pages,
   type User, type InsertUser, type Tea, type InsertTea, type TeaLog, type InsertTeaLog,
   type Guide, type InsertGuide, type Review, type InsertReview,
   type HeroPhrase, type InsertHeroPhrase,
   type TeaType, type InsertTeaType,
+  type FooterLink, type InsertFooterLink,
+  type Page, type InsertPage,
   type SiteSettings, type InsertSiteSettings,
   type VerificationCode, type InsertVerificationCode
 } from "@shared/schema";
@@ -58,6 +60,19 @@ export interface IStorage {
   createTeaType(teaType: InsertTeaType): Promise<TeaType>;
   updateTeaType(id: number, teaType: Partial<InsertTeaType>): Promise<TeaType>;
   deleteTeaType(id: number): Promise<void>;
+
+  // Footer Links
+  getFooterLinks(): Promise<FooterLink[]>;
+  createFooterLink(link: InsertFooterLink): Promise<FooterLink>;
+  updateFooterLink(id: number, link: Partial<InsertFooterLink>): Promise<FooterLink>;
+  deleteFooterLink(id: number): Promise<void>;
+
+  // Pages
+  getPages(): Promise<Page[]>;
+  getPageBySlug(slug: string): Promise<Page | undefined>;
+  createPage(page: InsertPage): Promise<Page>;
+  updatePage(slug: string, page: Partial<InsertPage>): Promise<Page>;
+  deletePage(slug: string): Promise<void>;
 
   // Site Settings
   getSiteSettings(): Promise<SiteSettings>;
@@ -327,6 +342,47 @@ export class DatabaseStorage implements IStorage {
     const existing = await this.getSiteSettings();
     const [updated] = await db.update(siteSettings).set(settings as any).where(eq(siteSettings.id, existing.id)).returning();
     return updated;
+  }
+
+  async getFooterLinks(): Promise<FooterLink[]> {
+    return db.select().from(footerLinks).orderBy(footerLinks.sortOrder);
+  }
+
+  async createFooterLink(link: InsertFooterLink): Promise<FooterLink> {
+    const [created] = await db.insert(footerLinks).values(link).returning();
+    return created;
+  }
+
+  async updateFooterLink(id: number, link: Partial<InsertFooterLink>): Promise<FooterLink> {
+    const [updated] = await db.update(footerLinks).set(link).where(eq(footerLinks.id, id)).returning();
+    return updated;
+  }
+
+  async deleteFooterLink(id: number): Promise<void> {
+    await db.delete(footerLinks).where(eq(footerLinks.id, id));
+  }
+
+  async getPages(): Promise<Page[]> {
+    return db.select().from(pages);
+  }
+
+  async getPageBySlug(slug: string): Promise<Page | undefined> {
+    const [page] = await db.select().from(pages).where(eq(pages.slug, slug));
+    return page;
+  }
+
+  async createPage(page: InsertPage): Promise<Page> {
+    const [created] = await db.insert(pages).values(page).returning();
+    return created;
+  }
+
+  async updatePage(slug: string, page: Partial<InsertPage>): Promise<Page> {
+    const [updated] = await db.update(pages).set({ ...page, updatedAt: new Date() } as any).where(eq(pages.slug, slug)).returning();
+    return updated;
+  }
+
+  async deletePage(slug: string): Promise<void> {
+    await db.delete(pages).where(eq(pages.slug, slug));
   }
 }
 

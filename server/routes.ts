@@ -216,6 +216,76 @@ export async function registerRoutes(
     res.json(settings);
   });
 
+  // === Footer Links ===
+  app.get(api.footerLinks.list.path, async (req, res) => {
+    const links = await storage.getFooterLinks();
+    res.json(links);
+  });
+
+  app.post(api.footerLinks.create.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const input = api.footerLinks.create.input.parse(req.body);
+    const link = await storage.createFooterLink(input);
+    res.status(201).json(link);
+  });
+
+  app.patch(api.footerLinks.update.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const input = api.footerLinks.update.input.parse(req.body);
+    const link = await storage.updateFooterLink(Number(req.params.id), input);
+    res.json(link);
+  });
+
+  app.delete(api.footerLinks.delete.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    await storage.deleteFooterLink(Number(req.params.id));
+    res.sendStatus(200);
+  });
+
+  // === Pages ===
+  app.get(api.pages.list.path, async (req, res) => {
+    const allPages = await storage.getPages();
+    res.json(allPages);
+  });
+
+  app.get(api.pages.get.path, async (req, res) => {
+    const page = await storage.getPageBySlug(String(req.params.slug));
+    if (!page) return res.status(404).json({ message: "Page not found" });
+    res.json(page);
+  });
+
+  app.post(api.pages.create.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const input = api.pages.create.input.parse(req.body);
+    const page = await storage.createPage(input);
+    res.status(201).json(page);
+  });
+
+  app.patch(api.pages.update.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const input = api.pages.update.input.parse(req.body);
+    const page = await storage.updatePage(String(req.params.slug), input);
+    res.json(page);
+  });
+
+  app.delete(api.pages.delete.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    await storage.deletePage(String(req.params.slug));
+    res.sendStatus(200);
+  });
+
   // === Admin ===
   app.get(api.admin.getUsers.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
