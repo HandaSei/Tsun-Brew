@@ -55,7 +55,6 @@ export function BrewTimer({
   const [alarmActive, setAlarmActive] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const notificationRef = useRef<Notification | null>(null);
   
   const updateLog = useUpdateLog();
   const { toast } = useToast();
@@ -83,34 +82,36 @@ export function BrewTimer({
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
-    if (notificationRef.current) {
-      notificationRef.current.close();
-      notificationRef.current = null;
-    }
   }, []);
+
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data && event.data.type === "STOP_ALARM") {
+        stopAlarm();
+      }
+    };
+    navigator.serviceWorker?.addEventListener("message", handler);
+    return () => {
+      navigator.serviceWorker?.removeEventListener("message", handler);
+    };
+  }, [stopAlarm]);
 
   const triggerAlarm = useCallback(() => {
     setAlarmActive(true);
     if (audioRef.current) {
       audioRef.current.play().catch(() => {});
     }
-    if ("Notification" in window && Notification.permission === "granted") {
-      const notification = new Notification("Tsun Brew - Timer Done", {
-        body: `Your ${tea.name} brew is ready!`,
-        icon: "/favicon.png",
-        requireInteraction: true,
-        tag: "brew-timer",
+    if ("Notification" in window && Notification.permission === "granted" && navigator.serviceWorker) {
+      navigator.serviceWorker.ready.then((registration) => {
+        registration.showNotification("Tsun Brew - Timer Done", {
+          body: `Your ${tea.name} brew is ready!`,
+          icon: "/favicon.png",
+          requireInteraction: true,
+          tag: "brew-timer",
+        });
       });
-      notification.onclick = () => {
-        window.focus();
-        stopAlarm();
-      };
-      notification.onclose = () => {
-        stopAlarm();
-      };
-      notificationRef.current = notification;
     }
-  }, [tea.name, stopAlarm]);
+  }, [tea.name]);
 
   // Update initial settings when teaLog changes (on load/refresh)
   useEffect(() => {

@@ -1,4 +1,4 @@
-const CACHE_NAME = "tsun-brew-v1";
+const CACHE_NAME = "tsun-brew-v2";
 
 const PRECACHE_URLS = [
   "/",
@@ -40,4 +40,30 @@ self.addEventListener("fetch", (event) => {
       })
       .catch(() => caches.match(request))
   );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url && "focus" in client) {
+          client.focus();
+          client.postMessage({ type: "STOP_ALARM" });
+          return;
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow("/");
+      }
+    })
+  );
+});
+
+self.addEventListener("notificationclose", (event) => {
+  self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+    for (const client of clientList) {
+      client.postMessage({ type: "STOP_ALARM" });
+    }
+  });
 });
