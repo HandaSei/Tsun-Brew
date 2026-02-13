@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X } from "lucide-react";
+import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff } from "lucide-react";
 import { useUpdateLog } from "@/hooks/use-logs";
 import { useToast } from "@/hooks/use-toast";
 import { type Tea, type TeaLog } from "@shared/schema";
 import { Input } from "@/components/ui/input";
+
+const ALARM_SOUND_URL = "https://res.cloudinary.com/dq9nrlsb9/video/upload/v1771025474/zapsplat_multimedia_ui_processing_or_timer_tone_musical_warm_mallets_85166_an2opt.mp3";
 
 interface BrewTimerProps {
   tea: Tea;
@@ -50,9 +52,65 @@ export function BrewTimer({
 
   const [seconds, setSeconds] = useState(getInitialSeconds());
   const [totalSeconds, setTotalSeconds] = useState(getInitialSeconds());
+  const [alarmActive, setAlarmActive] = useState(false);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const notificationRef = useRef<Notification | null>(null);
   
   const updateLog = useUpdateLog();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const audio = new Audio(ALARM_SOUND_URL);
+    audio.loop = true;
+    audio.preload = "auto";
+    audioRef.current = audio;
+    return () => {
+      audio.pause();
+      audio.src = "";
+    };
+  }, []);
+
+  const requestNotificationPermission = useCallback(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  const stopAlarm = useCallback(() => {
+    setAlarmActive(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    if (notificationRef.current) {
+      notificationRef.current.close();
+      notificationRef.current = null;
+    }
+  }, []);
+
+  const triggerAlarm = useCallback(() => {
+    setAlarmActive(true);
+    if (audioRef.current) {
+      audioRef.current.play().catch(() => {});
+    }
+    if ("Notification" in window && Notification.permission === "granted") {
+      const notification = new Notification("Tsun Brew - Timer Done", {
+        body: `Your ${tea.name} brew is ready!`,
+        icon: "/favicon.png",
+        requireInteraction: true,
+        tag: "brew-timer",
+      });
+      notification.onclick = () => {
+        window.focus();
+        stopAlarm();
+      };
+      notification.onclose = () => {
+        stopAlarm();
+      };
+      notificationRef.current = notification;
+    }
+  }, [tea.name, stopAlarm]);
 
   // Update initial settings when teaLog changes (on load/refresh)
   useEffect(() => {
@@ -92,6 +150,7 @@ export function BrewTimer({
   }, [isActive, seconds]);
 
   const handleComplete = () => {
+    triggerAlarm();
     updateLog.mutate({
       teaId: tea.id,
       incrementBrew: true,
@@ -129,9 +188,14 @@ export function BrewTimer({
     });
   };
 
-  const toggleTimer = () => setIsActive(!isActive);
+  const toggleTimer = () => {
+    if (alarmActive) stopAlarm();
+    if (!isActive) requestNotificationPermission();
+    setIsActive(!isActive);
+  };
   
   const resetTimer = () => {
+    if (alarmActive) stopAlarm();
     setIsActive(false);
     const s = getInitialSeconds();
     setSeconds(s);
@@ -309,33 +373,51 @@ export function BrewTimer({
       </div>
 
       <div className="flex items-center gap-4">
-        <Button
-          onClick={toggleTimer}
-          size="lg"
-          className="rounded-full w-16 h-16 p-0 shadow-lg hover:shadow-xl transition-all hover:scale-105"
-        >
-          {isActive ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
-        </Button>
-        
-        <Button
-          onClick={resetTimer}
-          variant="outline"
-          size="icon"
-          className="rounded-full w-12 h-12"
-        >
-          <RotateCcw className="w-5 h-5 text-muted-foreground" />
-        </Button>
-
-        {showControls && (
+        {alarmActive ? (
           <Button
-            onClick={handleSaveSettings}
-            variant="ghost"
-            size="sm"
-            className="text-xs text-primary"
-            disabled={updateLog.isPending}
+            onClick={stopAlarm}
+            size="lg"
+            variant="destructive"
+            className="rounded-full px-6 h-16 shadow-lg animate-pulse gap-2"
+            data-testid="button-stop-alarm"
           >
-            Save Preference
+            <BellOff className="w-6 h-6" />
+            Stop Alarm
           </Button>
+        ) : (
+          <>
+            <Button
+              onClick={toggleTimer}
+              size="lg"
+              className="rounded-full w-16 h-16 p-0 shadow-lg hover:shadow-xl transition-all"
+              data-testid="button-toggle-timer"
+            >
+              {isActive ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
+            </Button>
+            
+            <Button
+              onClick={resetTimer}
+              variant="outline"
+              size="icon"
+              className="rounded-full w-12 h-12"
+              data-testid="button-reset-timer"
+            >
+              <RotateCcw className="w-5 h-5 text-muted-foreground" />
+            </Button>
+
+            {showControls && (
+              <Button
+                onClick={handleSaveSettings}
+                variant="ghost"
+                size="sm"
+                className="text-xs text-primary"
+                disabled={updateLog.isPending}
+                data-testid="button-save-timer-settings"
+              >
+                Save Preference
+              </Button>
+            )}
+          </>
         )}
       </div>
 
@@ -356,9 +438,11 @@ export function BrewTimer({
       })()}
 
       <p className="text-sm text-muted-foreground text-center max-w-xs italic">
-        {isActive 
-          ? "The essence of the leaves is coming alive..." 
-          : "Ready to brew? Check your settings and begin."}
+        {alarmActive
+          ? "Your brew is ready! Tap stop to silence the alarm."
+          : isActive 
+            ? "The essence of the leaves is coming alive..." 
+            : "Ready to brew? Check your settings and begin."}
       </p>
     </div>
   );
