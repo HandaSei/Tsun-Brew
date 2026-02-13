@@ -306,14 +306,16 @@ function BrandingTab() {
   const [siteName, setSiteName] = useState("");
   const [statusTag, setStatusTag] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
-  const [fontFamily, setFontFamily] = useState("");
+  const [displayFont, setDisplayFont] = useState("");
+  const [faviconUrl, setFaviconUrl] = useState("");
 
   useEffect(() => {
     if (settings) {
       setSiteName(settings.siteName || "");
       setStatusTag(settings.statusTag || "");
       setLogoUrl(settings.logoUrl || "");
-      setFontFamily(settings.fontFamily || "");
+      setDisplayFont(settings.displayFont || "");
+      setFaviconUrl(settings.faviconUrl || "");
     }
   }, [settings]);
 
@@ -329,7 +331,7 @@ function BrandingTab() {
   });
 
   const handleSave = () => {
-    updateMutation.mutate({ siteName, statusTag, logoUrl, fontFamily });
+    updateMutation.mutate({ siteName, statusTag, logoUrl, displayFont, faviconUrl });
   };
 
   if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>;
@@ -358,8 +360,14 @@ function BrandingTab() {
         </div>
 
         <div className="space-y-2">
+          <Label>Favicon URL</Label>
+          <Input value={faviconUrl} onChange={(e) => setFaviconUrl(e.target.value)} placeholder="https://..." data-testid="input-favicon-url" />
+          <p className="text-xs text-muted-foreground">URL to a favicon image (PNG or ICO). Shown in the browser tab. If empty, uses the default.</p>
+        </div>
+
+        <div className="space-y-2">
           <Label>Display Font</Label>
-          <Input value={fontFamily} onChange={(e) => setFontFamily(e.target.value)} placeholder="Cormorant Garamond" data-testid="input-font-family" />
+          <Input value={displayFont} onChange={(e) => setDisplayFont(e.target.value)} placeholder="Cormorant Garamond" data-testid="input-font-family" />
           <p className="text-xs text-muted-foreground">Google Font name for display headings. Must be a valid Google Fonts family name.</p>
         </div>
 

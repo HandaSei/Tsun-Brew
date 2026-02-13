@@ -122,6 +122,7 @@ export const siteSettings = pgTable("site_settings", {
   statusTag: text("status_tag"),
   logoUrl: text("logo_url"),
   displayFont: text("display_font"),
+  faviconUrl: text("favicon_url"),
 });
 
 // === RELATIONS ===

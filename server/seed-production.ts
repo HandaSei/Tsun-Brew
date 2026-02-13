@@ -36,6 +36,7 @@ export async function seedProductionData() {
       statusTag: "Open Alpha Build V1.5",
       logoUrl: "",
       displayFont: null,
+      faviconUrl: null,
     });
     console.log("  Site settings seeded.");
   }
