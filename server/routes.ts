@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { type User } from "@shared/schema";
+import { seedProductionData } from "./seed-production";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -15,6 +16,9 @@ export async function registerRoutes(
   
   // Seed admin user
   await seedAdmin();
+  
+  // Seed production data if empty
+  await seedProductionData();
 
   // === Teas ===
   app.get(api.teas.list.path, async (req, res) => {
