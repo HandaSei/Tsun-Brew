@@ -56,10 +56,10 @@ export function Navigation() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
+      <div className="container mx-auto px-4 h-[4.5rem] flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 group">
           {logoUrl ? (
-            <img src={logoUrl} alt={siteName} className="w-9 h-9 object-contain" />
+            <img src={logoUrl} alt={siteName} className="w-12 h-12 object-contain" />
           ) : (
             <div className="bg-primary/10 p-2 rounded-full text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
               <Leaf className="w-5 h-5" />
