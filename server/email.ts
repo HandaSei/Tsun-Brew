@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM_EMAIL = "Tsun Brew <onboarding@resend.dev>";
+const FROM_EMAIL = "Tsun Brew <noreply@nottsunbrew.com>";
 
 export async function sendVerificationEmail(to: string, code: string): Promise<boolean> {
   try {
