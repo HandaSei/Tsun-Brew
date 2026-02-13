@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, type User } from "@shared/routes";
 import { useAuth } from "@/hooks/use-auth";
 import { Navigation } from "@/components/Navigation";
-import { Loader2, ShieldAlert, Plus, Pencil, Trash2, Palette, Link as LinkIcon } from "lucide-react";
+import { Loader2, ShieldAlert, Plus, Pencil, Trash2, Palette, Link as LinkIcon, ArrowUp, ArrowDown } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -511,7 +511,8 @@ function BottomBarTab() {
   });
 
   const handleLinkSubmit = () => {
-    const data = { label: linkLabel, pageSlug: linkSlug, sortOrder: 0 };
+    const nextSort = editingLink ? (editingLink.sortOrder ?? 0) : (footerLinks || []).length;
+    const data = { label: linkLabel, pageSlug: linkSlug, sortOrder: nextSort };
     if (editingLink) {
       updateLinkMutation.mutate({ id: editingLink.id, data });
     } else {
@@ -535,6 +536,19 @@ function BottomBarTab() {
     }
   };
 
+  const sortedLinks = [...(footerLinks || [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
+  const swapLinks = (idx: number, direction: "up" | "down") => {
+    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= sortedLinks.length) return;
+    const linkA = sortedLinks[idx];
+    const linkB = sortedLinks[targetIdx];
+    const sortA = linkA.sortOrder ?? 0;
+    const sortB = linkB.sortOrder ?? 0;
+    updateLinkMutation.mutate({ id: linkA.id, data: { sortOrder: sortB } });
+    updateLinkMutation.mutate({ id: linkB.id, data: { sortOrder: sortA } });
+  };
+
   const isLoading = linksLoading || pagesLoading;
   if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>;
 
@@ -544,7 +558,7 @@ function BottomBarTab() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-semibold">Footer Links</h3>
-            <p className="text-muted-foreground text-sm">Links displayed in the bottom bar. Each links to a page.</p>
+            <p className="text-muted-foreground text-sm">Links displayed in the bottom bar. Use arrows to reorder. Links are shown in vertical columns of 3.</p>
           </div>
           <Button onClick={openCreateLink} data-testid="button-add-footer-link">
             <Plus className="w-4 h-4 mr-2" />
@@ -556,21 +570,44 @@ function BottomBarTab() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-20">Order</TableHead>
                 <TableHead>Label</TableHead>
                 <TableHead>Page Slug</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {(footerLinks || []).length === 0 && (
+              {sortedLinks.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                     No footer links yet. Add one above.
                   </TableCell>
                 </TableRow>
               )}
-              {(footerLinks || []).map((link) => (
+              {sortedLinks.map((link, idx) => (
                 <TableRow key={link.id} data-testid={`row-footer-link-${link.id}`}>
+                  <TableCell>
+                    <div className="flex items-center gap-0.5">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={idx === 0}
+                        onClick={() => swapLinks(idx, "up")}
+                        data-testid={`button-move-up-link-${link.id}`}
+                      >
+                        <ArrowUp className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={idx === sortedLinks.length - 1}
+                        onClick={() => swapLinks(idx, "down")}
+                        data-testid={`button-move-down-link-${link.id}`}
+                      >
+                        <ArrowDown className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                   <TableCell className="font-medium">{link.label}</TableCell>
                   <TableCell className="text-muted-foreground">/page/{link.pageSlug}</TableCell>
                   <TableCell className="text-right">
