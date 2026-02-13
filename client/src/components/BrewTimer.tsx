@@ -70,9 +70,10 @@ export function BrewTimer({
     };
   }, []);
 
-  const requestNotificationPermission = useCallback(() => {
+  const requestNotificationPermission = useCallback(async () => {
     if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
+      const result = await Notification.requestPermission();
+      console.log("[BrewTimer] Notification permission result:", result);
     }
   }, []);
 
@@ -99,17 +100,51 @@ export function BrewTimer({
   const triggerAlarm = useCallback(() => {
     setAlarmActive(true);
     if (audioRef.current) {
-      audioRef.current.play().catch(() => {});
+      audioRef.current.play().catch((e) => console.warn("[BrewTimer] Audio play failed:", e));
     }
-    if ("Notification" in window && Notification.permission === "granted" && navigator.serviceWorker) {
+
+    const notifAvailable = "Notification" in window;
+    const permission = notifAvailable ? Notification.permission : "unavailable";
+    const swAvailable = "serviceWorker" in navigator;
+    console.log("[BrewTimer] triggerAlarm called. Notification API:", notifAvailable, "Permission:", permission, "ServiceWorker:", swAvailable);
+
+    if (!notifAvailable || permission !== "granted") {
+      console.log("[BrewTimer] Notifications not available or not permitted, skipping notification.");
+      return;
+    }
+
+    if (swAvailable && navigator.serviceWorker.controller) {
       navigator.serviceWorker.ready.then((registration) => {
+        console.log("[BrewTimer] Showing notification via ServiceWorker");
         registration.showNotification("Tsun Brew - Timer Done", {
           body: `Your ${tea.name} brew is ready!`,
           icon: "/favicon.png",
           requireInteraction: true,
           tag: "brew-timer",
         });
+      }).catch((e) => {
+        console.warn("[BrewTimer] SW notification failed, trying fallback:", e);
+        try {
+          new Notification("Tsun Brew - Timer Done", {
+            body: `Your ${tea.name} brew is ready!`,
+            icon: "/favicon.png",
+            tag: "brew-timer",
+          });
+        } catch (e2) {
+          console.warn("[BrewTimer] Fallback notification also failed:", e2);
+        }
       });
+    } else {
+      console.log("[BrewTimer] No SW controller, using direct Notification API");
+      try {
+        new Notification("Tsun Brew - Timer Done", {
+          body: `Your ${tea.name} brew is ready!`,
+          icon: "/favicon.png",
+          tag: "brew-timer",
+        });
+      } catch (e) {
+        console.warn("[BrewTimer] Direct notification failed:", e);
+      }
     }
   }, [tea.name]);
 
