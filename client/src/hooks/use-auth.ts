@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, type InsertUser, type User } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 export function useAuth() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const { data: user, isLoading } = useQuery({
     queryKey: [api.auth.me.path],
@@ -66,6 +68,7 @@ export function useAuth() {
     },
     onSuccess: () => {
       queryClient.setQueryData([api.auth.me.path], null);
+      setLocation("/");
       toast({ title: "Goodbye", description: "Logged out successfully." });
     },
   });
