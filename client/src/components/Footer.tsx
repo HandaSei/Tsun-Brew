@@ -24,7 +24,7 @@ export function Footer() {
 
   return (
     <footer className="w-full border-t border-border/60 bg-background" data-testid="footer">
-      <div className="px-6 py-10">
+      <div className="px-6 py-10 flex items-end justify-between gap-8">
         <div className="flex items-start gap-10">
           <div className="flex items-center gap-3 shrink-0">
             {logoUrl ? (
@@ -59,11 +59,9 @@ export function Footer() {
           )}
         </div>
 
-        <div className="mt-8 pt-6 border-t border-border/40 text-center">
-          <p className="text-xs text-muted-foreground">
-            {new Date().getFullYear()} {siteName}
-          </p>
-        </div>
+        <p className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
+          {new Date().getFullYear()} {siteName}
+        </p>
       </div>
     </footer>
   );

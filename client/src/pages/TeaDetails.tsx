@@ -1,7 +1,7 @@
 import { useRoute } from "wouter";
 import { useTea, useUpdateTea } from "@/hooks/use-teas";
 import { Navigation } from "@/components/Navigation";
-import { Footer } from "@/components/Footer";
+
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -623,7 +623,6 @@ export default function TeaDetails() {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

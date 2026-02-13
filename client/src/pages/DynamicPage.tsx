@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { Navigation } from "@/components/Navigation";
-import { Footer } from "@/components/Footer";
+
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Loader2, Pencil } from "lucide-react";
@@ -65,7 +65,6 @@ export default function DynamicPage() {
         <div className="flex-1 flex justify-center items-center">
           <Loader2 className="animate-spin w-8 h-8 text-muted-foreground" />
         </div>
-        <Footer />
       </div>
     );
   }
@@ -77,7 +76,6 @@ export default function DynamicPage() {
         <div className="flex-1 flex justify-center items-center">
           <p className="text-muted-foreground">Page not found.</p>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -134,7 +132,6 @@ export default function DynamicPage() {
           </>
         )}
       </main>
-      <Footer />
     </div>
   );
 }
