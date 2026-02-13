@@ -8,8 +8,20 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").notNull().default(false),
   password: text("password").notNull(),
-  role: text("role").notNull().default("user"), // 'admin', 'mod', 'user'
+  role: text("role").notNull().default("user"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const verificationCodes = pgTable("verification_codes", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  code: text("code").notNull(),
+  type: text("type").notNull(), // 'registration', 'password_reset'
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -167,7 +179,8 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
 
 // === SCHEMAS ===
 
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, emailVerified: true });
+export const insertVerificationCodeSchema = createInsertSchema(verificationCodes).omit({ id: true, createdAt: true, used: true });
 export const insertTeaSchema = createInsertSchema(teas).omit({ id: true, createdAt: true, averageScore: true, createdById: true });
 export const insertTeaLogSchema = createInsertSchema(teaLogs).omit({ id: true, lastBrewedAt: true, userId: true });
 export const insertGuideSchema = createInsertSchema(brewingGuides).omit({ id: true, createdAt: true, userId: true });
@@ -180,6 +193,8 @@ export const insertSiteSettingsSchema = createInsertSchema(siteSettings).omit({ 
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type VerificationCode = typeof verificationCodes.$inferSelect;
+export type InsertVerificationCode = z.infer<typeof insertVerificationCodeSchema>;
 export type Tea = typeof teas.$inferSelect;
 export type InsertTea = z.infer<typeof insertTeaSchema>;
 export type TeaLog = typeof teaLogs.$inferSelect;

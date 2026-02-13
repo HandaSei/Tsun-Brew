@@ -1,21 +1,31 @@
 import { 
-  users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases, teaTypes, siteSettings,
+  users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases, teaTypes, siteSettings, verificationCodes,
   type User, type InsertUser, type Tea, type InsertTea, type TeaLog, type InsertTeaLog,
   type Guide, type InsertGuide, type Review, type InsertReview,
   type HeroPhrase, type InsertHeroPhrase,
   type TeaType, type InsertTeaType,
-  type SiteSettings, type InsertSiteSettings
+  type SiteSettings, type InsertSiteSettings,
+  type VerificationCode, type InsertVerificationCode
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, gt } from "drizzle-orm";
 
 export interface IStorage {
   // User & Auth
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser & { role?: string }): Promise<User>;
-  getUsers(): Promise<User[]>; // For admin
+  updateUserPassword(id: number, password: string): Promise<User>;
+  setEmailVerified(id: number): Promise<User>;
+  getUsers(): Promise<User[]>;
   updateUserRole(id: number, role: string): Promise<User>;
+
+  // Verification Codes
+  createVerificationCode(code: InsertVerificationCode): Promise<VerificationCode>;
+  getValidVerificationCode(email: string, code: string, type: string): Promise<VerificationCode | undefined>;
+  markVerificationCodeUsed(id: number): Promise<void>;
+  deleteVerificationCodesForEmail(email: string, type: string): Promise<void>;
 
   // Teas
   getTeas(): Promise<Tea[]>;
@@ -65,9 +75,24 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
   async createUser(user: InsertUser & { role?: string }): Promise<User> {
     const [newUser] = await db.insert(users).values(user as any).returning();
     return newUser;
+  }
+
+  async updateUserPassword(id: number, password: string): Promise<User> {
+    const [updated] = await db.update(users).set({ password }).where(eq(users.id, id)).returning();
+    return updated;
+  }
+
+  async setEmailVerified(id: number): Promise<User> {
+    const [updated] = await db.update(users).set({ emailVerified: true }).where(eq(users.id, id)).returning();
+    return updated;
   }
 
   async getUsers(): Promise<User[]> {
@@ -77,6 +102,34 @@ export class DatabaseStorage implements IStorage {
   async updateUserRole(id: number, role: string): Promise<User> {
     const [updated] = await db.update(users).set({ role }).where(eq(users.id, id)).returning();
     return updated;
+  }
+
+  async createVerificationCode(code: InsertVerificationCode): Promise<VerificationCode> {
+    const [created] = await db.insert(verificationCodes).values(code as any).returning();
+    return created;
+  }
+
+  async getValidVerificationCode(email: string, code: string, type: string): Promise<VerificationCode | undefined> {
+    const [found] = await db.select().from(verificationCodes).where(
+      and(
+        eq(verificationCodes.email, email),
+        eq(verificationCodes.code, code),
+        eq(verificationCodes.type, type),
+        eq(verificationCodes.used, false),
+        gt(verificationCodes.expiresAt, new Date())
+      )
+    );
+    return found;
+  }
+
+  async markVerificationCodeUsed(id: number): Promise<void> {
+    await db.update(verificationCodes).set({ used: true }).where(eq(verificationCodes.id, id));
+  }
+
+  async deleteVerificationCodesForEmail(email: string, type: string): Promise<void> {
+    await db.delete(verificationCodes).where(
+      and(eq(verificationCodes.email, email), eq(verificationCodes.type, type))
+    );
   }
 
   async getTeas(): Promise<Tea[]> {

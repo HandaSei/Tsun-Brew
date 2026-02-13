@@ -5,17 +5,17 @@
 Tsun Brew is a full-stack web application for tea enthusiasts to discover, track, and brew teas. Users can browse a tea library, log their tastings with personal scores, track brewing sessions with a timer, and share brewing guides and reviews. The app features role-based access control with admin, moderator, and user roles.
 
 ## Recent Changes
+- Reworked auth: persistent PostgreSQL sessions (connect-pg-simple), email verification OTP during registration, forgot password/username recovery via email
+- Users table now has `email` (unique) and `emailVerified` fields; `verificationCodes` table for OTP codes
+- Registration is two-step: enter details → receive 6-digit OTP via email → verify to create account
+- One account per email enforced at DB level (unique constraint) and checked during registration
+- Forgot password sends username + temporary password to the user's email via Resend API
+- Email sending via Resend SDK (RESEND_API_KEY secret); email utility in server/email.ts
+- Sessions stored in PostgreSQL `user_sessions` table with 30-day cookie expiry (connect-pg-simple)
+- Build output changed from CJS to ESM (dist/index.mjs) with CJS wrapper for deployment compatibility
 - Added database-driven tea types system with custom HSL colors (teaTypes table)
-- Admin Dashboard now has 3 tabs: Users, Tea Types (add/edit/delete with color sliders), Branding
-- Site branding controls: site name, status tag, logo URL, font family — stored in siteSettings table
-- Navigation dynamically displays site name, logo, and status tag badge from DB
-- Three-phase theme system: Light (warm cream) → Dusk (matte green-dark) → Dark (true black with smoky accents)
-- Theme toggle cycles through Sun/Sunset/Moon icons; localStorage migration from old "dark" to "dusk"
-- CSS uses .dusk (adds both .dusk and .dark classes) and .dark:not(.dusk) for true dark theme
-- Moved Brewing Parameters from Details tab into Brew Timer tab
-- Formatted leaf/water amounts as "Xg of leaves for Yml of water" when both values present
-- Tea type colors stored as HSL (colorHue, colorSaturation, colorLightness) integers
-- TeaCard, TeaDetails badges, and CreateTeaForm type select all use DB-driven tea types
+- Admin Dashboard has 3 tabs: Users, Tea Types (add/edit/delete with color sliders), Branding
+- Three-phase theme system: Light → Dusk → Dark with cycling toggle
 
 ## User Preferences
 

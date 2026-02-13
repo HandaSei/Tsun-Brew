@@ -6,10 +6,11 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User } from "@shared/schema";
-import { createRequire } from "module";
+import { pool } from "./db";
+import { sendVerificationEmail, sendPasswordRecoveryEmail } from "./email";
+import connectPgSimple from "connect-pg-simple";
 
-const require = createRequire(import.meta.url);
-const MemoryStore = require("memorystore")(session);
+const PgStore = connectPgSimple(session);
 
 const scryptAsync = promisify(scrypt);
 
@@ -26,14 +27,44 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+function generateOTP(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+function generateTempPassword(): string {
+  return randomBytes(8).toString("hex");
+}
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function rateLimit(key: string, maxAttempts: number, windowMs: number): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  if (entry.count >= maxAttempts) return false;
+  entry.count++;
+  return true;
+}
+
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "r3pl1t_s3cr3t_t3a_app",
     resave: false,
     saveUninitialized: false,
-    store: new MemoryStore({
-      checkPeriod: 86400000,
+    store: new PgStore({
+      pool: pool as any,
+      createTableIfMissing: true,
+      tableName: "user_sessions",
     }),
+    cookie: {
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: app.get("env") === "production",
+      sameSite: "lax",
+    },
   };
 
   if (app.get("env") === "production") {
@@ -70,7 +101,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) return next(err);
       if (!user) return res.status(401).json({ message: "Invalid username or password" });
       req.login(user, (err) => {
@@ -80,26 +111,133 @@ export function setupAuth(app: Express) {
     })(req, res, next);
   });
 
-  app.post("/api/register", async (req, res, next) => {
+  app.post("/api/register/send-code", async (req, res) => {
     try {
-      const existingUser = await storage.getUserByUsername(req.body.username);
-      if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
+      const { email, username } = req.body;
+
+      if (!email || !username) {
+        return res.status(400).json({ message: "Email and username are required" });
       }
 
-      const hashedPassword = await hashPassword(req.body.password);
-      const user = await storage.createUser({
-        ...req.body,
-        password: hashedPassword,
-        role: "user", // Default role
+      if (!rateLimit(`send-code:${email}`, 3, 60 * 1000)) {
+        return res.status(429).json({ message: "Too many requests. Please wait a minute before trying again." });
+      }
+
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(400).json({ message: "An account with this email already exists" });
+      }
+
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already taken" });
+      }
+
+      await storage.deleteVerificationCodesForEmail(email, "registration");
+
+      const code = generateOTP();
+      await storage.createVerificationCode({
+        email,
+        code,
+        type: "registration",
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       });
+
+      const sent = await sendVerificationEmail(email, code);
+      if (!sent) {
+        return res.status(500).json({ message: "Failed to send verification email. Please try again." });
+      }
+
+      res.json({ message: "Verification code sent to your email" });
+    } catch (err) {
+      console.error("Error in send-code:", err);
+      res.status(500).json({ message: "Something went wrong. Please try again." });
+    }
+  });
+
+  app.post("/api/register/verify", async (req, res, next) => {
+    try {
+      const { email, username, password, code } = req.body;
+
+      if (!email || !username || !password || !code) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      if (!rateLimit(`verify:${email}`, 5, 60 * 1000)) {
+        return res.status(429).json({ message: "Too many attempts. Please wait a minute." });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+
+      const validCode = await storage.getValidVerificationCode(email, code, "registration");
+      if (!validCode) {
+        return res.status(400).json({ message: "Invalid or expired verification code" });
+      }
+
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(400).json({ message: "An account with this email already exists" });
+      }
+
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already taken" });
+      }
+
+      await storage.markVerificationCodeUsed(validCode.id);
+
+      const hashedPassword = await hashPassword(password);
+      const user = await storage.createUser({
+        username,
+        email,
+        password: hashedPassword,
+        role: "user",
+      });
+
+      await storage.setEmailVerified(user.id);
 
       req.login(user, (err) => {
         if (err) return next(err);
         res.status(201).json(user);
       });
     } catch (err) {
-      next(err);
+      console.error("Error in verify:", err);
+      res.status(500).json({ message: "Something went wrong. Please try again." });
+    }
+  });
+
+  app.post("/api/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      if (!rateLimit(`forgot:${email}`, 2, 5 * 60 * 1000)) {
+        return res.status(429).json({ message: "Too many requests. Please wait a few minutes before trying again." });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.json({ message: "If an account with that email exists, we've sent recovery details." });
+      }
+
+      const tempPassword = generateTempPassword();
+      const hashedPassword = await hashPassword(tempPassword);
+      await storage.updateUserPassword(user.id, hashedPassword);
+
+      const sent = await sendPasswordRecoveryEmail(email, user.username, tempPassword);
+      if (!sent) {
+        return res.status(500).json({ message: "Failed to send recovery email. Please try again." });
+      }
+
+      res.json({ message: "If an account with that email exists, we've sent recovery details." });
+    } catch (err) {
+      console.error("Error in forgot-password:", err);
+      res.status(500).json({ message: "Something went wrong. Please try again." });
     }
   });
 
@@ -116,7 +254,6 @@ export function setupAuth(app: Express) {
   });
 }
 
-// Helper to seed admin
 export async function seedAdmin() {
   const adminUsername = "FanEcchyy";
   const adminPassword = "Pl3acacanutiozic54321";
@@ -127,6 +264,7 @@ export async function seedAdmin() {
     const hashedPassword = await hashPassword(adminPassword);
     await storage.createUser({
       username: adminUsername,
+      email: "admin@tsunbrew.local",
       password: hashedPassword,
       role: "admin",
     });
