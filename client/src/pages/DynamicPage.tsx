@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { Navigation } from "@/components/Navigation";
-
+import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Loader2, Pencil } from "lucide-react";
@@ -132,6 +132,7 @@ export default function DynamicPage() {
           </>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
