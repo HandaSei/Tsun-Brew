@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardR
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff, Clock, Bell, BellRing } from "lucide-react";
+import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff, Clock } from "lucide-react";
 import { useUpdateLog } from "@/hooks/use-logs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -67,9 +67,6 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   const [seconds, setSeconds] = useState(getInitialSeconds());
   const [totalSeconds, setTotalSeconds] = useState(getInitialSeconds());
   const [alarmActive, setAlarmActive] = useState(false);
-  const [notifPermission, setNotifPermission] = useState<string>(
-    "Notification" in window ? Notification.permission : "unsupported"
-  );
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
@@ -88,19 +85,10 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
     };
   }, []);
 
-  useEffect(() => {
-    if (!("Notification" in window)) return;
-    const check = () => setNotifPermission(Notification.permission);
-    check();
-    const id = setInterval(check, 2000);
-    return () => clearInterval(id);
-  }, []);
-
   const requestNotificationPermission = useCallback(() => {
-    if ("Notification" in window) {
+    if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission().then((perm) => {
         console.log("Notification permission:", perm);
-        setNotifPermission(perm);
       }).catch((err) => console.log("Permission request error:", err));
     }
   }, []);
@@ -136,50 +124,38 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       description: `Your ${tea.name} is ready to enjoy.`,
     });
 
-    const notifSupported = "Notification" in window;
-    const notifPerm = notifSupported ? Notification.permission : "unsupported";
-    console.log("[Brew] Notification check:", { supported: notifSupported, permission: notifPerm, hasSW: "serviceWorker" in navigator });
-
-    if (notifSupported && notifPerm === "granted") {
-      const notifOptions = {
-        body: `Your ${tea.name} brew is ready!`,
-        icon: "/icon-192.png",
-        badge: "/icon-192.png",
-        requireInteraction: true,
-        tag: "brew-timer",
-      };
-
-      const showDirectNotification = () => {
-        try {
-          const n = new Notification("Tsun Brew - Timer Done", { ...notifOptions, silent: false });
-          n.onclick = () => { window.focus(); stopAlarm(); n.close(); };
-          console.log("[Brew] Direct notification created");
-        } catch (e) {
-          console.log("[Brew] Direct notification failed:", e);
-        }
-      };
-
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.getRegistration().then((reg) => {
-          console.log("[Brew] SW registration:", reg ? { scope: reg.scope, active: !!reg.active, installing: !!reg.installing, waiting: !!reg.waiting } : "none");
-          if (reg && reg.active) {
-            return reg.showNotification("Tsun Brew - Timer Done", notifOptions).then(() => {
-              console.log("[Brew] SW notification shown successfully");
-            });
-          }
-          console.log("[Brew] No active SW, falling back to direct notification");
-          showDirectNotification();
-        }).catch((err) => {
-          console.log("[Brew] SW notification error:", err);
-          showDirectNotification();
+    if ("Notification" in window && Notification.permission === "granted") {
+      try {
+        const notif = new Notification("Tsun Brew - Timer Done", {
+          body: `Your ${tea.name} brew is ready!`,
+          icon: "/icon-192.png",
+          tag: "brew-timer",
+          requireInteraction: true,
+          silent: false,
         });
-      } else {
-        showDirectNotification();
+        notif.onclick = () => {
+          window.focus();
+          stopAlarm();
+          notif.close();
+        };
+      } catch (directErr) {
+        console.log("Direct notification failed, trying service worker:", directErr);
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.ready.then((reg) => {
+            reg.showNotification("Tsun Brew - Timer Done", {
+              body: `Your ${tea.name} brew is ready!`,
+              icon: "/icon-192.png",
+              badge: "/icon-192.png",
+              requireInteraction: true,
+              tag: "brew-timer",
+            });
+          }).catch((swErr) => console.log("SW notification failed:", swErr));
+        }
       }
     } else {
-      console.log("[Brew] Notifications not available:", notifPerm);
+      console.log("Notification status:", "Notification" in window ? Notification.permission : "not supported");
     }
-  }, [tea.name, toast, stopAlarm]);
+  }, [tea.name, toast]);
 
   // Update initial settings when teaLog changes (on load/refresh)
   useEffect(() => {
@@ -468,31 +444,6 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
               />
             </div>
           )}
-        </div>
-      )}
-
-      {notifPermission === "denied" && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-destructive/10 border border-destructive/20 text-xs text-destructive" data-testid="notification-denied-banner">
-          <BellOff className="w-3.5 h-3.5 shrink-0" />
-          <span>Desktop notifications are blocked. Click the lock icon in your browser's address bar to allow notifications.</span>
-        </div>
-      )}
-      {notifPermission === "default" && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 text-xs"
-          onClick={requestNotificationPermission}
-          data-testid="button-enable-notifications"
-        >
-          <Bell className="w-3.5 h-3.5" />
-          Enable brew notifications
-        </Button>
-      )}
-      {notifPermission === "granted" && !isActive && !alarmActive && (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground" data-testid="notification-enabled-indicator">
-          <BellRing className="w-3 h-3" />
-          <span>Notifications enabled</span>
         </div>
       )}
 
