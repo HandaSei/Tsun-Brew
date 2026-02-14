@@ -18,14 +18,15 @@ export function getTeaTypeColor(teaTypes: TeaType[] | undefined, typeName: strin
     };
   }
   const { colorHue: h, colorSaturation: s, colorLightness: l } = teaType;
+  const textColor = l > 55 ? `hsl(${h} ${Math.min(s + 10, 100)}% 15%)` : `hsl(${h} 10% 98%)`;
   return {
     bg: "",
     text: "",
     border: "",
     style: {
-      backgroundColor: `hsl(${h} ${s}% ${l}% / 0.12)`,
-      color: `hsl(${h} ${s}% ${Math.min(l + 10, 65)}%)`,
-      borderColor: `hsl(${h} ${s}% ${l}% / 0.25)`,
+      backgroundColor: `hsl(${h} ${s}% ${l}%)`,
+      color: textColor,
+      borderColor: `hsl(${h} ${s}% ${Math.max(l - 10, 10)}%)`,
     } as React.CSSProperties,
   };
 }
