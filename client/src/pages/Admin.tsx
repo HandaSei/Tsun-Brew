@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
-import { useTeaTypes, teaTypeBadgeClass } from "@/hooks/use-tea-types";
+import { useTeaTypes } from "@/hooks/use-tea-types";
 import type { TeaType, SiteSettings, FooterLink } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -205,15 +205,16 @@ function TeaTypesTab() {
           <TableBody>
             {(teaTypes || []).map((t) => {
               const bg = `hsl(${t.colorHue}, ${t.colorSaturation}%, ${t.colorLightness}%)`;
+              const fg = t.colorLightness > 55 ? `hsl(${t.colorHue}, ${Math.min(t.colorSaturation + 20, 100)}%, 15%)` : `hsl(${t.colorHue}, ${Math.min(t.colorSaturation + 10, 100)}%, 95%)`;
               return (
                 <TableRow key={t.id} data-testid={`row-tea-type-${t.id}`}>
                   <TableCell>
                     <div className="w-8 h-8 rounded-md border border-border" style={{ backgroundColor: bg }} />
                   </TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold shadow-sm ${teaTypeBadgeClass(t.name)}`}>
+                    <Badge className="font-medium" style={{ backgroundColor: bg, color: fg, borderColor: `hsl(${t.colorHue}, ${t.colorSaturation}%, ${Math.max(t.colorLightness - 10, 0)}%)` }}>
                       {t.name}
-                    </span>
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     H:{t.colorHue} S:{t.colorSaturation}% L:{t.colorLightness}%

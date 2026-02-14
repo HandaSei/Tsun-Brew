@@ -2,18 +2,15 @@ import { Link } from "wouter";
 import { Tea } from "@shared/schema";
 import { Card } from "@/components/ui/card";
 import { Droplet, Leaf } from "lucide-react";
-import { teaTypeBadgeClass, injectTeaColorFromData } from "@/hooks/use-tea-types";
-import { useEffect } from "react";
+import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
 
 interface TeaCardProps {
   tea: Tea;
 }
 
 export function TeaCard({ tea }: TeaCardProps) {
-  const teaAny = tea as any;
-  useEffect(() => {
-    injectTeaColorFromData(tea.type, teaAny.typeColorHue, teaAny.typeColorSaturation, teaAny.typeColorLightness);
-  }, [tea.type, teaAny.typeColorHue, teaAny.typeColorSaturation, teaAny.typeColorLightness]);
+  const { data: teaTypes } = useTeaTypes();
+  const typeColor = getTeaTypeColor(teaTypes, tea.type, tea as any);
 
   return (
     <Link href={`/tea/${tea.id}`} className="block group">
@@ -31,7 +28,7 @@ export function TeaCard({ tea }: TeaCardProps) {
             </div>
           )}
           <div className="absolute top-3 left-3">
-            <span className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold shadow-sm ${teaTypeBadgeClass(tea.type)}`} data-testid={`badge-type-${tea.id}`}>{tea.type}</span>
+            <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold shadow-sm" style={typeColor.style} data-testid={`badge-type-${tea.id}`}>{tea.type}</span>
           </div>
         </div>
         

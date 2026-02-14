@@ -13,7 +13,6 @@ import DynamicPage from "@/pages/DynamicPage";
 import AuthPage from "@/pages/Auth";
 import { useEffect } from "react";
 import type { SiteSettings } from "@shared/schema";
-import { TeaTypeStyleInjector } from "@/hooks/use-tea-types";
 
 function Router() {
   return (
@@ -55,7 +54,6 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <DynamicFavicon />
-          <TeaTypeStyleInjector />
           <Toaster />
           <Router />
         </TooltipProvider>
