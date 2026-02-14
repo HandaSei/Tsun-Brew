@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff, RotateCw, Clock } from "lucide-react";
+import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff, Clock } from "lucide-react";
 import { useUpdateLog } from "@/hooks/use-logs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -11,6 +11,10 @@ import { Input } from "@/components/ui/input";
 
 const ALARM_SOUND_URL = "https://res.cloudinary.com/dq9nrlsb9/video/upload/v1771025474/zapsplat_multimedia_ui_processing_or_timer_tone_musical_warm_mallets_85166_an2opt.mp3";
 
+export interface BrewTimerHandle {
+  resetToRecommended: () => void;
+}
+
 interface BrewTimerProps {
   tea: Tea;
   teaLog?: TeaLog;
@@ -18,12 +22,12 @@ interface BrewTimerProps {
   showControls?: boolean;
 }
 
-export function BrewTimer({ 
+export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function BrewTimer({ 
   tea,
   teaLog,
   onComplete,
   showControls = false
-}: BrewTimerProps) {
+}, ref) {
   const personalSettings = teaLog?.timerSettings as any;
   const orientalEnabled = tea.orientalTimerEnabled !== false;
   const occidentalEnabled = tea.occidentalTimerEnabled !== false;
@@ -245,6 +249,33 @@ export function BrewTimer({
     setTotalSeconds(s);
   };
 
+  const resetToRecommended = useCallback(() => {
+    const newODuration = tea.orientalDuration ?? 20;
+    const newOIncrement = tea.orientalInfusionIncrement ?? 10;
+    const newOccInfusions = (tea.occidentalInfusions as number[]) ?? [tea.occidentalDuration ?? 180];
+    setODuration(newODuration);
+    setOIncrement(newOIncrement);
+    setOccInfusions(newOccInfusions);
+    setTemp(method === 'oriental' ? (tea.orientalTemp ?? 85) : (tea.occidentalTemp ?? 85));
+    setWashingDuration(tea.washingDuration ?? 10);
+    setOrientalLeafAmount(tea.orientalLeafAmount ?? "");
+    setOrientalWaterAmount(tea.orientalWaterAmount ?? "");
+    setOccidentalLeafAmount(tea.occidentalLeafAmount ?? "");
+    setOccidentalWaterAmount(tea.occidentalWaterAmount ?? "");
+    setInfusion(1);
+    setIsActive(false);
+    const newSeconds = method === 'oriental'
+      ? newODuration
+      : (newOccInfusions[0] || 180);
+    setSeconds(newSeconds);
+    setTotalSeconds(newSeconds);
+    toast({ title: "Reset", description: "Timer settings restored to recommended values." });
+  }, [tea, method, toast]);
+
+  useImperativeHandle(ref, () => ({
+    resetToRecommended,
+  }), [resetToRecommended]);
+
   const progress = ((totalSeconds - seconds) / totalSeconds) * 100;
 
   const formatTime = (time: number) => {
@@ -464,48 +495,16 @@ export function BrewTimer({
             </Button>
 
             {showControls && (
-              <>
-                <Button
-                  onClick={handleSaveSettings}
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs text-primary"
-                  disabled={updateLog.isPending}
-                  data-testid="button-save-timer-settings"
-                >
-                  Save Preference
-                </Button>
-                <Button
-                  onClick={() => {
-                    const newODuration = tea.orientalDuration ?? 20;
-                    const newOIncrement = tea.orientalInfusionIncrement ?? 10;
-                    const newOccInfusions = (tea.occidentalInfusions as number[]) ?? [tea.occidentalDuration ?? 180];
-                    setODuration(newODuration);
-                    setOIncrement(newOIncrement);
-                    setOccInfusions(newOccInfusions);
-                    setTemp(method === 'oriental' ? (tea.orientalTemp ?? 85) : (tea.occidentalTemp ?? 85));
-                    setWashingDuration(tea.washingDuration ?? 10);
-                    setOrientalLeafAmount(tea.orientalLeafAmount ?? "");
-                    setOrientalWaterAmount(tea.orientalWaterAmount ?? "");
-                    setOccidentalLeafAmount(tea.occidentalLeafAmount ?? "");
-                    setOccidentalWaterAmount(tea.occidentalWaterAmount ?? "");
-                    setInfusion(1);
-                    setIsActive(false);
-                    const newSeconds = method === 'oriental'
-                      ? newODuration
-                      : (newOccInfusions[0] || 180);
-                    setSeconds(newSeconds);
-                    setTotalSeconds(newSeconds);
-                    toast({ title: "Reset", description: "Timer settings restored to recommended values." });
-                  }}
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs text-muted-foreground gap-1"
-                  data-testid="button-reset-to-recommended"
-                >
-                  <RotateCw className="w-3 h-3" /> Reset to Recommended
-                </Button>
-              </>
+              <Button
+                onClick={handleSaveSettings}
+                variant="ghost"
+                size="sm"
+                className="text-xs text-primary"
+                disabled={updateLog.isPending}
+                data-testid="button-save-timer-settings"
+              >
+                Save Preference
+              </Button>
             )}
           </>
         )}
@@ -536,4 +535,4 @@ export function BrewTimer({
       </p>
     </div>
   );
-}
+});

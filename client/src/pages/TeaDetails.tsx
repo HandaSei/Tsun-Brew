@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Tabs kept for edit dialog only
-import { BrewTimer } from "@/components/BrewTimer";
+import { BrewTimer, type BrewTimerHandle } from "@/components/BrewTimer";
 import { useUpdateLog, useLogs } from "@/hooks/use-logs";
 import { 
   Loader2, 
@@ -24,9 +24,10 @@ import {
   Edit2,
   Droplets,
   Zap,
-  X
+  X,
+  RotateCcw
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,9 +53,29 @@ export default function TeaDetails() {
   const { data: teaTypes } = useTeaTypes();
   const [isEditing, setIsEditing] = useState(false);
   const [listSelectOpen, setListSelectOpen] = useState(false);
+  const [timerSettingsOpen, setTimerSettingsOpen] = useState(false);
+  const brewTimerRef = useRef<BrewTimerHandle>(null);
 
   const teaLog = logs?.find(l => l.teaId === id);
   const isAdmin = user?.role === 'admin' || user?.role === 'mod';
+  const userPrefs = (teaLog?.timerSettings as any) || {};
+  
+  const [userHideOriental, setUserHideOriental] = useState(false);
+  const [userHideOccidental, setUserHideOccidental] = useState(false);
+  const [userHideParams, setUserHideParams] = useState(false);
+  const [userNote, setUserNote] = useState("");
+  const [userShowNote, setUserShowNote] = useState(false);
+
+  useEffect(() => {
+    if (teaLog?.timerSettings) {
+      const prefs = teaLog.timerSettings as any;
+      setUserHideOriental(!!prefs.hideOriental);
+      setUserHideOccidental(!!prefs.hideOccidental);
+      setUserHideParams(!!prefs.hideParams);
+      setUserNote(prefs.userNote || "");
+      setUserShowNote(!!prefs.showUserNote);
+    }
+  }, [teaLog?.timerSettings]);
 
   const form = useForm({
     resolver: zodResolver(insertTeaSchema.partial()),
@@ -671,6 +692,7 @@ export default function TeaDetails() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
+          {!userHideParams && (
           <div className="glass-card p-6 rounded-2xl">
             <h3 className="font-display text-2xl mb-4">Recommended Brewing Parameters</h3>
             
@@ -747,11 +769,137 @@ export default function TeaDetails() {
               </div>
             )}
           </div>
+          )}
 
           <div className="glass-card p-8 rounded-2xl flex flex-col items-center">
-            <h3 className="font-display text-2xl mb-6">Brew Timer</h3>
+            <div className="flex items-center justify-between w-full mb-6">
+              <h3 className="font-display text-2xl">Brew Timer</h3>
+              {user && (
+                <Dialog open={timerSettingsOpen} onOpenChange={setTimerSettingsOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon" data-testid="button-timer-settings">
+                      <Settings className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-sm">
+                    <DialogHeader>
+                      <DialogTitle>Timer Preferences</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-2">
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-semibold text-muted-foreground">Visibility</h4>
+                        <div className="flex items-center justify-between rounded-md border p-3 shadow-sm">
+                          <div className="space-y-0.5">
+                            <p className="text-sm font-medium">Hide Oriental Timer</p>
+                            <p className="text-xs text-muted-foreground">Hide the oriental method from your timer</p>
+                          </div>
+                          <Switch checked={userHideOriental} onCheckedChange={setUserHideOriental} data-testid="switch-user-hide-oriental" />
+                        </div>
+                        <div className="flex items-center justify-between rounded-md border p-3 shadow-sm">
+                          <div className="space-y-0.5">
+                            <p className="text-sm font-medium">Hide Occidental Timer</p>
+                            <p className="text-xs text-muted-foreground">Hide the occidental method from your timer</p>
+                          </div>
+                          <Switch checked={userHideOccidental} onCheckedChange={setUserHideOccidental} data-testid="switch-user-hide-occidental" />
+                        </div>
+                        <div className="flex items-center justify-between rounded-md border p-3 shadow-sm">
+                          <div className="space-y-0.5">
+                            <p className="text-sm font-medium">Hide Recommended Parameters</p>
+                            <p className="text-xs text-muted-foreground">Hide the brewing parameters section below</p>
+                          </div>
+                          <Switch checked={userHideParams} onCheckedChange={setUserHideParams} data-testid="switch-user-hide-params" />
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-semibold text-muted-foreground">Personal Note</h4>
+                        <div className="flex items-center justify-between rounded-md border p-3 shadow-sm">
+                          <div className="space-y-0.5">
+                            <p className="text-sm font-medium">Show My Note</p>
+                            <p className="text-xs text-muted-foreground">Display your personal brewing note</p>
+                          </div>
+                          <Switch checked={userShowNote} onCheckedChange={setUserShowNote} data-testid="switch-user-show-note" />
+                        </div>
+                        {userShowNote && (
+                          <Textarea
+                            value={userNote}
+                            onChange={e => setUserNote(e.target.value)}
+                            placeholder="Your personal brewing instructions or notes..."
+                            className="min-h-[80px]"
+                            data-testid="input-user-note"
+                          />
+                        )}
+                      </div>
+
+                      <Separator />
+
+                      <Button
+                        variant="outline"
+                        className="w-full gap-2"
+                        onClick={() => {
+                          brewTimerRef.current?.resetToRecommended();
+                          setTimerSettingsOpen(false);
+                        }}
+                        data-testid="button-reset-to-recommended"
+                      >
+                        <RotateCcw className="w-4 h-4" /> Reset Timer to Recommended
+                      </Button>
+
+                      <Button
+                        className="w-full"
+                        onClick={() => {
+                          const existingSettings = (teaLog?.timerSettings as any) || {};
+                          updateLog.mutate({
+                            teaId: tea.id,
+                            timerSettings: {
+                              ...existingSettings,
+                              hideOriental: userHideOriental,
+                              hideOccidental: userHideOccidental,
+                              hideParams: userHideParams,
+                              userNote: userNote || undefined,
+                              showUserNote: userShowNote,
+                            },
+                            status: teaLog?.status || 'want_to_try'
+                          } as any, {
+                            onSuccess: () => {
+                              toast({ title: "Saved", description: "Your preferences have been saved." });
+                              setTimerSettingsOpen(false);
+                            },
+                            onError: (err: any) => {
+                              toast({ title: "Error", description: err.message || "Failed to save preferences", variant: "destructive" });
+                            }
+                          });
+                        }}
+                        disabled={updateLog.isPending}
+                        data-testid="button-save-timer-prefs"
+                      >
+                        {updateLog.isPending ? "Saving..." : "Save Preferences"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
+
+            {userShowNote && userNote && (
+              <div className="mb-4 w-full p-4 bg-accent/10 border border-accent/20 rounded-xl text-sm text-foreground whitespace-pre-wrap">
+                <div className="flex items-center gap-2 mb-2 font-semibold text-accent-foreground">
+                  <BookOpen className="w-4 h-4" />
+                  My Note
+                </div>
+                {userNote}
+              </div>
+            )}
+
             <BrewTimer 
-              tea={tea}
+              ref={brewTimerRef}
+              tea={{
+                ...tea,
+                orientalTimerEnabled: userHideOriental ? false : tea.orientalTimerEnabled,
+                occidentalTimerEnabled: userHideOccidental ? false : tea.occidentalTimerEnabled,
+              }}
               teaLog={teaLog}
               showControls={!!user}
             />
