@@ -58,6 +58,13 @@ export const teas = pgTable("teas", {
   occidentalLeafAmount: text("occidental_leaf_amount"),
   occidentalWaterAmount: text("occidental_water_amount"),
   
+  showOriental: boolean("show_oriental").default(true),
+  showOccidental: boolean("show_occidental").default(true),
+  orientalTimerEnabled: boolean("oriental_timer_enabled").default(true),
+  occidentalTimerEnabled: boolean("occidental_timer_enabled").default(true),
+  brewingNote: text("brewing_note"),
+  showBrewingNote: boolean("show_brewing_note").default(false),
+  
   createdById: integer("created_by_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });

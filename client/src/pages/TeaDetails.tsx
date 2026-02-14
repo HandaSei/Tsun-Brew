@@ -80,6 +80,12 @@ export default function TeaDetails() {
       orientalWaterAmount: "",
       occidentalLeafAmount: "",
       occidentalWaterAmount: "",
+      showOriental: true,
+      showOccidental: true,
+      orientalTimerEnabled: true,
+      occidentalTimerEnabled: true,
+      brewingNote: "",
+      showBrewingNote: false,
     }
   });
 
@@ -92,21 +98,27 @@ export default function TeaDetails() {
         origin: tea.origin || "",
         cultivar: tea.cultivar || "",
         photoUrl: tea.photoUrl || "",
-        recommendedTemp: tea.recommendedTemp || 85,
-        recommendedDuration: tea.recommendedDuration || 60,
-        orientalTemp: tea.orientalTemp || 95,
-        orientalDuration: tea.orientalDuration || 20,
-        orientalInfusionIncrement: tea.orientalInfusionIncrement || 10,
-        orientalMaxInfusions: tea.orientalMaxInfusions || 8,
-        occidentalTemp: tea.occidentalTemp || 85,
-        occidentalDuration: tea.occidentalDuration || 180,
-        occidentalInfusions: tea.occidentalInfusions || [180],
+        recommendedTemp: tea.recommendedTemp ?? undefined,
+        recommendedDuration: tea.recommendedDuration ?? undefined,
+        orientalTemp: tea.orientalTemp ?? undefined,
+        orientalDuration: tea.orientalDuration ?? undefined,
+        orientalInfusionIncrement: tea.orientalInfusionIncrement ?? undefined,
+        orientalMaxInfusions: tea.orientalMaxInfusions ?? undefined,
+        occidentalTemp: tea.occidentalTemp ?? undefined,
+        occidentalDuration: tea.occidentalDuration ?? undefined,
+        occidentalInfusions: tea.occidentalInfusions ?? undefined,
         washingStep: !!tea.washingStep,
-        washingDuration: tea.washingDuration || 10,
+        washingDuration: tea.washingDuration ?? undefined,
         orientalLeafAmount: tea.orientalLeafAmount || "",
         orientalWaterAmount: tea.orientalWaterAmount || "",
         occidentalLeafAmount: tea.occidentalLeafAmount || "",
         occidentalWaterAmount: tea.occidentalWaterAmount || "",
+        showOriental: tea.showOriental !== false,
+        showOccidental: tea.showOccidental !== false,
+        orientalTimerEnabled: tea.orientalTimerEnabled !== false,
+        occidentalTimerEnabled: tea.occidentalTimerEnabled !== false,
+        brewingNote: tea.brewingNote || "",
+        showBrewingNote: !!tea.showBrewingNote,
       });
     }
   }, [tea, form]);
@@ -300,6 +312,100 @@ export default function TeaDetails() {
                                         <FormItem>
                                           <FormLabel>Washing Duration (s)</FormLabel>
                                           <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
+                                        </FormItem>
+                                      )}
+                                    />
+                                  )}
+                                </div>
+
+                                <div className="p-4 bg-secondary/20 rounded-lg space-y-4">
+                                  <h4 className="text-sm font-semibold text-muted-foreground">Visibility & Display</h4>
+                                  <FormField
+                                    control={form.control}
+                                    name="showOriental"
+                                    render={({ field }) => (
+                                      <FormItem className="flex items-center justify-between rounded-md border p-3 shadow-sm bg-card">
+                                        <div className="space-y-0.5">
+                                          <FormLabel>Show Oriental in Parameters</FormLabel>
+                                          <FormDescription>Display oriental section in recommended parameters</FormDescription>
+                                        </div>
+                                        <FormControl>
+                                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name="showOccidental"
+                                    render={({ field }) => (
+                                      <FormItem className="flex items-center justify-between rounded-md border p-3 shadow-sm bg-card">
+                                        <div className="space-y-0.5">
+                                          <FormLabel>Show Occidental in Parameters</FormLabel>
+                                          <FormDescription>Display occidental section in recommended parameters</FormDescription>
+                                        </div>
+                                        <FormControl>
+                                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name="orientalTimerEnabled"
+                                    render={({ field }) => (
+                                      <FormItem className="flex items-center justify-between rounded-md border p-3 shadow-sm bg-card">
+                                        <div className="space-y-0.5">
+                                          <FormLabel>Allow Oriental in Timer</FormLabel>
+                                          <FormDescription>Let users select oriental method in the brew timer</FormDescription>
+                                        </div>
+                                        <FormControl>
+                                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name="occidentalTimerEnabled"
+                                    render={({ field }) => (
+                                      <FormItem className="flex items-center justify-between rounded-md border p-3 shadow-sm bg-card">
+                                        <div className="space-y-0.5">
+                                          <FormLabel>Allow Occidental in Timer</FormLabel>
+                                          <FormDescription>Let users select occidental method in the brew timer</FormDescription>
+                                        </div>
+                                        <FormControl>
+                                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+
+                                <div className="p-4 bg-secondary/20 rounded-lg space-y-4">
+                                  <FormField
+                                    control={form.control}
+                                    name="showBrewingNote"
+                                    render={({ field }) => (
+                                      <FormItem className="flex items-center justify-between rounded-md border p-3 shadow-sm bg-card">
+                                        <div className="space-y-0.5">
+                                          <FormLabel>Show Brewing Note</FormLabel>
+                                          <FormDescription>Display a custom instruction note in the brewing section</FormDescription>
+                                        </div>
+                                        <FormControl>
+                                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  {form.watch('showBrewingNote') && (
+                                    <FormField
+                                      control={form.control}
+                                      name="brewingNote"
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>Brewing Note</FormLabel>
+                                          <FormControl><Textarea {...field} value={field.value || ""} placeholder="Add custom brewing instructions or notes..." className="min-h-[80px]" /></FormControl>
                                         </FormItem>
                                       )}
                                     />
@@ -566,46 +672,74 @@ export default function TeaDetails() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="glass-card p-6 rounded-2xl">
-            <h3 className="font-display text-2xl mb-4">Brewing Parameters</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
-                <h4 className="font-bold text-primary flex items-center gap-2">
-                  <Zap className="w-4 h-4" /> Oriental (Gongfu)
-                </h4>
-                <div className="text-sm space-y-1.5">
-                  {tea.orientalLeafAmount && tea.orientalWaterAmount ? (
-                    <p className="text-muted-foreground">{tea.orientalLeafAmount} of leaves for {tea.orientalWaterAmount} of water</p>
-                  ) : tea.orientalLeafAmount ? (
-                    <p><span className="text-muted-foreground">Leaf:</span> {tea.orientalLeafAmount}</p>
-                  ) : tea.orientalWaterAmount ? (
-                    <p><span className="text-muted-foreground">Water:</span> {tea.orientalWaterAmount}</p>
-                  ) : null}
-                  <p><span className="text-muted-foreground">Temp:</span> {tea.orientalTemp || 95}°C</p>
-                  <p><span className="text-muted-foreground">Initial:</span> {tea.orientalDuration || 20}s</p>
-                  <p><span className="text-muted-foreground">Increment:</span> +{tea.orientalInfusionIncrement || 10}s</p>
-                  <p><span className="text-muted-foreground">Max:</span> {tea.orientalMaxInfusions || 8} infusions</p>
+            <h3 className="font-display text-2xl mb-4">Recommended Brewing Parameters</h3>
+            
+            {tea.showBrewingNote && tea.brewingNote && (
+              <div className="mb-4 p-4 bg-accent/10 border border-accent/20 rounded-xl text-sm text-foreground whitespace-pre-wrap">
+                <div className="flex items-center gap-2 mb-2 font-semibold text-accent-foreground">
+                  <BookOpen className="w-4 h-4" />
+                  Brewing Note
                 </div>
+                {tea.brewingNote}
               </div>
-              <div className="space-y-3 p-4 bg-secondary/20 rounded-xl border border-border">
-                <h4 className="font-bold text-foreground flex items-center gap-2">
-                  <Leaf className="w-4 h-4" /> Occidental (Western)
-                </h4>
-                <div className="text-sm space-y-1.5">
-                  {tea.occidentalLeafAmount && tea.occidentalWaterAmount ? (
-                    <p className="text-muted-foreground">{tea.occidentalLeafAmount} of leaves for {tea.occidentalWaterAmount} of water</p>
-                  ) : tea.occidentalLeafAmount ? (
-                    <p><span className="text-muted-foreground">Leaf:</span> {tea.occidentalLeafAmount}</p>
-                  ) : tea.occidentalWaterAmount ? (
-                    <p><span className="text-muted-foreground">Water:</span> {tea.occidentalWaterAmount}</p>
-                  ) : null}
-                  <p><span className="text-muted-foreground">Temp:</span> {tea.occidentalTemp || 85}°C</p>
-                  <p><span className="text-muted-foreground">Duration:</span> {tea.occidentalDuration || 180}s</p>
-                  {tea.occidentalInfusions && Array.isArray(tea.occidentalInfusions) && (
-                    <p><span className="text-muted-foreground">Infusions:</span> {(tea.occidentalInfusions as number[]).map(s => `${s}s`).join(', ')}</p>
-                  )}
-                </div>
+            )}
+
+            {(tea.showOriental !== false || tea.showOccidental !== false) && (
+              <div className={`grid grid-cols-1 ${tea.showOriental !== false && tea.showOccidental !== false ? 'sm:grid-cols-2' : ''} gap-6`}>
+                {tea.showOriental !== false && (
+                  <div className="space-y-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                    <h4 className="font-bold text-primary flex items-center gap-2">
+                      <Zap className="w-4 h-4" /> Oriental (Gongfu)
+                    </h4>
+                    <div className="text-sm space-y-1.5">
+                      {tea.orientalLeafAmount && tea.orientalWaterAmount ? (
+                        <p className="text-muted-foreground">{tea.orientalLeafAmount} of leaves for {tea.orientalWaterAmount} of water</p>
+                      ) : tea.orientalLeafAmount ? (
+                        <p><span className="text-muted-foreground">Leaf:</span> {tea.orientalLeafAmount}</p>
+                      ) : tea.orientalWaterAmount ? (
+                        <p><span className="text-muted-foreground">Water:</span> {tea.orientalWaterAmount}</p>
+                      ) : null}
+                      {tea.orientalTemp != null && <p><span className="text-muted-foreground">Temp:</span> {tea.orientalTemp}°C</p>}
+                      {tea.orientalDuration != null && <p><span className="text-muted-foreground">Initial:</span> {tea.orientalDuration}s</p>}
+                      {tea.orientalInfusionIncrement != null && <p><span className="text-muted-foreground">Increment:</span> +{tea.orientalInfusionIncrement}s</p>}
+                      {tea.orientalMaxInfusions != null && <p><span className="text-muted-foreground">Max:</span> {tea.orientalMaxInfusions} infusions</p>}
+                      {tea.orientalTemp == null && tea.orientalDuration == null && !tea.orientalLeafAmount && !tea.orientalWaterAmount && (
+                        <p className="text-muted-foreground italic">No parameters set</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {tea.showOccidental !== false && (
+                  <div className="space-y-3 p-4 bg-secondary/20 rounded-xl border border-border">
+                    <h4 className="font-bold text-foreground flex items-center gap-2">
+                      <Leaf className="w-4 h-4" /> Occidental (Western)
+                    </h4>
+                    <div className="text-sm space-y-1.5">
+                      {tea.occidentalLeafAmount && tea.occidentalWaterAmount ? (
+                        <p className="text-muted-foreground">{tea.occidentalLeafAmount} of leaves for {tea.occidentalWaterAmount} of water</p>
+                      ) : tea.occidentalLeafAmount ? (
+                        <p><span className="text-muted-foreground">Leaf:</span> {tea.occidentalLeafAmount}</p>
+                      ) : tea.occidentalWaterAmount ? (
+                        <p><span className="text-muted-foreground">Water:</span> {tea.occidentalWaterAmount}</p>
+                      ) : null}
+                      {tea.occidentalTemp != null && <p><span className="text-muted-foreground">Temp:</span> {tea.occidentalTemp}°C</p>}
+                      {tea.occidentalDuration != null && <p><span className="text-muted-foreground">Duration:</span> {tea.occidentalDuration}s</p>}
+                      {tea.occidentalInfusions && Array.isArray(tea.occidentalInfusions) && (
+                        <p><span className="text-muted-foreground">Infusions:</span> {(tea.occidentalInfusions as number[]).map(s => `${s}s`).join(', ')}</p>
+                      )}
+                      {tea.occidentalTemp == null && tea.occidentalDuration == null && !tea.occidentalLeafAmount && !tea.occidentalWaterAmount && (
+                        <p className="text-muted-foreground italic">No parameters set</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
+
+            {tea.showOriental === false && tea.showOccidental === false && !tea.showBrewingNote && (
+              <p className="text-muted-foreground text-sm italic">No recommended parameters available for this tea.</p>
+            )}
+
             {tea.washingStep && (
               <div className="mt-4 p-3 bg-[hsl(var(--wash-bg))] border border-[hsl(var(--wash-border))] rounded-md flex items-center gap-3 text-[hsl(var(--wash-text))] text-sm">
                 <Droplets className="w-4 h-4" />

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff } from "lucide-react";
+import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff, RotateCw, Clock } from "lucide-react";
 import { useUpdateLog } from "@/hooks/use-logs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -25,7 +25,16 @@ export function BrewTimer({
   showControls = false
 }: BrewTimerProps) {
   const personalSettings = teaLog?.timerSettings as any;
-  const initialMethod = personalSettings?.method || 'oriental';
+  const orientalEnabled = tea.orientalTimerEnabled !== false;
+  const occidentalEnabled = tea.occidentalTimerEnabled !== false;
+  const savedMethod = personalSettings?.method;
+  const initialMethod = (() => {
+    if (savedMethod === 'oriental' && orientalEnabled) return 'oriental';
+    if (savedMethod === 'occidental' && occidentalEnabled) return 'occidental';
+    if (orientalEnabled) return 'oriental';
+    if (occidentalEnabled) return 'occidental';
+    return 'oriental';
+  })();
   const initialInfusion = 1;
 
   const [method, setMethod] = useState<'oriental' | 'occidental'>(initialMethod);
@@ -244,25 +253,40 @@ export function BrewTimer({
     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  if (!orientalEnabled && !occidentalEnabled) {
+    return (
+      <div className="flex flex-col items-center gap-4 p-6 w-full text-center">
+        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
+          <Clock className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <p className="text-muted-foreground text-sm">No brewing methods are enabled for this tea.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center gap-6 p-4 w-full">
       <div className="flex flex-wrap justify-center gap-2 mb-4">
-        <Button 
-          variant={method === 'oriental' ? 'default' : 'outline'} 
-          size="sm" 
-          onClick={() => { setMethod('oriental'); setTemp(tea.orientalTemp || 95); }}
-          className="rounded-full gap-2"
-        >
-          <Zap className="w-4 h-4" /> Oriental
-        </Button>
-        <Button 
-          variant={method === 'occidental' ? 'default' : 'outline'} 
-          size="sm" 
-          onClick={() => { setMethod('occidental'); setTemp(tea.occidentalTemp || 85); }}
-          className="rounded-full gap-2"
-        >
-          <Leaf className="w-4 h-4" /> Occidental
-        </Button>
+        {orientalEnabled && (
+          <Button 
+            variant={method === 'oriental' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => { setMethod('oriental'); setTemp(personalSettings?.temp ?? tea.orientalTemp ?? 85); }}
+            className="rounded-full gap-2"
+          >
+            <Zap className="w-4 h-4" /> Oriental
+          </Button>
+        )}
+        {occidentalEnabled && (
+          <Button 
+            variant={method === 'occidental' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => { setMethod('occidental'); setTemp(personalSettings?.temp ?? tea.occidentalTemp ?? 85); }}
+            className="rounded-full gap-2"
+          >
+            <Leaf className="w-4 h-4" /> Occidental
+          </Button>
+        )}
       </div>
 
       {showControls && (
@@ -440,16 +464,48 @@ export function BrewTimer({
             </Button>
 
             {showControls && (
-              <Button
-                onClick={handleSaveSettings}
-                variant="ghost"
-                size="sm"
-                className="text-xs text-primary"
-                disabled={updateLog.isPending}
-                data-testid="button-save-timer-settings"
-              >
-                Save Preference
-              </Button>
+              <>
+                <Button
+                  onClick={handleSaveSettings}
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-primary"
+                  disabled={updateLog.isPending}
+                  data-testid="button-save-timer-settings"
+                >
+                  Save Preference
+                </Button>
+                <Button
+                  onClick={() => {
+                    const newODuration = tea.orientalDuration ?? 20;
+                    const newOIncrement = tea.orientalInfusionIncrement ?? 10;
+                    const newOccInfusions = (tea.occidentalInfusions as number[]) ?? [tea.occidentalDuration ?? 180];
+                    setODuration(newODuration);
+                    setOIncrement(newOIncrement);
+                    setOccInfusions(newOccInfusions);
+                    setTemp(method === 'oriental' ? (tea.orientalTemp ?? 85) : (tea.occidentalTemp ?? 85));
+                    setWashingDuration(tea.washingDuration ?? 10);
+                    setOrientalLeafAmount(tea.orientalLeafAmount ?? "");
+                    setOrientalWaterAmount(tea.orientalWaterAmount ?? "");
+                    setOccidentalLeafAmount(tea.occidentalLeafAmount ?? "");
+                    setOccidentalWaterAmount(tea.occidentalWaterAmount ?? "");
+                    setInfusion(1);
+                    setIsActive(false);
+                    const newSeconds = method === 'oriental'
+                      ? newODuration
+                      : (newOccInfusions[0] || 180);
+                    setSeconds(newSeconds);
+                    setTotalSeconds(newSeconds);
+                    toast({ title: "Reset", description: "Timer settings restored to recommended values." });
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground gap-1"
+                  data-testid="button-reset-to-recommended"
+                >
+                  <RotateCw className="w-3 h-3" /> Reset to Recommended
+                </Button>
+              </>
             )}
           </>
         )}

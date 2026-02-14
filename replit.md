@@ -5,6 +5,10 @@
 Tsun Brew is a full-stack web application for tea enthusiasts to discover, track, and brew teas. Users can browse a tea library, log their tastings with personal scores, track brewing sessions with a timer, and share brewing guides and reviews. The app features role-based access control with admin, moderator, and user roles.
 
 ## Recent Changes
+- Brewing parameter system overhaul: Added 6 new teas fields (showOriental, showOccidental, orientalTimerEnabled, occidentalTimerEnabled, brewingNote, showBrewingNote)
+- Edit Tea Details form: Visibility & Display section with toggles for showing/hiding oriental/occidental in parameters, enabling/disabling in timer, and brewing note with toggle
+- Recommended Brewing Parameters display: renamed from "Brewing Parameters", respects visibility toggles, shows brewing note when enabled, shows "No parameters set" when empty
+- Brew Timer: respects orientalTimerEnabled/occidentalTimerEnabled flags, "Reset to Recommended" button restores tea defaults, method selector only shows enabled methods
 - Added footer/bottom bar system: footerLinks and pages tables, Footer component, DynamicPage for /page/:slug routes
 - Admin "Bottom Bar" tab for managing footer links and creating/editing dynamic pages
 - Default "About" page and footer link seeded in production data
