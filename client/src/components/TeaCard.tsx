@@ -29,7 +29,7 @@ export function TeaCard({ tea }: TeaCardProps) {
             </div>
           )}
           <div className="absolute top-3 left-3">
-            <Badge className="border font-medium" style={typeColor.style} data-testid={`badge-type-${tea.id}`}>{tea.type}</Badge>
+            <Badge variant="outline" className="font-medium" style={typeColor.style} data-testid={`badge-type-${tea.id}`}>{tea.type}</Badge>
           </div>
         </div>
         
