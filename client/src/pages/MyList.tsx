@@ -1,6 +1,7 @@
 import { useLogs, useUpdateLog, useDeleteLog } from "@/hooks/use-logs";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
 
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical, Trash2 } from "lucide-react";
@@ -19,6 +20,7 @@ import {
 export default function MyList() {
   const { user, isLoading: authLoading } = useAuth();
   const { data: logs, isLoading } = useLogs();
+  const { data: teaTypes } = useTeaTypes();
   const updateLog = useUpdateLog();
   const deleteLog = useDeleteLog();
   const [, setLocation] = useLocation();
@@ -83,7 +85,7 @@ export default function MyList() {
           </div>
           <div>
             <h3 className="font-display font-bold text-lg group-hover:text-primary transition-colors">{log.tea.name}</h3>
-            <p className="text-sm text-muted-foreground">{log.tea.type}</p>
+            <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1" style={getTeaTypeColor(teaTypes, log.tea.type).style} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
           </div>
         </Link>
         
