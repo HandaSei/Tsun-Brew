@@ -17,21 +17,6 @@
   <body>
     <script>
       (function() {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller && !sessionStorage.getItem('sw-cleared')) {
-          sessionStorage.setItem('sw-cleared', '1');
-          caches.keys().then(function(names) {
-            return Promise.all(names.map(function(n) { return caches.delete(n); }));
-          }).then(function() {
-            return navigator.serviceWorker.getRegistrations();
-          }).then(function(regs) {
-            return Promise.all(regs.map(function(r) { return r.unregister(); }));
-          }).then(function() {
-            location.reload();
-          });
-          return;
-        }
-      })();
-      (function() {
         try {
           var t = localStorage.getItem('tsun-brew-theme') || 'system';
           if (t === 'dark' && !localStorage.getItem('tsun-brew-theme-v2')) {
@@ -53,11 +38,28 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
+      (function() {
+        if (!('serviceWorker' in navigator)) return;
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          var hadOld = false;
+          var p = [];
+          for (var i = 0; i < regs.length; i++) {
+            hadOld = true;
+            p.push(regs[i].unregister());
+          }
+          return Promise.all(p).then(function() { return hadOld; });
+        }).then(function(hadOld) {
+          return caches.keys().then(function(names) {
+            return Promise.all(names.map(function(n) { return caches.delete(n); }));
+          }).then(function() { return hadOld; });
+        }).then(function(hadOld) {
           navigator.serviceWorker.register('/sw.js').catch(function() {});
+          if (hadOld && !sessionStorage.getItem('sw-refreshed')) {
+            sessionStorage.setItem('sw-refreshed', '1');
+            location.reload();
+          }
         });
-      }
+      })();
     </script>
   </body>
 </html>
