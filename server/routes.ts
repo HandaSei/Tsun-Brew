@@ -227,6 +227,14 @@ export async function registerRoutes(
     const user = req.user as User;
     if (user.role !== 'admin') return res.sendStatus(403);
     const input = api.footerLinks.create.input.parse(req.body);
+    const existingPage = await storage.getPageBySlug(input.pageSlug);
+    if (!existingPage) {
+      await storage.createPage({
+        slug: input.pageSlug,
+        title: input.label,
+        content: "",
+      });
+    }
     const link = await storage.createFooterLink(input);
     res.status(201).json(link);
   });
@@ -244,7 +252,15 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const user = req.user as User;
     if (user.role !== 'admin') return res.sendStatus(403);
+    const links = await storage.getFooterLinks();
+    const link = links.find(l => l.id === Number(req.params.id));
     await storage.deleteFooterLink(Number(req.params.id));
+    if (link) {
+      const otherLinksToSameSlug = links.filter(l => l.id !== link.id && l.pageSlug === link.pageSlug);
+      if (otherLinksToSameSlug.length === 0) {
+        try { await storage.deletePage(link.pageSlug); } catch (_) {}
+      }
+    }
     res.sendStatus(200);
   });
 

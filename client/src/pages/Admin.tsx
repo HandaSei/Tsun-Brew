@@ -16,8 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { useTeaTypes } from "@/hooks/use-tea-types";
-import type { TeaType, SiteSettings, FooterLink, Page } from "@shared/schema";
-import { Textarea } from "@/components/ui/textarea";
+import type { TeaType, SiteSettings, FooterLink } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 
 function UsersTab({ user }: { user: NonNullable<ReturnType<typeof useAuth>["user"]> }) {
@@ -390,22 +389,14 @@ function BottomBarTab() {
     queryKey: ["/api/footer-links"],
   });
 
-  const { data: allPages, isLoading: pagesLoading } = useQuery<Page[]>({
-    queryKey: ["/api/pages"],
-  });
-
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<FooterLink | null>(null);
   const [linkLabel, setLinkLabel] = useState("");
   const [linkSlug, setLinkSlug] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
-  const [pageDialogOpen, setPageDialogOpen] = useState(false);
-  const [editingPage, setEditingPage] = useState<Page | null>(null);
-  const [pageTitle, setPageTitle] = useState("");
-  const [pageSlug, setPageSlug] = useState("");
-  const [pageContent, setPageContent] = useState("");
-  const [deletePageConfirm, setDeletePageConfirm] = useState<string | null>(null);
+  const toSlug = (text: string) =>
+    text.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 
   const openCreateLink = () => {
     setEditingLink(null);
@@ -421,20 +412,11 @@ function BottomBarTab() {
     setLinkDialogOpen(true);
   };
 
-  const openCreatePage = () => {
-    setEditingPage(null);
-    setPageTitle("");
-    setPageSlug("");
-    setPageContent("");
-    setPageDialogOpen(true);
-  };
-
-  const openEditPage = (page: Page) => {
-    setEditingPage(page);
-    setPageTitle(page.title);
-    setPageSlug(page.slug);
-    setPageContent(page.content);
-    setPageDialogOpen(true);
+  const handleLabelChange = (val: string) => {
+    setLinkLabel(val);
+    if (!editingLink) {
+      setLinkSlug(toSlug(val));
+    }
   };
 
   const createLinkMutation = useMutation({
@@ -443,8 +425,9 @@ function BottomBarTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/footer-links"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/pages"] });
       setLinkDialogOpen(false);
-      toast({ title: "Footer Link Created" });
+      toast({ title: "Footer link and page created" });
     },
     onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
   });
@@ -467,72 +450,21 @@ function BottomBarTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/footer-links"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/pages"] });
       setDeleteConfirm(null);
-      toast({ title: "Footer Link Deleted" });
-    },
-    onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
-  });
-
-  const createPageMutation = useMutation({
-    mutationFn: async (data: { slug: string; title: string; content: string }) => {
-      return apiRequest("POST", "/api/pages", data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/pages"] });
-      setPageDialogOpen(false);
-      toast({ title: "Page Created" });
-    },
-    onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
-  });
-
-  const updatePageMutation = useMutation({
-    mutationFn: async ({ slug, data }: { slug: string; data: Partial<{ title: string; content: string }> }) => {
-      return apiRequest("PATCH", `/api/pages/${slug}`, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/pages"] });
-      setPageDialogOpen(false);
-      toast({ title: "Page Updated" });
-    },
-    onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
-  });
-
-  const deletePageMutation = useMutation({
-    mutationFn: async (slug: string) => {
-      return apiRequest("DELETE", `/api/pages/${slug}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/pages"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/footer-links"] });
-      setDeletePageConfirm(null);
-      toast({ title: "Page Deleted" });
+      toast({ title: "Footer link and its page deleted" });
     },
     onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
   });
 
   const handleLinkSubmit = () => {
+    const slug = toSlug(linkSlug);
     const nextSort = editingLink ? (editingLink.sortOrder ?? 0) : (footerLinks || []).length;
-    const data = { label: linkLabel, pageSlug: linkSlug, sortOrder: nextSort };
+    const data = { label: linkLabel, pageSlug: slug, sortOrder: nextSort };
     if (editingLink) {
       updateLinkMutation.mutate({ id: editingLink.id, data });
     } else {
       createLinkMutation.mutate(data);
-    }
-  };
-
-  const handlePageSubmit = () => {
-    const slug = pageSlug.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-    if (editingPage) {
-      updatePageMutation.mutate({ slug: editingPage.slug, data: { title: pageTitle, content: pageContent } });
-    } else {
-      createPageMutation.mutate({ slug, title: pageTitle, content: pageContent });
-    }
-  };
-
-  const autoSlug = (title: string) => {
-    setPageTitle(title);
-    if (!editingPage) {
-      setPageSlug(title.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, ""));
     }
   };
 
@@ -549,8 +481,7 @@ function BottomBarTab() {
     updateLinkMutation.mutate({ id: linkB.id, data: { sortOrder: sortA } });
   };
 
-  const isLoading = linksLoading || pagesLoading;
-  if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>;
+  if (linksLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>;
 
   return (
     <div className="space-y-8">
@@ -558,7 +489,7 @@ function BottomBarTab() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-semibold">Footer Links</h3>
-            <p className="text-muted-foreground text-sm">Links displayed in the bottom bar. Use arrows to reorder. Links are shown in vertical columns of 3.</p>
+            <p className="text-muted-foreground text-sm">Add links to the bottom bar. Each link automatically creates an editable page. To edit page content, visit the page and click the Edit button.</p>
           </div>
           <Button onClick={openCreateLink} data-testid="button-add-footer-link">
             <Plus className="w-4 h-4 mr-2" />
@@ -572,7 +503,7 @@ function BottomBarTab() {
               <TableRow>
                 <TableHead className="w-20">Order</TableHead>
                 <TableHead>Label</TableHead>
-                <TableHead>Page Slug</TableHead>
+                <TableHead>Page</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -638,71 +569,6 @@ function BottomBarTab() {
         </Card>
       </div>
 
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-lg font-semibold">Pages</h3>
-            <p className="text-muted-foreground text-sm">Create and manage simple content pages. Link them in the footer above.</p>
-          </div>
-          <Button onClick={openCreatePage} data-testid="button-add-page">
-            <Plus className="w-4 h-4 mr-2" />
-            New Page
-          </Button>
-        </div>
-
-        <Card className="overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Last Updated</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {(allPages || []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                    No pages yet. Create one above.
-                  </TableCell>
-                </TableRow>
-              )}
-              {(allPages || []).map((page) => (
-                <TableRow key={page.id} data-testid={`row-page-${page.slug}`}>
-                  <TableCell className="font-medium">{page.title}</TableCell>
-                  <TableCell className="text-muted-foreground">/page/{page.slug}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {page.updatedAt ? new Date(page.updatedAt).toLocaleDateString() : "-"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => openEditPage(page)} data-testid={`button-edit-page-${page.slug}`}>
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      {deletePageConfirm === page.slug ? (
-                        <div className="flex items-center gap-1">
-                          <Button variant="destructive" size="sm" onClick={() => deletePageMutation.mutate(page.slug)} data-testid={`button-confirm-delete-page-${page.slug}`}>
-                            Confirm
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => setDeletePageConfirm(null)}>
-                            Cancel
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button variant="ghost" size="icon" onClick={() => setDeletePageConfirm(page.slug)} data-testid={`button-delete-page-${page.slug}`}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-      </div>
-
       <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -711,56 +577,22 @@ function BottomBarTab() {
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Label</Label>
-              <Input value={linkLabel} onChange={(e) => setLinkLabel(e.target.value)} placeholder="e.g. About" data-testid="input-link-label" />
+              <Input value={linkLabel} onChange={(e) => handleLabelChange(e.target.value)} placeholder="e.g. About" data-testid="input-link-label" />
             </div>
             <div className="space-y-2">
               <Label>Page Slug</Label>
               <Input value={linkSlug} onChange={(e) => setLinkSlug(e.target.value)} placeholder="e.g. about" data-testid="input-link-slug" />
-              <p className="text-xs text-muted-foreground">The page this link points to. Must match an existing page slug.</p>
+              <p className="text-xs text-muted-foreground">
+                {editingLink
+                  ? "The URL path for this page."
+                  : "Auto-generated from label. A new editable page will be created at /page/" + (linkSlug || "...")}
+              </p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleLinkSubmit} disabled={!linkLabel.trim() || !linkSlug.trim() || createLinkMutation.isPending || updateLinkMutation.isPending} data-testid="button-save-link">
               {createLinkMutation.isPending || updateLinkMutation.isPending ? "Saving..." : editingLink ? "Update" : "Create"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={pageDialogOpen} onOpenChange={setPageDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingPage ? "Edit Page" : "Create New Page"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Title</Label>
-              <Input value={pageTitle} onChange={(e) => autoSlug(e.target.value)} placeholder="e.g. About Us" data-testid="input-page-title" />
-            </div>
-            {!editingPage && (
-              <div className="space-y-2">
-                <Label>Slug</Label>
-                <Input value={pageSlug} onChange={(e) => setPageSlug(e.target.value)} placeholder="e.g. about-us" data-testid="input-page-slug" />
-                <p className="text-xs text-muted-foreground">URL-friendly name. Auto-generated from title. Will be accessible at /page/{pageSlug || "..."}</p>
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label>Content</Label>
-              <Textarea
-                value={pageContent}
-                onChange={(e) => setPageContent(e.target.value)}
-                placeholder="Write the page content here..."
-                rows={12}
-                className="font-mono text-sm"
-                data-testid="textarea-page-content"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPageDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handlePageSubmit} disabled={!pageTitle.trim() || (!editingPage && !pageSlug.trim()) || createPageMutation.isPending || updatePageMutation.isPending} data-testid="button-save-page">
-              {createPageMutation.isPending || updatePageMutation.isPending ? "Saving..." : editingPage ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>
