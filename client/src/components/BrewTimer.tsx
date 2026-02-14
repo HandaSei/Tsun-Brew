@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff, Bell } from "lucide-react";
+import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff } from "lucide-react";
 import { useUpdateLog } from "@/hooks/use-logs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -56,9 +56,6 @@ export function BrewTimer({
   const [alarmActive, setAlarmActive] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [notifPermission, setNotifPermission] = useState<string>(
-    "Notification" in window ? Notification.permission : "unavailable"
-  );
   
   const updateLog = useUpdateLog();
   const { toast } = useToast();
@@ -75,15 +72,11 @@ export function BrewTimer({
     };
   }, []);
 
-  const requestNotificationPermission = useCallback(async () => {
+  const requestNotificationPermission = useCallback(() => {
     if ("Notification" in window && Notification.permission === "default") {
-      const result = await Notification.requestPermission();
-      setNotifPermission(result);
-      if (result === "granted") {
-        toast({ title: "Notifications enabled", description: "You'll get a notification when your brew is ready." });
-      }
+      Notification.requestPermission().catch(() => {});
     }
-  }, [toast]);
+  }, []);
 
   const stopAlarm = useCallback(() => {
     setAlarmActive(false);
@@ -116,8 +109,8 @@ export function BrewTimer({
       description: `Your ${tea.name} is ready to enjoy.`,
     });
 
-    if ("Notification" in window && Notification.permission === "granted") {
-      const showViaServiceWorker = () => {
+    try {
+      if ("Notification" in window && Notification.permission === "granted") {
         if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
           navigator.serviceWorker.ready.then((reg) => {
             reg.showNotification("Tsun Brew - Timer Done", {
@@ -126,30 +119,17 @@ export function BrewTimer({
               requireInteraction: true,
               tag: "brew-timer",
             });
-          }).catch(() => showDirect());
+          }).catch(() => {});
         } else {
-          showDirect();
-        }
-      };
-
-      const showDirect = () => {
-        try {
-          const n = new Notification("Tsun Brew - Timer Done", {
+          new Notification("Tsun Brew - Timer Done", {
             body: `Your ${tea.name} brew is ready!`,
             icon: "/favicon.png",
-            requireInteraction: true,
             tag: "brew-timer",
           });
-          n.onclick = () => {
-            window.focus();
-            stopAlarm();
-          };
-        } catch (_) {}
-      };
-
-      showViaServiceWorker();
-    }
-  }, [tea.name, toast, stopAlarm]);
+        }
+      }
+    } catch (_) {}
+  }, [tea.name, toast]);
 
   // Update initial settings when teaLog changes (on load/refresh)
   useEffect(() => {
@@ -477,31 +457,6 @@ export function BrewTimer({
           </div>
         ) : null;
       })()}
-
-      {notifPermission !== "granted" && !isActive && !alarmActive && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          data-testid="button-enable-notifications"
-          onClick={async () => {
-            if ("Notification" in window) {
-              const result = await Notification.requestPermission();
-              setNotifPermission(result);
-              if (result === "granted") {
-                toast({ title: "Notifications enabled", description: "You'll get a notification when your brew is ready." });
-              } else if (result === "denied") {
-                toast({ title: "Notifications blocked", description: "Please enable notifications in your browser settings.", variant: "destructive" });
-              }
-            } else {
-              toast({ title: "Not supported", description: "Your browser doesn't support notifications.", variant: "destructive" });
-            }
-          }}
-        >
-          <Bell className="w-4 h-4" />
-          Enable brew notifications
-        </Button>
-      )}
 
       <p className="text-sm text-muted-foreground text-center max-w-xs italic">
         {alarmActive
