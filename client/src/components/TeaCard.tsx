@@ -10,7 +10,7 @@ interface TeaCardProps {
 
 export function TeaCard({ tea }: TeaCardProps) {
   const { data: teaTypes } = useTeaTypes();
-  const typeColor = getTeaTypeColor(teaTypes, tea.type);
+  const typeColor = getTeaTypeColor(teaTypes, tea.type, tea as any);
 
   return (
     <Link href={`/tea/${tea.id}`} className="block group">

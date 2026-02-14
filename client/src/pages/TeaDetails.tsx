@@ -209,7 +209,7 @@ export default function TeaDetails() {
             <div className="flex-1 space-y-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold shadow-sm mb-3" style={getTeaTypeColor(teaTypes, tea.type).style}>{tea.type}</span>
+                  <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold shadow-sm mb-3" style={getTeaTypeColor(teaTypes, tea.type, tea as any).style}>{tea.type}</span>
                   <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground">{tea.name}</h1>
                 </div>
                 <div className="flex gap-2">

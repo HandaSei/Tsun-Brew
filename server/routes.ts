@@ -23,7 +23,18 @@ export async function registerRoutes(
   // === Teas ===
   app.get(api.teas.list.path, async (req, res) => {
     const teas = await storage.getTeas();
-    res.json(teas);
+    const types = await storage.getTeaTypes();
+    const typeMap = new Map(types.map(t => [t.name, t]));
+    const result = teas.map(tea => {
+      const tt = typeMap.get(tea.type);
+      return {
+        ...tea,
+        typeColorHue: tt?.colorHue ?? null,
+        typeColorSaturation: tt?.colorSaturation ?? null,
+        typeColorLightness: tt?.colorLightness ?? null,
+      };
+    });
+    res.json(result);
   });
 
   app.get(api.teas.get.path, async (req, res) => {
@@ -31,7 +42,14 @@ export async function registerRoutes(
     if (!tea) {
       return res.status(404).json({ message: "Tea not found" });
     }
-    res.json(tea);
+    const types = await storage.getTeaTypes();
+    const tt = types.find(t => t.name === tea.type);
+    res.json({
+      ...tea,
+      typeColorHue: tt?.colorHue ?? null,
+      typeColorSaturation: tt?.colorSaturation ?? null,
+      typeColorLightness: tt?.colorLightness ?? null,
+    });
   });
 
   app.patch(api.teas.update.path, async (req, res) => {
@@ -74,7 +92,21 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const user = req.user as User;
     const logs = await storage.getTeaLogs(user.id);
-    res.json(logs);
+    const types = await storage.getTeaTypes();
+    const typeMap = new Map(types.map(t => [t.name, t]));
+    const result = logs.map(log => {
+      const tt = log.tea ? typeMap.get(log.tea.type) : undefined;
+      return {
+        ...log,
+        tea: log.tea ? {
+          ...log.tea,
+          typeColorHue: tt?.colorHue ?? null,
+          typeColorSaturation: tt?.colorSaturation ?? null,
+          typeColorLightness: tt?.colorLightness ?? null,
+        } : log.tea,
+      };
+    });
+    res.json(result);
   });
 
   app.post(api.logs.update.path, async (req, res) => {

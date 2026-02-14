@@ -85,7 +85,7 @@ export default function MyList() {
           </div>
           <div>
             <h3 className="font-display font-bold text-lg group-hover:text-primary transition-colors">{log.tea.name}</h3>
-            <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1" style={getTeaTypeColor(teaTypes, log.tea.type).style} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
+            <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1" style={getTeaTypeColor(teaTypes, log.tea.type, log.tea as any).style} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
           </div>
         </Link>
         
