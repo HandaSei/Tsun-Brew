@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardR
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff, Clock } from "lucide-react";
+import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff, Clock, Bell, BellRing } from "lucide-react";
 import { useUpdateLog } from "@/hooks/use-logs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -67,6 +67,9 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   const [seconds, setSeconds] = useState(getInitialSeconds());
   const [totalSeconds, setTotalSeconds] = useState(getInitialSeconds());
   const [alarmActive, setAlarmActive] = useState(false);
+  const [notifPermission, setNotifPermission] = useState<string>(
+    "Notification" in window ? Notification.permission : "unsupported"
+  );
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
@@ -85,10 +88,19 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
     };
   }, []);
 
+  useEffect(() => {
+    if (!("Notification" in window)) return;
+    const check = () => setNotifPermission(Notification.permission);
+    check();
+    const id = setInterval(check, 2000);
+    return () => clearInterval(id);
+  }, []);
+
   const requestNotificationPermission = useCallback(() => {
-    if ("Notification" in window && Notification.permission === "default") {
+    if ("Notification" in window) {
       Notification.requestPermission().then((perm) => {
         console.log("Notification permission:", perm);
+        setNotifPermission(perm);
       }).catch((err) => console.log("Permission request error:", err));
     }
   }, []);
@@ -456,6 +468,31 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
               />
             </div>
           )}
+        </div>
+      )}
+
+      {notifPermission === "denied" && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-destructive/10 border border-destructive/20 text-xs text-destructive" data-testid="notification-denied-banner">
+          <BellOff className="w-3.5 h-3.5 shrink-0" />
+          <span>Desktop notifications are blocked. Click the lock icon in your browser's address bar to allow notifications.</span>
+        </div>
+      )}
+      {notifPermission === "default" && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 text-xs"
+          onClick={requestNotificationPermission}
+          data-testid="button-enable-notifications"
+        >
+          <Bell className="w-3.5 h-3.5" />
+          Enable brew notifications
+        </Button>
+      )}
+      {notifPermission === "granted" && !isActive && !alarmActive && (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground" data-testid="notification-enabled-indicator">
+          <BellRing className="w-3 h-3" />
+          <span>Notifications enabled</span>
         </div>
       )}
 
