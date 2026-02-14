@@ -35,11 +35,19 @@ const fallbackResult = {
   style: {} as React.CSSProperties,
 };
 
+function findMatchingType(types: TeaType[], name: string): TeaType | undefined {
+  const lower = name.toLowerCase();
+  return types.find(t => t.name.toLowerCase() === lower) ||
+    types.find(t => t.name.toLowerCase().replace(/\s*tea$/i, '') === lower) ||
+    types.find(t => lower.startsWith(t.name.toLowerCase())) ||
+    types.find(t => t.name.toLowerCase().startsWith(lower));
+}
+
 export function getTeaTypeColor(teaTypes: TeaType[] | undefined, typeName: string, tea?: TeaWithColor) {
   if (tea?.typeColorHue != null && tea?.typeColorSaturation != null && tea?.typeColorLightness != null) {
     return buildColorStyle(tea.typeColorHue, tea.typeColorSaturation, tea.typeColorLightness);
   }
-  const teaType = teaTypes?.find(t => t.name === typeName);
+  const teaType = teaTypes ? findMatchingType(teaTypes, typeName) : undefined;
   if (!teaType) {
     return fallbackResult;
   }

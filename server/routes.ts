@@ -7,6 +7,14 @@ import { z } from "zod";
 import { type User } from "@shared/schema";
 import { seedProductionData } from "./seed-production";
 
+function findTeaType(types: any[], teaType: string) {
+  const lower = teaType.toLowerCase();
+  return types.find(t => t.name.toLowerCase() === lower) ||
+    types.find(t => t.name.toLowerCase().replace(/\s*tea$/i, '') === lower) ||
+    types.find(t => lower.startsWith(t.name.toLowerCase())) ||
+    types.find(t => t.name.toLowerCase().startsWith(lower));
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -24,9 +32,8 @@ export async function registerRoutes(
   app.get(api.teas.list.path, async (req, res) => {
     const teas = await storage.getTeas();
     const types = await storage.getTeaTypes();
-    const typeMap = new Map(types.map(t => [t.name, t]));
     const result = teas.map(tea => {
-      const tt = typeMap.get(tea.type);
+      const tt = findTeaType(types, tea.type);
       return {
         ...tea,
         typeColorHue: tt?.colorHue ?? null,
@@ -43,7 +50,7 @@ export async function registerRoutes(
       return res.status(404).json({ message: "Tea not found" });
     }
     const types = await storage.getTeaTypes();
-    const tt = types.find(t => t.name === tea.type);
+    const tt = findTeaType(types, tea.type);
     res.json({
       ...tea,
       typeColorHue: tt?.colorHue ?? null,
@@ -93,9 +100,8 @@ export async function registerRoutes(
     const user = req.user as User;
     const logs = await storage.getTeaLogs(user.id);
     const types = await storage.getTeaTypes();
-    const typeMap = new Map(types.map(t => [t.name, t]));
     const result = logs.map(log => {
-      const tt = log.tea ? typeMap.get(log.tea.type) : undefined;
+      const tt = log.tea ? findTeaType(types, log.tea.type) : undefined;
       return {
         ...log,
         tea: log.tea ? {
