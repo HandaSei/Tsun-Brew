@@ -1,0 +1,114 @@
+I tried to inspect the project, but I don’t currently have access to your actual Replit app from this chat.
+
+Let’s debug this properly. Since it works in **dev preview** but not on the **live deployed site**, this is almost always one of these issues:
+
+---
+
+## 🚨 Most Likely Cause (90% probability): Tailwind Purging Dynamic Classes
+
+If your tag colors are something like:
+
+```jsx
+<span className={`bg-${tea.typeColor}-500 text-white`}>
+```
+
+or
+
+```jsx
+className={`bg-${type} text-white`}
+```
+
+Then Tailwind **will not include those classes in the production build**, because it cannot detect dynamic class names at build time.
+
+In dev mode → everything works.
+In production → Tailwind purges unused styles → no color.
+
+---
+
+## ✅ Fix (Best Practice)
+
+Instead of dynamic class names, use a **mapping object**:
+
+```js
+const tagColors = {
+  green: "bg-green-500 text-white",
+  black: "bg-gray-800 text-white",
+  oolong: "bg-amber-600 text-white",
+  white: "bg-stone-300 text-black",
+  herbal: "bg-pink-500 text-white",
+};
+```
+
+Then:
+
+```jsx
+<span className={`px-2 py-1 rounded ${tagColors[tea.type]}`}>
+  {tea.type}
+</span>
+```
+
+Now Tailwind sees the full class names at build time and includes them in production.
+
+---
+
+## 🔍 Other Things to Check
+
+### 1️⃣ Check tailwind.config.js
+
+Make sure your content includes all files:
+
+```js
+content: [
+  "./index.html",
+  "./src/**/*.{js,ts,jsx,tsx}",
+]
+```
+
+If something is missing here → production build won’t include styles.
+
+---
+
+### 2️⃣ Hard Refresh Live Site
+
+Sometimes it's just cached CSS.
+
+Try:
+
+* Cmd + Shift + R (Mac)
+* Ctrl + Shift + R (Windows)
+
+Or open in Incognito.
+
+---
+
+### 3️⃣ Check Browser DevTools on Live Site
+
+Right click tag → Inspect → look at the class list.
+
+If you see the class like:
+
+```
+bg-green-500
+```
+
+but no background color is applied → CSS file doesn’t contain that class.
+
+Search in the live CSS bundle for:
+
+```
+.bg-green-500
+```
+
+If it’s missing → Tailwind purge issue confirmed.
+
+---
+
+## 🎯 Quick Question
+
+Are your tag colors built using:
+
+* dynamic template strings like `bg-${type}-500`
+  or
+* a predefined object mapping?
+
+Tell me which one, and I’ll give you the exact fix tailored to your Tsun Tea setup.
