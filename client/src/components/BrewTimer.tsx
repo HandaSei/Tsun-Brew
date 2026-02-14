@@ -74,7 +74,9 @@ export function BrewTimer({
 
   const requestNotificationPermission = useCallback(() => {
     if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission().catch(() => {});
+      Notification.requestPermission().then((perm) => {
+        console.log("Notification permission:", perm);
+      }).catch((err) => console.log("Permission request error:", err));
     }
   }, []);
 
@@ -109,9 +111,23 @@ export function BrewTimer({
       description: `Your ${tea.name} is ready to enjoy.`,
     });
 
-    try {
-      if ("Notification" in window && Notification.permission === "granted") {
-        if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+    if ("Notification" in window && Notification.permission === "granted") {
+      try {
+        const notif = new Notification("Tsun Brew - Timer Done", {
+          body: `Your ${tea.name} brew is ready!`,
+          icon: "/icon-192.png",
+          tag: "brew-timer",
+          requireInteraction: true,
+          silent: false,
+        });
+        notif.onclick = () => {
+          window.focus();
+          stopAlarm();
+          notif.close();
+        };
+      } catch (directErr) {
+        console.log("Direct notification failed, trying service worker:", directErr);
+        if ("serviceWorker" in navigator) {
           navigator.serviceWorker.ready.then((reg) => {
             reg.showNotification("Tsun Brew - Timer Done", {
               body: `Your ${tea.name} brew is ready!`,
@@ -120,16 +136,12 @@ export function BrewTimer({
               requireInteraction: true,
               tag: "brew-timer",
             });
-          }).catch(() => {});
-        } else {
-          new Notification("Tsun Brew - Timer Done", {
-            body: `Your ${tea.name} brew is ready!`,
-            icon: "/icon-192.png",
-            tag: "brew-timer",
-          });
+          }).catch((swErr) => console.log("SW notification failed:", swErr));
         }
       }
-    } catch (_) {}
+    } else {
+      console.log("Notification status:", "Notification" in window ? Notification.permission : "not supported");
+    }
   }, [tea.name, toast]);
 
   // Update initial settings when teaLog changes (on load/refresh)
