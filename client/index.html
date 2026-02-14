@@ -40,24 +40,10 @@
     <script>
       (function() {
         if (!('serviceWorker' in navigator)) return;
-        navigator.serviceWorker.getRegistrations().then(function(regs) {
-          var hadOld = false;
-          var p = [];
-          for (var i = 0; i < regs.length; i++) {
-            hadOld = true;
-            p.push(regs[i].unregister());
-          }
-          return Promise.all(p).then(function() { return hadOld; });
-        }).then(function(hadOld) {
-          return caches.keys().then(function(names) {
-            return Promise.all(names.map(function(n) { return caches.delete(n); }));
-          }).then(function() { return hadOld; });
-        }).then(function(hadOld) {
-          navigator.serviceWorker.register('/sw.js').catch(function() {});
-          if (hadOld && !sessionStorage.getItem('sw-refreshed')) {
-            sessionStorage.setItem('sw-refreshed', '1');
-            location.reload();
-          }
+        navigator.serviceWorker.register('/sw.js').then(function(reg) {
+          console.log('[SW] registered, scope:', reg.scope, 'active:', !!reg.active);
+        }).catch(function(err) {
+          console.log('[SW] registration failed:', err);
         });
       })();
     </script>

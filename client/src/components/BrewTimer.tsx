@@ -124,7 +124,11 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       description: `Your ${tea.name} is ready to enjoy.`,
     });
 
-    if ("Notification" in window && Notification.permission === "granted") {
+    const notifSupported = "Notification" in window;
+    const notifPerm = notifSupported ? Notification.permission : "unsupported";
+    console.log("[Brew] Notification check:", { supported: notifSupported, permission: notifPerm, hasSW: "serviceWorker" in navigator });
+
+    if (notifSupported && notifPerm === "granted") {
       const notifOptions = {
         body: `Your ${tea.name} brew is ready!`,
         icon: "/icon-192.png",
@@ -137,21 +141,31 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         try {
           const n = new Notification("Tsun Brew - Timer Done", { ...notifOptions, silent: false });
           n.onclick = () => { window.focus(); stopAlarm(); n.close(); };
-        } catch (_e) {}
+          console.log("[Brew] Direct notification created");
+        } catch (e) {
+          console.log("[Brew] Direct notification failed:", e);
+        }
       };
 
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistration().then((reg) => {
-          if (reg) {
-            return reg.showNotification("Tsun Brew - Timer Done", notifOptions);
+          console.log("[Brew] SW registration:", reg ? { scope: reg.scope, active: !!reg.active, installing: !!reg.installing, waiting: !!reg.waiting } : "none");
+          if (reg && reg.active) {
+            return reg.showNotification("Tsun Brew - Timer Done", notifOptions).then(() => {
+              console.log("[Brew] SW notification shown successfully");
+            });
           }
+          console.log("[Brew] No active SW, falling back to direct notification");
           showDirectNotification();
-        }).catch(() => {
+        }).catch((err) => {
+          console.log("[Brew] SW notification error:", err);
           showDirectNotification();
         });
       } else {
         showDirectNotification();
       }
+    } else {
+      console.log("[Brew] Notifications not available:", notifPerm);
     }
   }, [tea.name, toast, stopAlarm]);
 
