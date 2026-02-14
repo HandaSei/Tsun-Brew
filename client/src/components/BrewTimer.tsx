@@ -276,7 +276,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
     resetToRecommended,
   }), [resetToRecommended]);
 
-  const progress = ((totalSeconds - seconds) / totalSeconds) * 100;
+  const progress = (seconds / totalSeconds) * 100;
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
