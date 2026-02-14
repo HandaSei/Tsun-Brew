@@ -1,7 +1,6 @@
 import { Link } from "wouter";
 import { Tea } from "@shared/schema";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Droplet, Leaf } from "lucide-react";
 import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
 
@@ -29,7 +28,7 @@ export function TeaCard({ tea }: TeaCardProps) {
             </div>
           )}
           <div className="absolute top-3 left-3">
-            <Badge variant="outline" className="font-medium" style={typeColor.style} data-testid={`badge-type-${tea.id}`}>{tea.type}</Badge>
+            <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold shadow-sm" style={typeColor.style} data-testid={`badge-type-${tea.id}`}>{tea.type}</span>
           </div>
         </div>
         

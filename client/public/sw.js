@@ -1,4 +1,4 @@
-const CACHE_NAME = "tsun-brew-v7";
+const CACHE_NAME = "tsun-brew-v8";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
