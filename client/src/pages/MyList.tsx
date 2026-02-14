@@ -17,11 +17,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function MyList() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { data: logs, isLoading } = useLogs();
   const updateLog = useUpdateLog();
   const deleteLog = useDeleteLog();
   const [, setLocation] = useLocation();
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navigation />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary/30" />
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     setLocation("/auth");

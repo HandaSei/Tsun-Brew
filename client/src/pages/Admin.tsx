@@ -602,15 +602,26 @@ function BottomBarTab() {
 }
 
 export default function AdminPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
 
-  if (user && user.role !== "admin") {
-    setLocation("/");
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin text-primary/30" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    setLocation("/auth");
     return null;
   }
 
-  if (!user) return null;
+  if (user.role !== "admin") {
+    setLocation("/");
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
