@@ -38,7 +38,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertTeaSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
+import { useTeaTypes, teaTypeBadgeClass, injectTeaColorFromData } from "@/hooks/use-tea-types";
 
 
 export default function TeaDetails() {
@@ -55,6 +55,13 @@ export default function TeaDetails() {
   const [listSelectOpen, setListSelectOpen] = useState(false);
   const [timerSettingsOpen, setTimerSettingsOpen] = useState(false);
   const brewTimerRef = useRef<BrewTimerHandle>(null);
+
+  useEffect(() => {
+    if (tea) {
+      const t = tea as any;
+      injectTeaColorFromData(tea.type, t.typeColorHue, t.typeColorSaturation, t.typeColorLightness);
+    }
+  }, [tea]);
 
   const teaLog = logs?.find(l => l.teaId === id);
   const isAdmin = user?.role === 'admin' || user?.role === 'mod';
@@ -209,7 +216,7 @@ export default function TeaDetails() {
             <div className="flex-1 space-y-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold shadow-sm mb-3" style={getTeaTypeColor(teaTypes, tea.type, tea as any).style}>{tea.type}</span>
+                  <span className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold shadow-sm mb-3 ${teaTypeBadgeClass(tea.type)}`}>{tea.type}</span>
                   <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground">{tea.name}</h1>
                 </div>
                 <div className="flex gap-2">

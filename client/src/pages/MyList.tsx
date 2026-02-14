@@ -1,7 +1,8 @@
 import { useLogs, useUpdateLog, useDeleteLog } from "@/hooks/use-logs";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
+import { teaTypeBadgeClass, injectTeaColorFromData } from "@/hooks/use-tea-types";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical, Trash2 } from "lucide-react";
@@ -20,7 +21,6 @@ import {
 export default function MyList() {
   const { user, isLoading: authLoading } = useAuth();
   const { data: logs, isLoading } = useLogs();
-  const { data: teaTypes } = useTeaTypes();
   const updateLog = useUpdateLog();
   const deleteLog = useDeleteLog();
   const [, setLocation] = useLocation();
@@ -57,6 +57,16 @@ export default function MyList() {
   const wantToTry = logs?.filter(log => log.status === 'want_to_try') || [];
   const notRebuying = logs?.filter(log => log.status === 'not_rebuying') || [];
 
+  useEffect(() => {
+    if (logs) {
+      logs.forEach((log: any) => {
+        if (log.tea) {
+          injectTeaColorFromData(log.tea.type, log.tea.typeColorHue, log.tea.typeColorSaturation, log.tea.typeColorLightness);
+        }
+      });
+    }
+  }, [logs]);
+
   const TeaListItem = ({ log }: { log: any }) => {
     const handleStatusChange = (newStatus: string) => {
       updateLog.mutate({
@@ -85,7 +95,7 @@ export default function MyList() {
           </div>
           <div>
             <h3 className="font-display font-bold text-lg group-hover:text-primary transition-colors">{log.tea.name}</h3>
-            <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1" style={getTeaTypeColor(teaTypes, log.tea.type, log.tea as any).style} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
+            <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1 ${teaTypeBadgeClass(log.tea.type)}`} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
           </div>
         </Link>
         
