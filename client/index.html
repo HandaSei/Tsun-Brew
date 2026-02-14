@@ -17,6 +17,21 @@
   <body>
     <script>
       (function() {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller && !sessionStorage.getItem('sw-cleared')) {
+          sessionStorage.setItem('sw-cleared', '1');
+          caches.keys().then(function(names) {
+            return Promise.all(names.map(function(n) { return caches.delete(n); }));
+          }).then(function() {
+            return navigator.serviceWorker.getRegistrations();
+          }).then(function(regs) {
+            return Promise.all(regs.map(function(r) { return r.unregister(); }));
+          }).then(function() {
+            location.reload();
+          });
+          return;
+        }
+      })();
+      (function() {
         try {
           var t = localStorage.getItem('tsun-brew-theme') || 'system';
           if (t === 'dark' && !localStorage.getItem('tsun-brew-theme-v2')) {
@@ -40,14 +55,7 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          caches.keys().then(function(names) {
-            names.forEach(function(name) { caches.delete(name); });
-          });
-          navigator.serviceWorker.getRegistrations().then(function(regs) {
-            regs.forEach(function(r) { r.unregister(); });
-          }).then(function() {
-            navigator.serviceWorker.register('/sw.js').catch(function() {});
-          });
+          navigator.serviceWorker.register('/sw.js').catch(function() {});
         });
       }
     </script>
