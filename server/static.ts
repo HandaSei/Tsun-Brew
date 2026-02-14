@@ -10,9 +10,20 @@ export function serveStatic(app: Express) {
     );
   }
 
+  app.get("/sw.js", (_req, res) => {
+    res.setHeader("Service-Worker-Allowed", "/");
+    res.setHeader("Content-Type", "application/javascript");
+    res.setHeader("Cache-Control", "no-cache");
+    res.sendFile(path.resolve(distPath, "sw.js"));
+  });
+
+  app.get("/manifest.json", (_req, res) => {
+    res.setHeader("Content-Type", "application/manifest+json");
+    res.sendFile(path.resolve(distPath, "manifest.json"));
+  });
+
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
   app.use("/{*path}", (_req, res) => {
     res.sendFile(path.resolve(distPath, "index.html"));
   });

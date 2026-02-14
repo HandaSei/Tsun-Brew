@@ -1,4 +1,4 @@
-const CACHE_NAME = "tsun-brew-v2";
+const CACHE_NAME = "tsun-brew-v3";
 
 const PRECACHE_URLS = [
   "/",
@@ -39,6 +39,19 @@ self.addEventListener("fetch", (event) => {
         return response;
       })
       .catch(() => caches.match(request))
+  );
+});
+
+self.addEventListener("push", (event) => {
+  const data = event.data ? event.data.json() : {};
+  event.waitUntil(
+    self.registration.showNotification(data.title || "Tsun Brew", {
+      body: data.body || "Your brew is ready!",
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+      requireInteraction: true,
+      tag: "brew-timer",
+    })
   );
 });
 

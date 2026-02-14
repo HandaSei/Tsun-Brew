@@ -115,7 +115,8 @@ export function BrewTimer({
           navigator.serviceWorker.ready.then((reg) => {
             reg.showNotification("Tsun Brew - Timer Done", {
               body: `Your ${tea.name} brew is ready!`,
-              icon: "/favicon.png",
+              icon: "/icon-192.png",
+              badge: "/icon-192.png",
               requireInteraction: true,
               tag: "brew-timer",
             });
@@ -123,7 +124,7 @@ export function BrewTimer({
         } else {
           new Notification("Tsun Brew - Timer Done", {
             body: `Your ${tea.name} brew is ready!`,
-            icon: "/favicon.png",
+            icon: "/icon-192.png",
             tag: "brew-timer",
           });
         }
