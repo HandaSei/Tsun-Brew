@@ -745,11 +745,20 @@ export default function TeaDetails() {
                         <p><span className="text-muted-foreground">Water:</span> {tea.occidentalWaterAmount}</p>
                       ) : null}
                       {tea.occidentalTemp != null && <p><span className="text-muted-foreground">Temp:</span> {tea.occidentalTemp}°C</p>}
-                      {tea.occidentalDuration != null && <p><span className="text-muted-foreground">Duration:</span> {tea.occidentalDuration}s</p>}
-                      {tea.occidentalInfusions && Array.isArray(tea.occidentalInfusions) && (
-                        <p><span className="text-muted-foreground">Infusions:</span> {(tea.occidentalInfusions as number[]).map(s => `${s}s`).join(', ')}</p>
+                      {tea.occidentalInfusions && Array.isArray(tea.occidentalInfusions) && (tea.occidentalInfusions as number[]).length > 0 && (
+                        <div className="space-y-1 mt-1">
+                          <p className="text-muted-foreground font-medium">Infusions:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {(tea.occidentalInfusions as number[]).map((s, i) => (
+                              <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/40 border border-border text-xs">
+                                <span className="font-semibold">{i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'}</span>
+                                <span className="text-muted-foreground">{s}s</span>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       )}
-                      {tea.occidentalTemp == null && tea.occidentalDuration == null && !tea.occidentalLeafAmount && !tea.occidentalWaterAmount && (
+                      {tea.occidentalTemp == null && !tea.occidentalInfusions && !tea.occidentalLeafAmount && !tea.occidentalWaterAmount && (
                         <p className="text-muted-foreground italic">No parameters set</p>
                       )}
                     </div>
