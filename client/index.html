@@ -19,6 +19,11 @@
       (function() {
         try {
           var t = localStorage.getItem('tsun-brew-theme') || 'system';
+          if (t === 'dark' && !localStorage.getItem('tsun-brew-theme-v2')) {
+            t = 'dusk';
+            localStorage.setItem('tsun-brew-theme', 'dusk');
+            localStorage.setItem('tsun-brew-theme-v2', '1');
+          }
           if (t === 'system') {
             t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dusk';
           }

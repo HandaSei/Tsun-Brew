@@ -1,4 +1,4 @@
-const CACHE_NAME = "tsun-brew-v6";
+const CACHE_NAME = "tsun-brew-v7";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -25,7 +25,20 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") return;
 
   const url = new URL(request.url);
-  if (url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|mp3)$/)) {
+  if (url.pathname.match(/\.(js|css)$/)) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          return response;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || new Response("", { status: 503 })))
+    );
+    return;
+  }
+
+  if (url.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|woff2?|ttf|mp3)$/)) {
     event.respondWith(
       caches.open(CACHE_NAME).then((cache) =>
         cache.match(request).then((cached) => {
