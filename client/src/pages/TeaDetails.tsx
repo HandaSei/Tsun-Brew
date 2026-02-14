@@ -783,7 +783,7 @@ export default function TeaDetails() {
                   </DialogTrigger>
                   <DialogContent className="max-w-sm">
                     <DialogHeader>
-                      <DialogTitle>Timer Preferences</DialogTitle>
+                      <DialogTitle>User Preferences</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 pt-2">
                       <div className="space-y-3">
@@ -840,11 +840,21 @@ export default function TeaDetails() {
                         className="w-full gap-2"
                         onClick={() => {
                           brewTimerRef.current?.resetToRecommended();
+                          setUserHideOriental(false);
+                          setUserHideOccidental(false);
+                          setUserHideParams(false);
+                          setUserNote('');
+                          setUserShowNote(false);
+                          updateLog.mutate({
+                            teaId: tea.id,
+                            timerSettings: {},
+                            status: teaLog?.status || 'drinking',
+                          });
                           setTimerSettingsOpen(false);
                         }}
-                        data-testid="button-reset-to-recommended"
+                        data-testid="button-reset-preferences"
                       >
-                        <RotateCcw className="w-4 h-4" /> Reset Timer to Recommended
+                        <RotateCcw className="w-4 h-4" /> Reset Tea Preferences
                       </Button>
 
                       <Button
