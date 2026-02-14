@@ -1,13 +1,6 @@
-const CACHE_NAME = "tsun-brew-v3";
-
-const PRECACHE_URLS = [
-  "/",
-];
+const CACHE_NAME = "tsun-brew-v4";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
-  );
   self.skipWaiting();
 });
 
@@ -28,18 +21,23 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
 
   if (request.method !== "GET") return;
-
   if (request.url.includes("/api/")) return;
+  if (request.mode === "navigate") return;
 
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-        return response;
-      })
-      .catch(() => caches.match(request))
-  );
+  const url = new URL(request.url);
+  if (url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|mp3)$/)) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then((cache) =>
+        cache.match(request).then((cached) => {
+          if (cached) return cached;
+          return fetch(request).then((response) => {
+            cache.put(request, response.clone());
+            return response;
+          });
+        })
+      )
+    );
+  }
 });
 
 self.addEventListener("push", (event) => {
