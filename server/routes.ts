@@ -23,10 +23,18 @@ export async function registerRoutes(
   setupAuth(app);
   
   // Seed admin user
-  await seedAdmin();
+  try {
+    await seedAdmin();
+  } catch (err) {
+    console.error("Failed to seed admin:", err);
+  }
   
   // Seed production data if empty
-  await seedProductionData();
+  try {
+    await seedProductionData();
+  } catch (err) {
+    console.error("Failed to seed production data:", err);
+  }
 
   // === Teas ===
   app.get(api.teas.list.path, async (req, res) => {
