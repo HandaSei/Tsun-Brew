@@ -43,7 +43,7 @@ export function CreateTeaForm({ onSuccess, isCustom = false }: { onSuccess: () =
   }, [nameValue, allTeas]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    if (!isCustom && duplicateGlobalTea && !showConfirmation) {
+    if (!isCustom && !showConfirmation) {
       setPendingValues(values);
       setShowConfirmation(true);
       return;
@@ -74,6 +74,14 @@ export function CreateTeaForm({ onSuccess, isCustom = false }: { onSuccess: () =
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+        {!isCustom && (
+          <div className="flex items-start gap-3 rounded-md border border-red-500/30 bg-red-500/10 p-3" data-testid="global-tea-warning">
+            <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+            <p className="text-sm text-red-800 dark:text-red-300 font-medium">
+              ATTENTION: This form will add the tea GLOBALLY. It will be visible to ALL users on the website. If you only want to add it for yourself, please use "Add Custom Tea" instead.
+            </p>
+          </div>
+        )}
         {isCustom && (
           <div className="flex items-start gap-3 rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3" data-testid="custom-tea-warning">
             <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
@@ -200,24 +208,27 @@ export function CreateTeaForm({ onSuccess, isCustom = false }: { onSuccess: () =
         />
 
         {showConfirmation && (
-          <div className="rounded-md border border-red-500/50 bg-red-500/10 p-4 space-y-3" data-testid="duplicate-confirmation">
+          <div className="rounded-md border border-red-500/50 bg-red-500/10 p-4 space-y-3" data-testid="global-publish-confirmation">
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-red-800 dark:text-red-300">
-                  Duplicate Global Tea
+                <p className="text-sm font-medium text-red-800 dark:text-red-300 uppercase tracking-wider">
+                  Confirm Global Publication
                 </p>
                 <p className="text-sm text-red-700 dark:text-red-400 mt-1">
-                  A global tea called "<strong>{duplicateGlobalTea?.name}</strong>" already exists. Are you sure you want to create another global tea with the same name?
+                  {duplicateGlobalTea 
+                    ? `A global tea called "${duplicateGlobalTea.name}" already exists. Are you sure you want to create another global tea with the same name? This will be visible to everyone.`
+                    : `Are you sure you want to publish this tea to the global library? It will be visible to all users on the website.`
+                  }
                 </p>
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => { setShowConfirmation(false); setPendingValues(null); }} data-testid="button-cancel-duplicate">
+              <Button type="button" variant="outline" onClick={() => { setShowConfirmation(false); setPendingValues(null); }} data-testid="button-cancel-confirmation">
                 Cancel
               </Button>
-              <Button type="button" variant="destructive" onClick={confirmCreate} disabled={createTea.isPending} data-testid="button-confirm-duplicate">
-                {createTea.isPending ? "Creating..." : "Create Anyway"}
+              <Button type="button" variant="destructive" onClick={confirmCreate} disabled={createTea.isPending} data-testid="button-confirm-publication">
+                {createTea.isPending ? "Publishing..." : "Yes, Publish Globally"}
               </Button>
             </div>
           </div>
@@ -226,7 +237,7 @@ export function CreateTeaForm({ onSuccess, isCustom = false }: { onSuccess: () =
         <div className="pt-4 flex justify-end gap-3">
           <Button type="button" variant="outline" onClick={onSuccess} data-testid="button-cancel-create">Cancel</Button>
           <Button type="submit" disabled={createTea.isPending || showConfirmation} className="btn-primary" data-testid="button-submit-tea">
-            {createTea.isPending ? "Creating..." : "Create Tea"}
+            {createTea.isPending ? "Creating..." : isCustom ? "Create Custom Tea" : "Publish Global Tea"}
           </Button>
         </div>
       </form>
