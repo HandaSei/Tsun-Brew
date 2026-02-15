@@ -104,13 +104,20 @@ export default function MyList() {
     const isInMyList = !!myLogForTea;
 
     const getPhrase = () => {
-      if (!isInMyList || !myLogForTea || !collectionPhrases) return null;
+      if (!myLogs || !collectionPhrases) return null;
+      const myLogForTea = myLogs.find(ml => ml.teaId === log.tea.id);
+      
+      // If the visitor doesn't have the tea, we can show a special phrase or nothing.
+      // For now, we only show phrases for the 9 combinations where both have it.
+      if (!myLogForTea) return null;
+
       const ownerStatus = log.status;
       const visitorStatus = myLogForTea.status;
       const phrase = collectionPhrases.find(
         p => p.ownerStatus === ownerStatus && p.visitorStatus === visitorStatus
       );
-      if (!phrase || !phrase.phrase) return null;
+      
+      if (!phrase || !phrase.phrase.trim()) return null;
       return phrase;
     };
 

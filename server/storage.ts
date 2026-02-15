@@ -448,9 +448,9 @@ export class DatabaseStorage implements IStorage {
       { ownerStatus: "want_to_try", visitorStatus: "want_to_try", phrase: "Get in line.", colorHue: 210, colorSaturation: 55, colorLightness: 45, icon: "Users" },
       { ownerStatus: "want_to_try", visitorStatus: "not_rebuying", phrase: "Go ahead. Waste your time.", colorHue: 270, colorSaturation: 50, colorLightness: 45, icon: "Skull" },
       { ownerStatus: "not_rebuying", visitorStatus: "not_rebuying", phrase: "Finally. Something we agree on.", colorHue: 180, colorSaturation: 50, colorLightness: 40, icon: "Handshake" },
-      { ownerStatus: "drinking", visitorStatus: "want_to_try", phrase: "", colorHue: 120, colorSaturation: 20, colorLightness: 40, icon: "CheckCircle" },
+      { ownerStatus: "drinking", visitorStatus: "want_to_try", phrase: "Join the club!", colorHue: 120, colorSaturation: 20, colorLightness: 40, icon: "CheckCircle" },
       { ownerStatus: "drinking", visitorStatus: "not_rebuying", phrase: "We clearly don't steep the same.", colorHue: 330, colorSaturation: 55, colorLightness: 45, icon: "Ban" },
-      { ownerStatus: "not_rebuying", visitorStatus: "want_to_try", phrase: "", colorHue: 120, colorSaturation: 20, colorLightness: 40, icon: "CheckCircle" },
+      { ownerStatus: "not_rebuying", visitorStatus: "want_to_try", phrase: "Save yourself while you can.", colorHue: 120, colorSaturation: 20, colorLightness: 40, icon: "CheckCircle" },
     ];
 
     for (const phrase of defaults) {
