@@ -82,7 +82,7 @@ export const api = {
     },
     get: {
       method: 'GET' as const,
-      path: '/api/teas/:id',
+      path: '/api/teas/:slug',
       responses: {
         200: z.custom<typeof teas.$inferSelect & { attributes: any[] }>(),
         404: errorSchemas.notFound,

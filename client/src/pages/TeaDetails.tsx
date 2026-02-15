@@ -1,5 +1,5 @@
 import { useRoute } from "wouter";
-import { useTea, useUpdateTea } from "@/hooks/use-teas";
+import { useTea, useTeaBySlug, useUpdateTea } from "@/hooks/use-teas";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 
@@ -42,9 +42,10 @@ import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
 
 
 export default function TeaDetails() {
-  const [, params] = useRoute("/tea/:id");
-  const id = parseInt(params?.id || "0");
-  const { data: tea, isLoading } = useTea(id);
+  const [, teaParams] = useRoute("/tea/:slug");
+  const [, customParams] = useRoute("/custom-tea/:slug");
+  const slug = teaParams?.slug || customParams?.slug || "";
+  const { data: tea, isLoading } = useTeaBySlug(slug);
   const { data: logs } = useLogs();
   const { user } = useAuth();
   const updateLog = useUpdateLog();
@@ -56,7 +57,7 @@ export default function TeaDetails() {
   const [timerSettingsOpen, setTimerSettingsOpen] = useState(false);
   const brewTimerRef = useRef<BrewTimerHandle>(null);
 
-  const teaLog = logs?.find(l => l.teaId === id);
+  const teaLog = logs?.find(l => l.teaId === tea?.id);
   const isAdmin = user?.role === 'admin' || user?.role === 'mod';
   const userPrefs = (teaLog?.timerSettings as any) || {};
   

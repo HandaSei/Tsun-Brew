@@ -18,7 +18,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/tea/:id" component={TeaDetails} />
+      <Route path="/tea/:slug" component={TeaDetails} />
+      <Route path="/custom-tea/:slug" component={TeaDetails} />
       <Route path="/list" component={MyList} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/admin" component={AdminPage} />

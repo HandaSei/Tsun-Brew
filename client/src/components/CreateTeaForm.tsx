@@ -2,7 +2,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertTeaSchema } from "@shared/schema";
 import { z } from "zod";
-import { useCreateTea } from "@/hooks/use-teas";
+import { useState, useMemo } from "react";
+import { useCreateTea, useTeas } from "@/hooks/use-teas";
 import { useTeaTypes } from "@/hooks/use-tea-types";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,9 @@ const formSchema = insertTeaSchema;
 export function CreateTeaForm({ onSuccess, isCustom = false }: { onSuccess: () => void; isCustom?: boolean }) {
   const createTea = useCreateTea();
   const { data: teaTypesList } = useTeaTypes();
+  const { data: allTeas } = useTeas();
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [pendingValues, setPendingValues] = useState<z.infer<typeof formSchema> | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -28,13 +32,43 @@ export function CreateTeaForm({ onSuccess, isCustom = false }: { onSuccess: () =
     },
   });
 
+  const nameValue = form.watch("name");
+
+  const duplicateGlobalTea = useMemo(() => {
+    if (!nameValue?.trim() || !allTeas) return null;
+    const normalizedName = nameValue.trim().toLowerCase();
+    return allTeas.find(
+      (t: any) => !t.isCustom && t.name.toLowerCase() === normalizedName
+    ) || null;
+  }, [nameValue, allTeas]);
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (!isCustom && duplicateGlobalTea && !showConfirmation) {
+      setPendingValues(values);
+      setShowConfirmation(true);
+      return;
+    }
+    setShowConfirmation(false);
+    setPendingValues(null);
     createTea.mutate({ ...values, isCustom } as any, {
       onSuccess: () => {
         form.reset();
         onSuccess();
       },
     });
+  };
+
+  const confirmCreate = () => {
+    if (pendingValues) {
+      createTea.mutate({ ...pendingValues, isCustom } as any, {
+        onSuccess: () => {
+          form.reset();
+          setShowConfirmation(false);
+          setPendingValues(null);
+          onSuccess();
+        },
+      });
+    }
   };
 
   return (
@@ -55,12 +89,28 @@ export function CreateTeaForm({ onSuccess, isCustom = false }: { onSuccess: () =
             <FormItem>
               <FormLabel>Tea Name</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. West Lake Long Jing" {...field} />
+                <Input placeholder="e.g. West Lake Long Jing" {...field} data-testid="input-tea-name" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+        {duplicateGlobalTea && isCustom && (
+          <div className="flex items-start gap-3 rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3" data-testid="duplicate-warning">
+            <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+            <p className="text-sm text-yellow-800 dark:text-yellow-300">
+              A tea called "<strong>{duplicateGlobalTea.name}</strong>" already exists in the global library. Your custom version will only be visible to you.
+            </p>
+          </div>
+        )}
+        {duplicateGlobalTea && !isCustom && !showConfirmation && (
+          <div className="flex items-start gap-3 rounded-md border border-red-500/30 bg-red-500/10 p-3" data-testid="duplicate-global-warning">
+            <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+            <p className="text-sm text-red-800 dark:text-red-300">
+              A global tea called "<strong>{duplicateGlobalTea.name}</strong>" already exists. Submitting will ask you to confirm.
+            </p>
+          </div>
+        )}
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
@@ -149,9 +199,33 @@ export function CreateTeaForm({ onSuccess, isCustom = false }: { onSuccess: () =
           )}
         />
 
+        {showConfirmation && (
+          <div className="rounded-md border border-red-500/50 bg-red-500/10 p-4 space-y-3" data-testid="duplicate-confirmation">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-red-800 dark:text-red-300">
+                  Duplicate Global Tea
+                </p>
+                <p className="text-sm text-red-700 dark:text-red-400 mt-1">
+                  A global tea called "<strong>{duplicateGlobalTea?.name}</strong>" already exists. Are you sure you want to create another global tea with the same name?
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => { setShowConfirmation(false); setPendingValues(null); }} data-testid="button-cancel-duplicate">
+                Cancel
+              </Button>
+              <Button type="button" variant="destructive" onClick={confirmCreate} disabled={createTea.isPending} data-testid="button-confirm-duplicate">
+                {createTea.isPending ? "Creating..." : "Create Anyway"}
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="pt-4 flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onSuccess}>Cancel</Button>
-          <Button type="submit" disabled={createTea.isPending} className="btn-primary">
+          <Button type="button" variant="outline" onClick={onSuccess} data-testid="button-cancel-create">Cancel</Button>
+          <Button type="submit" disabled={createTea.isPending || showConfirmation} className="btn-primary" data-testid="button-submit-tea">
             {createTea.isPending ? "Creating..." : "Create Tea"}
           </Button>
         </div>

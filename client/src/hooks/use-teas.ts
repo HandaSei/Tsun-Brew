@@ -18,13 +18,27 @@ export function useTea(id: number) {
   return useQuery({
     queryKey: [api.teas.get.path, id],
     queryFn: async () => {
-      const url = buildUrl(api.teas.get.path, { id });
+      const url = buildUrl(api.teas.get.path, { slug: id });
       const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch tea details");
       const json = await res.json();
       return json as Tea & { attributes: any[] };
     },
     enabled: !!id,
+  });
+}
+
+export function useTeaBySlug(slug: string) {
+  return useQuery({
+    queryKey: [api.teas.get.path, slug],
+    queryFn: async () => {
+      const url = buildUrl(api.teas.get.path, { slug });
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch tea details");
+      const json = await res.json();
+      return json as Tea & { attributes: any[] };
+    },
+    enabled: !!slug,
   });
 }
 

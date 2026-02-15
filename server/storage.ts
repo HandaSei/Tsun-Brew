@@ -32,7 +32,8 @@ export interface IStorage {
   // Teas
   getTeas(userId?: number): Promise<Tea[]>;
   getTea(id: number): Promise<(Tea & { attributes: any[] }) | undefined>;
-  createTea(tea: InsertTea & { createdById: number, isCustom?: boolean, attributes?: { key: string, value: string }[] }): Promise<Tea>;
+  getTeaBySlug(slug: string): Promise<(Tea & { attributes: any[] }) | undefined>;
+  createTea(tea: InsertTea & { createdById: number, isCustom?: boolean, slug: string, attributes?: { key: string, value: string }[] }): Promise<Tea>;
   updateTea(id: number, tea: Partial<InsertTea> & { attributes?: { key: string, value: string }[] }): Promise<Tea>;
   
   // Logs / My List
@@ -171,7 +172,15 @@ export class DatabaseStorage implements IStorage {
     return { ...tea, attributes };
   }
 
-  async createTea(tea: InsertTea & { createdById: number, isCustom?: boolean, attributes?: { key: string, value: string }[] }): Promise<Tea> {
+  async getTeaBySlug(slug: string): Promise<(Tea & { attributes: any[] }) | undefined> {
+    const [tea] = await db.select().from(teas).where(eq(teas.slug, slug));
+    if (!tea) return undefined;
+
+    const attributes = await db.select().from(teaAttributes).where(eq(teaAttributes.teaId, tea.id));
+    return { ...tea, attributes };
+  }
+
+  async createTea(tea: InsertTea & { createdById: number, isCustom?: boolean, slug: string, attributes?: { key: string, value: string }[] }): Promise<Tea> {
     const { attributes, ...teaData } = tea;
     const [newTea] = await db.insert(teas).values(teaData as any).returning();
 

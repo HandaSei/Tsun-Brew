@@ -13,7 +13,7 @@ export function TeaCard({ tea }: TeaCardProps) {
   const typeColor = getTeaTypeColor(teaTypes, tea.type, tea as any);
 
   return (
-    <Link href={`/tea/${tea.id}`} className="block group">
+    <Link href={`/${(tea as any).isCustom ? 'custom-tea' : 'tea'}/${(tea as any).slug}`} className="block group">
       <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-border/60" data-testid={`card-tea-${tea.id}`}>
         <div className="relative aspect-[4/3] overflow-hidden">
           {tea.photoUrl ? (

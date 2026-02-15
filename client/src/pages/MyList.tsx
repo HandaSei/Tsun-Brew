@@ -73,7 +73,7 @@ export default function MyList() {
 
     return (
       <div className="glass-card p-4 rounded-xl flex items-center gap-4 group transition-all hover:shadow-lg">
-        <Link href={`/tea/${log.tea.id}`} className="flex-1 flex items-center gap-4">
+        <Link href={`/${(log.tea as any).isCustom ? 'custom-tea' : 'tea'}/${(log.tea as any).slug}`} className="flex-1 flex items-center gap-4">
           <div className="w-16 h-16 rounded-lg overflow-hidden bg-secondary">
             {log.tea.photoUrl ? (
               <img src={log.tea.photoUrl} alt={log.tea.name} className="w-full h-full object-cover" />
