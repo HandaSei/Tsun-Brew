@@ -29,7 +29,7 @@ export default function MyList() {
   const [, params] = useRoute("/:username/Collection");
   const username = params?.username;
   const { user, isLoading: authLoading } = useAuth();
-  const isOwner = user?.username === username;
+  const isOwner = user && username && user.username.toLowerCase() === username.toLowerCase();
   
   const { data: myLogs } = useLogs();
   const { data: publicLogs, isLoading: isPublicLoading } = usePublicLogs(isOwner ? "" : (username || ""));
