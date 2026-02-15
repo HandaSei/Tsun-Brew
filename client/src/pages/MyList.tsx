@@ -222,17 +222,17 @@ export default function MyList() {
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
-        <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <header className="mb-10 flex flex-row items-center justify-between gap-4">
           <div className="flex-1">
-            <h1 className="text-4xl font-display font-bold mb-2">{username}'s Collection</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">{username}'s Collection</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               {isOwner 
                 ? "Track your journey through the world of tea." 
                 : `Browsing ${username}'s favorite teas and brewing history.`}
             </p>
           </div>
           {isOwner && (
-            <div className="md:hidden">
+            <div className="md:hidden shrink-0">
               <Button 
                 variant="outline" 
                 className="rounded-full gap-2 border-primary/20 hover:bg-primary/5 h-9 px-4 shadow-sm"
@@ -240,7 +240,7 @@ export default function MyList() {
                 data-testid="button-share-list-mobile"
               >
                 <Share2 className="w-3.5 h-3.5" />
-                <span className="text-sm font-medium">Share List</span>
+                <span className="text-sm font-medium text-primary">Share</span>
               </Button>
             </div>
           )}
