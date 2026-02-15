@@ -106,7 +106,7 @@ export default function MyList() {
           {!isOwner && user && !isInMyList && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="outline" className="rounded-full gap-2 border-primary/20 hover:bg-primary/5">
+                <Button size="sm" variant="outline" className="rounded-full gap-2 border-primary/20 bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 hover:text-green-700 dark:hover:text-green-300">
                   <UserPlus className="w-4 h-4" />
                   <span className="hidden sm:inline">Add to my list</span>
                 </Button>
@@ -123,6 +123,13 @@ export default function MyList() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
+
+          {!isOwner && user && isInMyList && (
+            <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20 px-3 py-1 rounded-full animate-in fade-in zoom-in duration-300">
+              <CheckCircle className="w-3 h-3 mr-1.5" />
+              I had it first!
+            </Badge>
           )}
 
           <div className="text-right hidden sm:block">
