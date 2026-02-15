@@ -223,7 +223,7 @@ export default function MyList() {
       
       <div className="container mx-auto px-4 py-8 relative">
         {isOwner && (
-          <div className="md:hidden absolute top-4 right-4 z-10">
+          <div className="md:hidden absolute top-2 right-4 z-10">
             <Button 
               variant="outline" 
               className="rounded-full gap-2 border-primary/20 hover:bg-primary/5 h-8 px-3 shadow-sm"
@@ -231,12 +231,12 @@ export default function MyList() {
               data-testid="button-share-list-mobile"
             >
               <Share2 className="w-3 h-3" />
-              <span className="text-xs font-medium text-primary">Share</span>
+              <span className="text-xs font-medium text-primary">Share List</span>
             </Button>
           </div>
         )}
 
-        <header className="mb-10 flex flex-row items-center justify-between gap-4">
+        <header className="mb-10 mt-6 flex flex-row items-center justify-between gap-4">
           <div className="flex-1">
             <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">{username}'s Collection</h1>
             <p className="text-sm md:text-base text-muted-foreground">
