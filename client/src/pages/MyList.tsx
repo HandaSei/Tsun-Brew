@@ -38,15 +38,29 @@ export default function MyList() {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
-  const handleShare = () => {
+  const handleShare = async () => {
     const url = `${window.location.origin}/${user?.username}/Collection`;
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    toast({
-      title: "Link copied!",
-      description: "Your collection link has been copied to clipboard.",
-    });
-    setTimeout(() => setCopied(false), 2000);
+    const shareData = {
+      title: 'Tsun Brew Collection',
+      text: `Check out my tea collection on Tsun Brew!`,
+      url: url,
+    };
+
+    if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast({
+        title: "Link copied!",
+        description: "Your collection link has been copied to clipboard.",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   if (authLoading) {
@@ -209,7 +223,7 @@ export default function MyList() {
       
       <div className="container mx-auto px-4 py-8">
         <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
+          <div className="flex-1">
             <h1 className="text-4xl font-display font-bold mb-2">{username}'s Collection</h1>
             <p className="text-muted-foreground">
               {isOwner 
@@ -217,12 +231,25 @@ export default function MyList() {
                 : `Browsing ${username}'s favorite teas and brewing history.`}
             </p>
           </div>
+          {isOwner && (
+            <div className="md:hidden">
+              <Button 
+                variant="outline" 
+                className="rounded-full gap-2 border-primary/20 hover:bg-primary/5 h-9 px-4 shadow-sm"
+                onClick={handleShare}
+                data-testid="button-share-list-mobile"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span className="text-sm font-medium">Share List</span>
+              </Button>
+            </div>
+          )}
         </header>
 
         {isOwner && (
           <Button 
             variant="outline" 
-            className="fixed bottom-6 left-6 z-[60] rounded-full gap-2 border-primary/20 bg-background/80 backdrop-blur-md hover:bg-primary/5 h-9 px-4 shadow-lg animate-in slide-in-from-bottom-4 duration-300"
+            className="hidden md:flex fixed bottom-6 left-6 z-[60] rounded-full gap-2 border-primary/20 bg-background/80 backdrop-blur-md hover:bg-primary/5 h-9 px-4 shadow-lg animate-in slide-in-from-bottom-4 duration-300"
             onClick={handleShare}
             data-testid="button-share-list"
           >
