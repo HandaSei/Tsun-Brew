@@ -77,10 +77,10 @@ export default function MyList() {
       }
     };
 
-    const handleAddToList = () => {
+    const handleAddToList = (status: string) => {
       updateLog.mutate({
         teaId: log.tea.id,
-        status: 'want_to_try'
+        status: status as any
       } as any);
     };
 
@@ -104,10 +104,25 @@ export default function MyList() {
         
         <div className="flex items-center gap-2 sm:gap-4">
           {!isOwner && user && !isInMyList && (
-            <Button size="sm" variant="outline" className="rounded-full gap-2 border-primary/20 hover:bg-primary/5" onClick={handleAddToList}>
-              <UserPlus className="w-4 h-4" />
-              <span className="hidden sm:inline">Add to List</span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="rounded-full gap-2 border-primary/20 hover:bg-primary/5">
+                  <UserPlus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add to my list</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleAddToList('drinking')}>
+                  Add to Drinking
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAddToList('want_to_try')}>
+                  Add to Want to Try
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAddToList('not_rebuying')}>
+                  Add to Not Rebuying
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
 
           <div className="text-right hidden sm:block">
