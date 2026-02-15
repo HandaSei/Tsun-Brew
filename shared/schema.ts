@@ -215,7 +215,20 @@ export const insertHeroPhraseSchema = createInsertSchema(heroPhrases).omit({ id:
 export const insertTeaTypeSchema = createInsertSchema(teaTypes).omit({ id: true });
 export const insertFooterLinkSchema = createInsertSchema(footerLinks).omit({ id: true });
 export const insertPageSchema = createInsertSchema(pages).omit({ id: true, updatedAt: true });
-export const insertSiteSettingsSchema = createInsertSchema(siteSettings).omit({ id: true });
+export const collectionPhrases = pgTable("collection_phrases", {
+  id: serial("id").primaryKey(),
+  ownerStatus: text("owner_status").notNull(), // drinking, want_to_try, not_rebuying
+  visitorStatus: text("visitor_status").notNull(), // drinking, want_to_try, not_rebuying
+  phrase: text("phrase").notNull(),
+  colorHue: integer("color_hue").notNull().default(120),
+  colorSaturation: integer("color_saturation").notNull().default(20),
+  colorLightness: integer("color_lightness").notNull().default(40),
+  icon: text("icon").notNull().default("CheckCircle"), // Lucide icon name
+});
+
+export const insertCollectionPhraseSchema = createInsertSchema(collectionPhrases).omit({ id: true });
+export type CollectionPhrase = typeof collectionPhrases.$inferSelect;
+export type InsertCollectionPhrase = z.infer<typeof insertCollectionPhraseSchema>;
 
 // === TYPES ===
 
