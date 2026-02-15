@@ -30,7 +30,8 @@ export async function registerRoutes(
 
   // === Teas ===
   app.get(api.teas.list.path, async (req, res) => {
-    const teas = await storage.getTeas();
+    const user = req.isAuthenticated() ? req.user as User : undefined;
+    const teas = await storage.getTeas(user?.id);
     const types = await storage.getTeaTypes();
     const result = teas.map(tea => {
       const tt = findTeaType(types, tea.type);
@@ -48,6 +49,12 @@ export async function registerRoutes(
     const tea = await storage.getTea(Number(req.params.id));
     if (!tea) {
       return res.status(404).json({ message: "Tea not found" });
+    }
+    if (tea.isCustom) {
+      const currentUser = req.isAuthenticated() ? req.user as User : undefined;
+      if (!currentUser || tea.createdById !== currentUser.id) {
+        return res.status(404).json({ message: "Tea not found" });
+      }
     }
     const types = await storage.getTeaTypes();
     const tt = findTeaType(types, tea.type);
@@ -82,8 +89,9 @@ export async function registerRoutes(
     const user = req.user as User;
     
     try {
-      const input = api.teas.create.input.parse(req.body);
-      const tea = await storage.createTea({ ...input, createdById: user.id });
+      const { isCustom, ...rest } = req.body;
+      const input = api.teas.create.input.parse(rest);
+      const tea = await storage.createTea({ ...input, createdById: user.id, isCustom: !!isCustom });
       res.status(201).json(tea);
     } catch (err) {
       if (err instanceof z.ZodError) {

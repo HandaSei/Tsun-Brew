@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
 
 const formSchema = insertTeaSchema;
 
-export function CreateTeaForm({ onSuccess }: { onSuccess: () => void }) {
+export function CreateTeaForm({ onSuccess, isCustom = false }: { onSuccess: () => void; isCustom?: boolean }) {
   const createTea = useCreateTea();
   const { data: teaTypesList } = useTeaTypes();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -28,7 +29,7 @@ export function CreateTeaForm({ onSuccess }: { onSuccess: () => void }) {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    createTea.mutate(values, {
+    createTea.mutate({ ...values, isCustom } as any, {
       onSuccess: () => {
         form.reset();
         onSuccess();
@@ -39,6 +40,14 @@ export function CreateTeaForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+        {isCustom && (
+          <div className="flex items-start gap-3 rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3" data-testid="custom-tea-warning">
+            <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+            <p className="text-sm text-yellow-800 dark:text-yellow-300">
+              This tea is for your personal collection only. Other users won't be able to see it.
+            </p>
+          </div>
+        )}
         <FormField
           control={form.control}
           name="name"

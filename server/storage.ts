@@ -10,7 +10,7 @@ import {
   type VerificationCode, type InsertVerificationCode
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gt } from "drizzle-orm";
+import { eq, desc, and, gt, or } from "drizzle-orm";
 
 export interface IStorage {
   // User & Auth
@@ -30,9 +30,9 @@ export interface IStorage {
   deleteVerificationCodesForEmail(email: string, type: string): Promise<void>;
 
   // Teas
-  getTeas(): Promise<Tea[]>;
+  getTeas(userId?: number): Promise<Tea[]>;
   getTea(id: number): Promise<(Tea & { attributes: any[] }) | undefined>;
-  createTea(tea: InsertTea & { createdById: number, attributes?: { key: string, value: string }[] }): Promise<Tea>;
+  createTea(tea: InsertTea & { createdById: number, isCustom?: boolean, attributes?: { key: string, value: string }[] }): Promise<Tea>;
   updateTea(id: number, tea: Partial<InsertTea> & { attributes?: { key: string, value: string }[] }): Promise<Tea>;
   
   // Logs / My List
@@ -147,8 +147,20 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
-  async getTeas(): Promise<Tea[]> {
-    return await db.select().from(teas).orderBy(desc(teas.createdAt));
+  async getTeas(userId?: number): Promise<Tea[]> {
+    if (userId) {
+      return await db.select().from(teas)
+        .where(
+          or(
+            eq(teas.isCustom, false),
+            and(eq(teas.isCustom, true), eq(teas.createdById, userId))
+          )
+        )
+        .orderBy(desc(teas.createdAt));
+    }
+    return await db.select().from(teas)
+      .where(eq(teas.isCustom, false))
+      .orderBy(desc(teas.createdAt));
   }
 
   async getTea(id: number): Promise<(Tea & { attributes: any[] }) | undefined> {
@@ -159,7 +171,7 @@ export class DatabaseStorage implements IStorage {
     return { ...tea, attributes };
   }
 
-  async createTea(tea: InsertTea & { createdById: number, attributes?: { key: string, value: string }[] }): Promise<Tea> {
+  async createTea(tea: InsertTea & { createdById: number, isCustom?: boolean, attributes?: { key: string, value: string }[] }): Promise<Tea> {
     const { attributes, ...teaData } = tea;
     const [newTea] = await db.insert(teas).values(teaData as any).returning();
 

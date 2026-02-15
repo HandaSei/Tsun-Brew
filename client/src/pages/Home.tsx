@@ -20,7 +20,8 @@ export default function Home() {
   const { data: teas, isLoading } = useTeas();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
-  const [createOpen, setCreateOpen] = useState(false);
+  const [createCustomOpen, setCreateCustomOpen] = useState(false);
+  const [createGlobalOpen, setCreateGlobalOpen] = useState(false);
   const [phrasesOpen, setPhrasesOpen] = useState(false);
   const [newPhraseText, setNewPhraseText] = useState("");
   const [editingPhrase, setEditingPhrase] = useState<{ id: number; text: string } | null>(null);
@@ -197,33 +198,45 @@ export default function Home() {
         </div>
       </section>
 
+      <Dialog open={createCustomOpen} onOpenChange={setCreateCustomOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl" data-testid="dialog-title-custom">Add a New Custom Tea</DialogTitle>
+          </DialogHeader>
+          <CreateTeaForm onSuccess={() => setCreateCustomOpen(false)} isCustom />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={createGlobalOpen} onOpenChange={setCreateGlobalOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl" data-testid="dialog-title-global">Add a New Tea</DialogTitle>
+          </DialogHeader>
+          <CreateTeaForm onSuccess={() => setCreateGlobalOpen(false)} />
+        </DialogContent>
+      </Dialog>
+
       <main className="container mx-auto px-4 pb-20 flex-1 space-y-16">
         {user && (() => {
-          const myTeas = filteredTeas
-            ?.filter(tea => (tea as any).createdById === user.id)
+          const myCustomTeas = filteredTeas
+            ?.filter(tea => (tea as any).isCustom && (tea as any).createdById === user.id)
             .slice(0, 5);
-          if (!myTeas || myTeas.length === 0) return null;
+          if (!myCustomTeas || myCustomTeas.length === 0) return null;
           return (
             <section data-testid="section-your-additions">
               <div className="flex items-center justify-between gap-4 flex-wrap mb-8">
                 <h2 className="text-3xl font-display font-bold" data-testid="text-your-additions">Your Custom Additions</h2>
-                <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl" data-testid="button-add-tea-top">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add New Tea
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle className="font-display text-2xl">Add a New Tea</DialogTitle>
-                    </DialogHeader>
-                    <CreateTeaForm onSuccess={() => setCreateOpen(false)} />
-                  </DialogContent>
-                </Dialog>
+                <Button
+                  className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl"
+                  onClick={() => setCreateCustomOpen(true)}
+                  data-testid="button-add-custom-tea-top"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add New Tea
+                </Button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-                {myTeas.map((tea) => (
+                {myCustomTeas.map((tea) => (
                   <TeaCard key={tea.id} tea={tea} />
                 ))}
               </div>
@@ -236,20 +249,29 @@ export default function Home() {
             <h2 className="text-3xl font-display font-bold" data-testid="text-latest-additions">Latest Additions</h2>
             
             {user && (
-              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogTrigger asChild>
-                  <Button className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl" data-testid="button-add-tea">
+              <div className="flex items-center gap-2 flex-wrap">
+                {isAdmin && (
+                  <Button
+                    className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl"
+                    onClick={() => setCreateGlobalOpen(true)}
+                    data-testid="button-add-global-tea"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Add New Tea
                   </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="font-display text-2xl">Add a New Tea</DialogTitle>
-                  </DialogHeader>
-                  <CreateTeaForm onSuccess={() => setCreateOpen(false)} />
-                </DialogContent>
-              </Dialog>
+                )}
+                {(!teas?.some(tea => (tea as any).isCustom && (tea as any).createdById === user.id)) && (
+                  <Button
+                    variant={isAdmin ? "outline" : "default"}
+                    className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl"
+                    onClick={() => setCreateCustomOpen(true)}
+                    data-testid="button-add-custom-tea"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Custom Tea
+                  </Button>
+                )}
+              </div>
             )}
           </div>
 
@@ -259,10 +281,10 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-              {filteredTeas?.slice(0, 5).map((tea) => (
+              {filteredTeas?.filter(tea => !(tea as any).isCustom).slice(0, 5).map((tea) => (
                 <TeaCard key={tea.id} tea={tea} />
               ))}
-              {filteredTeas?.length === 0 && (
+              {filteredTeas?.filter(tea => !(tea as any).isCustom).length === 0 && (
                 <div className="col-span-full py-20 text-center">
                   <p className="text-muted-foreground text-lg">No teas found matching your search.</p>
                 </div>
