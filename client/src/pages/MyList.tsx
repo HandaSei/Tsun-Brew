@@ -4,9 +4,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import type { CollectionPhrase } from "@shared/schema";
 
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical, Trash2, UserPlus, Share2, Check } from "lucide-react";
+import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical, Trash2, UserPlus, Share2, Check, Eye, Flame, Users, Skull, Handshake, Ban, Heart, Star, Sparkles, AlertTriangle, ThumbsDown, ThumbsUp, Zap, Crown, Shield, Swords } from "lucide-react";
 import { Link, useLocation, useRoute } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -18,6 +20,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+const ICON_MAP: Record<string, any> = {
+  CheckCircle, Eye, Flame, Users, Skull, Handshake, Ban, Heart, Star, Sparkles, AlertTriangle, ThumbsDown, ThumbsUp, Zap, Crown, Shield, Swords, XCircle, Plus, Coffee, Timer,
+};
 
 export default function MyList() {
   const [, params] = useRoute("/:username/Collection");
@@ -32,6 +38,9 @@ export default function MyList() {
   const isLoading = isOwner ? false : isPublicLoading;
 
   const { data: teaTypes } = useTeaTypes();
+  const { data: collectionPhrases } = useQuery<CollectionPhrase[]>({
+    queryKey: ["/api/collection-phrases"],
+  });
   const updateLog = useUpdateLog();
   const deleteLog = useDeleteLog();
   const [, setLocation] = useLocation();
@@ -91,7 +100,19 @@ export default function MyList() {
   const notRebuying = logs?.filter(log => log.status === 'not_rebuying') || [];
 
   const TeaListItem = ({ log }: { log: any }) => {
-    const isInMyList = myLogs?.some(ml => ml.teaId === log.tea.id);
+    const myLogForTea = myLogs?.find(ml => ml.teaId === log.tea.id);
+    const isInMyList = !!myLogForTea;
+
+    const getPhrase = () => {
+      if (!isInMyList || !myLogForTea || !collectionPhrases) return null;
+      const ownerStatus = log.status;
+      const visitorStatus = myLogForTea.status;
+      const phrase = collectionPhrases.find(
+        p => p.ownerStatus === ownerStatus && p.visitorStatus === visitorStatus
+      );
+      if (!phrase || !phrase.phrase) return null;
+      return phrase;
+    };
 
     const handleStatusChange = (newStatus: string) => {
       updateLog.mutate({
@@ -126,14 +147,22 @@ export default function MyList() {
             )}
           </div>
           <div className="flex flex-col">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-display font-bold text-lg group-hover:text-primary transition-colors">{log.tea.name}</h3>
-              {!isOwner && user && isInMyList && (
-                <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20 px-2 py-0 h-5 text-[10px] rounded-full animate-in fade-in zoom-in duration-300">
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  I had it first!
-                </Badge>
-              )}
+              {!isOwner && user && (() => {
+                const phraseData = getPhrase();
+                if (!phraseData) return null;
+                const IconComp = ICON_MAP[phraseData.icon] || CheckCircle;
+                const bg = `hsla(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%, 0.1)`;
+                const fg = `hsl(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%)`;
+                const border = `hsla(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%, 0.2)`;
+                return (
+                  <Badge variant="outline" className="px-2 py-0 h-5 text-[10px] rounded-full animate-in fade-in zoom-in duration-300" style={{ backgroundColor: bg, color: fg, borderColor: border }} data-testid={`badge-phrase-${log.tea.id}`}>
+                    <IconComp className="w-3 h-3 mr-1" />
+                    {phraseData.phrase}
+                  </Badge>
+                );
+              })()}
             </div>
             <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1 w-fit" style={getTeaTypeColor(teaTypes, log.tea.type, log.tea as any).style} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
           </div>

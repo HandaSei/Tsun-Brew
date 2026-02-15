@@ -1,5 +1,5 @@
 import { 
-  users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases, teaTypes, siteSettings, verificationCodes, footerLinks, pages,
+  users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases, teaTypes, siteSettings, verificationCodes, footerLinks, pages, collectionPhrases,
   type User, type InsertUser, type Tea, type InsertTea, type TeaLog, type InsertTeaLog,
   type Guide, type InsertGuide, type Review, type InsertReview,
   type HeroPhrase, type InsertHeroPhrase,
@@ -7,7 +7,8 @@ import {
   type FooterLink, type InsertFooterLink,
   type Page, type InsertPage,
   type SiteSettings, type InsertSiteSettings,
-  type VerificationCode, type InsertVerificationCode
+  type VerificationCode, type InsertVerificationCode,
+  type CollectionPhrase, type InsertCollectionPhrase
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gt, or } from "drizzle-orm";
@@ -78,6 +79,11 @@ export interface IStorage {
   // Site Settings
   getSiteSettings(): Promise<SiteSettings>;
   updateSiteSettings(settings: Partial<InsertSiteSettings>): Promise<SiteSettings>;
+
+  // Collection Phrases
+  getCollectionPhrases(): Promise<CollectionPhrase[]>;
+  upsertCollectionPhrase(ownerStatus: string, visitorStatus: string, data: Partial<InsertCollectionPhrase>): Promise<CollectionPhrase>;
+  seedCollectionPhrases(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -404,6 +410,52 @@ export class DatabaseStorage implements IStorage {
 
   async deletePage(slug: string): Promise<void> {
     await db.delete(pages).where(eq(pages.slug, slug));
+  }
+
+  async getCollectionPhrases(): Promise<CollectionPhrase[]> {
+    return db.select().from(collectionPhrases);
+  }
+
+  async upsertCollectionPhrase(ownerStatus: string, visitorStatus: string, data: Partial<InsertCollectionPhrase>): Promise<CollectionPhrase> {
+    const [existing] = await db.select().from(collectionPhrases).where(
+      and(eq(collectionPhrases.ownerStatus, ownerStatus), eq(collectionPhrases.visitorStatus, visitorStatus))
+    );
+    if (existing) {
+      const [updated] = await db.update(collectionPhrases).set(data as any).where(eq(collectionPhrases.id, existing.id)).returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(collectionPhrases).values({
+        ownerStatus,
+        visitorStatus,
+        phrase: data.phrase || "",
+        colorHue: data.colorHue ?? 120,
+        colorSaturation: data.colorSaturation ?? 20,
+        colorLightness: data.colorLightness ?? 40,
+        icon: data.icon || "CheckCircle",
+      } as any).returning();
+      return created;
+    }
+  }
+
+  async seedCollectionPhrases(): Promise<void> {
+    const existing = await db.select().from(collectionPhrases);
+    if (existing.length > 0) return;
+
+    const defaults: InsertCollectionPhrase[] = [
+      { ownerStatus: "drinking", visitorStatus: "drinking", phrase: "I had it first!", colorHue: 142, colorSaturation: 60, colorLightness: 40, icon: "CheckCircle" },
+      { ownerStatus: "want_to_try", visitorStatus: "drinking", phrase: "Eyeing mine?", colorHue: 45, colorSaturation: 70, colorLightness: 45, icon: "Eye" },
+      { ownerStatus: "not_rebuying", visitorStatus: "drinking", phrase: "I knew you couldn't handle it.", colorHue: 0, colorSaturation: 60, colorLightness: 45, icon: "Flame" },
+      { ownerStatus: "want_to_try", visitorStatus: "want_to_try", phrase: "Get in line.", colorHue: 210, colorSaturation: 55, colorLightness: 45, icon: "Users" },
+      { ownerStatus: "want_to_try", visitorStatus: "not_rebuying", phrase: "Go ahead. Waste your time.", colorHue: 270, colorSaturation: 50, colorLightness: 45, icon: "Skull" },
+      { ownerStatus: "not_rebuying", visitorStatus: "not_rebuying", phrase: "Finally. Something we agree on.", colorHue: 180, colorSaturation: 50, colorLightness: 40, icon: "Handshake" },
+      { ownerStatus: "drinking", visitorStatus: "want_to_try", phrase: "", colorHue: 120, colorSaturation: 20, colorLightness: 40, icon: "CheckCircle" },
+      { ownerStatus: "drinking", visitorStatus: "not_rebuying", phrase: "We clearly don't steep the same.", colorHue: 330, colorSaturation: 55, colorLightness: 45, icon: "Ban" },
+      { ownerStatus: "not_rebuying", visitorStatus: "want_to_try", phrase: "", colorHue: 120, colorSaturation: 20, colorLightness: 40, icon: "CheckCircle" },
+    ];
+
+    for (const phrase of defaults) {
+      await db.insert(collectionPhrases).values(phrase as any);
+    }
   }
 }
 

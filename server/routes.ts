@@ -36,6 +36,13 @@ export async function registerRoutes(
     console.error("Failed to seed production data:", err);
   }
 
+  // Seed collection phrases
+  try {
+    await storage.seedCollectionPhrases();
+  } catch (err) {
+    console.error("Failed to seed collection phrases:", err);
+  }
+
   // === Teas ===
   app.get(api.teas.list.path, async (req, res) => {
     const user = req.isAuthenticated() ? req.user as User : undefined;
@@ -385,6 +392,22 @@ export async function registerRoutes(
     if (user.role !== 'admin') return res.sendStatus(403);
     await storage.deletePage(String(req.params.slug));
     res.sendStatus(200);
+  });
+
+  // === Collection Phrases ===
+  app.get(api.collectionPhrases.list.path, async (req, res) => {
+    const phrases = await storage.getCollectionPhrases();
+    res.json(phrases);
+  });
+
+  app.patch(api.collectionPhrases.update.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const input = api.collectionPhrases.update.input.parse(req.body);
+    const { ownerStatus, visitorStatus, ...data } = input;
+    const phrase = await storage.upsertCollectionPhrase(ownerStatus, visitorStatus, data);
+    res.json(phrase);
   });
 
   // === Admin ===

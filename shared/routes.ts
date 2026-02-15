@@ -10,7 +10,8 @@ import {
   insertFooterLinkSchema,
   insertPageSchema,
   insertSiteSettingsSchema,
-  users, teas, teaLogs, brewingGuides, reviews, heroPhrases, teaTypes, footerLinks, pages, siteSettings
+  insertCollectionPhraseSchema,
+  users, teas, teaLogs, brewingGuides, reviews, heroPhrases, teaTypes, footerLinks, pages, siteSettings, collectionPhrases
 } from './schema';
 
 export type { 
@@ -18,7 +19,8 @@ export type {
   Guide, InsertGuide, Review, InsertReview, 
   HeroPhrase, InsertHeroPhrase, TeaType, InsertTeaType, 
   FooterLink, InsertFooterLink, Page, InsertPage,
-  SiteSettings, InsertSiteSettings 
+  SiteSettings, InsertSiteSettings,
+  CollectionPhrase, InsertCollectionPhrase
 } from './schema';
 
 export const errorSchemas = {
@@ -366,6 +368,27 @@ export const api = {
       path: '/api/pages/:slug',
       responses: {
         200: z.void(),
+        403: errorSchemas.forbidden,
+      },
+    },
+  },
+  collectionPhrases: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/collection-phrases',
+      responses: {
+        200: z.array(z.custom<typeof collectionPhrases.$inferSelect>()),
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/collection-phrases',
+      input: insertCollectionPhraseSchema.partial().extend({
+        ownerStatus: z.string(),
+        visitorStatus: z.string(),
+      }),
+      responses: {
+        200: z.custom<typeof collectionPhrases.$inferSelect>(),
         403: errorSchemas.forbidden,
       },
     },

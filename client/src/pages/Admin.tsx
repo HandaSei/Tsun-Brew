@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, type User } from "@shared/routes";
 import { useAuth } from "@/hooks/use-auth";
 import { Navigation } from "@/components/Navigation";
-import { Loader2, ShieldAlert, Plus, Pencil, Trash2, Palette, Link as LinkIcon, ArrowUp, ArrowDown } from "lucide-react";
+import { Loader2, ShieldAlert, Plus, Pencil, Trash2, Palette, Link as LinkIcon, ArrowUp, ArrowDown, CheckCircle, Eye, Flame, Users, Skull, Handshake, Ban, Heart, Star, Sparkles, AlertTriangle, ThumbsDown, ThumbsUp, Zap, Crown, Shield, Swords, XCircle, Coffee, Timer, MessageSquare } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,8 +16,20 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { useTeaTypes } from "@/hooks/use-tea-types";
-import type { TeaType, SiteSettings, FooterLink } from "@shared/schema";
+import type { TeaType, SiteSettings, FooterLink, CollectionPhrase } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+
+const ICON_MAP: Record<string, any> = {
+  CheckCircle, Eye, Flame, Users, Skull, Handshake, Ban, Heart, Star, Sparkles, AlertTriangle, ThumbsDown, ThumbsUp, Zap, Crown, Shield, Swords, XCircle, Coffee, Timer, MessageSquare, Plus,
+};
+
+const ICON_NAMES = Object.keys(ICON_MAP);
+
+const STATUS_LABELS: Record<string, string> = {
+  drinking: "Currently Drinking",
+  want_to_try: "Want to Try",
+  not_rebuying: "Not Rebuying",
+};
 
 function UsersTab({ user }: { user: NonNullable<ReturnType<typeof useAuth>["user"]> }) {
   const { toast } = useToast();
@@ -601,6 +613,199 @@ function BottomBarTab() {
   );
 }
 
+function CollectionPhrasesTab() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { data: phrases, isLoading } = useQuery<CollectionPhrase[]>({
+    queryKey: ["/api/collection-phrases"],
+  });
+  const [editingPhrase, setEditingPhrase] = useState<CollectionPhrase | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [formPhrase, setFormPhrase] = useState("");
+  const [formIcon, setFormIcon] = useState("CheckCircle");
+  const [formHue, setFormHue] = useState(120);
+  const [formSaturation, setFormSaturation] = useState(20);
+  const [formLightness, setFormLightness] = useState(40);
+
+  const statuses = ["drinking", "want_to_try", "not_rebuying"];
+
+  const openEdit = (p: CollectionPhrase) => {
+    setEditingPhrase(p);
+    setFormPhrase(p.phrase);
+    setFormIcon(p.icon);
+    setFormHue(p.colorHue);
+    setFormSaturation(p.colorSaturation);
+    setFormLightness(p.colorLightness);
+    setDialogOpen(true);
+  };
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: { ownerStatus: string; visitorStatus: string; phrase: string; icon: string; colorHue: number; colorSaturation: number; colorLightness: number }) => {
+      return apiRequest("PATCH", "/api/collection-phrases", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/collection-phrases"] });
+      setDialogOpen(false);
+      toast({ title: "Phrase Updated" });
+    },
+    onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  const handleSubmit = () => {
+    if (!editingPhrase) return;
+    updateMutation.mutate({
+      ownerStatus: editingPhrase.ownerStatus,
+      visitorStatus: editingPhrase.visitorStatus,
+      phrase: formPhrase,
+      icon: formIcon,
+      colorHue: formHue,
+      colorSaturation: formSaturation,
+      colorLightness: formLightness,
+    });
+  };
+
+  const getPhrase = (ownerStatus: string, visitorStatus: string) => {
+    return phrases?.find(p => p.ownerStatus === ownerStatus && p.visitorStatus === visitorStatus);
+  };
+
+  const previewBg = `hsla(${formHue}, ${formSaturation}%, ${formLightness}%, 0.1)`;
+  const previewFg = `hsl(${formHue}, ${formSaturation}%, ${formLightness}%)`;
+  const previewBorder = `hsla(${formHue}, ${formSaturation}%, ${formLightness}%, 0.2)`;
+  const PreviewIcon = ICON_MAP[formIcon] || CheckCircle;
+
+  if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>;
+
+  return (
+    <div className="space-y-4">
+      <p className="text-muted-foreground text-sm">Customize the phrases shown when a visitor sees a tea that&apos;s also in their own collection. Each combination of the list owner&apos;s status and the visitor&apos;s status can have its own phrase, icon, and color. Leave a phrase blank to hide the badge for that combination.</p>
+
+      <Card className="overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Owner&apos;s List</TableHead>
+              <TableHead>Visitor&apos;s List</TableHead>
+              <TableHead>Phrase</TableHead>
+              <TableHead>Preview</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {statuses.map(ownerStatus =>
+              statuses.map(visitorStatus => {
+                const p = getPhrase(ownerStatus, visitorStatus);
+                const IconComp = p ? (ICON_MAP[p.icon] || CheckCircle) : CheckCircle;
+                const hasBadge = p && p.phrase;
+                return (
+                  <TableRow key={`${ownerStatus}-${visitorStatus}`} data-testid={`row-phrase-${ownerStatus}-${visitorStatus}`}>
+                    <TableCell className="text-sm font-medium">{STATUS_LABELS[ownerStatus]}</TableCell>
+                    <TableCell className="text-sm font-medium">{STATUS_LABELS[visitorStatus]}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
+                      {p?.phrase || <span className="italic">Empty (hidden)</span>}
+                    </TableCell>
+                    <TableCell>
+                      {hasBadge ? (
+                        <Badge variant="outline" className="px-2 py-0 h-5 text-[10px] rounded-full whitespace-nowrap" style={{
+                          backgroundColor: `hsla(${p.colorHue}, ${p.colorSaturation}%, ${p.colorLightness}%, 0.1)`,
+                          color: `hsl(${p.colorHue}, ${p.colorSaturation}%, ${p.colorLightness}%)`,
+                          borderColor: `hsla(${p.colorHue}, ${p.colorSaturation}%, ${p.colorLightness}%, 0.2)`,
+                        }}>
+                          <IconComp className="w-3 h-3 mr-1" />
+                          {p.phrase}
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic">No badge</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => {
+                        const phraseData = p || { id: 0, ownerStatus, visitorStatus, phrase: "", colorHue: 120, colorSaturation: 20, colorLightness: 40, icon: "CheckCircle" };
+                        openEdit(phraseData as CollectionPhrase);
+                      }} data-testid={`button-edit-phrase-${ownerStatus}-${visitorStatus}`}>
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Edit Phrase: {editingPhrase ? `${STATUS_LABELS[editingPhrase.ownerStatus]} / ${STATUS_LABELS[editingPhrase.visitorStatus]}` : ""}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Phrase</Label>
+              <Input value={formPhrase} onChange={(e) => setFormPhrase(e.target.value)} placeholder="Leave empty to hide badge" data-testid="input-phrase-text" />
+              <p className="text-xs text-muted-foreground">Leave blank to hide the badge for this combination.</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Icon</Label>
+              <Select value={formIcon} onValueChange={setFormIcon}>
+                <SelectTrigger data-testid="select-phrase-icon">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ICON_NAMES.map(name => {
+                    const Ic = ICON_MAP[name];
+                    return (
+                      <SelectItem key={name} value={name}>
+                        <span className="flex items-center gap-2">
+                          <Ic className="w-4 h-4" />
+                          {name}
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2">
+                <Palette className="w-4 h-4" /> Color Preview
+              </Label>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="px-2 py-0 h-5 text-[10px] rounded-full" style={{ backgroundColor: previewBg, color: previewFg, borderColor: previewBorder }}>
+                  <PreviewIcon className="w-3 h-3 mr-1" />
+                  {formPhrase || "Preview"}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Hue ({formHue})</Label>
+              <input type="range" min="0" max="360" value={formHue} onChange={(e) => setFormHue(Number(e.target.value))} className="w-full accent-primary" data-testid="slider-phrase-hue" />
+            </div>
+            <div className="space-y-2">
+              <Label>Saturation ({formSaturation}%)</Label>
+              <input type="range" min="0" max="100" value={formSaturation} onChange={(e) => setFormSaturation(Number(e.target.value))} className="w-full accent-primary" data-testid="slider-phrase-saturation" />
+            </div>
+            <div className="space-y-2">
+              <Label>Lightness ({formLightness}%)</Label>
+              <input type="range" min="10" max="90" value={formLightness} onChange={(e) => setFormLightness(Number(e.target.value))} className="w-full accent-primary" data-testid="slider-phrase-lightness" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={updateMutation.isPending} data-testid="button-save-phrase">
+              {updateMutation.isPending ? "Saving..." : "Update"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
@@ -642,6 +847,7 @@ export default function AdminPage() {
             <TabsTrigger value="users" data-testid="tab-users">Users</TabsTrigger>
             <TabsTrigger value="tea-types" data-testid="tab-tea-types">Tea Types</TabsTrigger>
             <TabsTrigger value="branding" data-testid="tab-branding">Branding</TabsTrigger>
+            <TabsTrigger value="phrases" data-testid="tab-phrases">Collection Phrases</TabsTrigger>
             <TabsTrigger value="bottom-bar" data-testid="tab-bottom-bar">Bottom Bar</TabsTrigger>
           </TabsList>
 
@@ -655,6 +861,10 @@ export default function AdminPage() {
 
           <TabsContent value="branding">
             <BrandingTab />
+          </TabsContent>
+
+          <TabsContent value="phrases">
+            <CollectionPhrasesTab />
           </TabsContent>
 
           <TabsContent value="bottom-bar">
