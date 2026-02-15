@@ -2,9 +2,11 @@ import { useLogs, useUpdateLog, useDeleteLog, usePublicLogs } from "@/hooks/use-
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical, Trash2, UserPlus } from "lucide-react";
+import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical, Trash2, UserPlus, Share2, Check } from "lucide-react";
 import { Link, useLocation, useRoute } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -33,6 +35,19 @@ export default function MyList() {
   const updateLog = useUpdateLog();
   const deleteLog = useDeleteLog();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = () => {
+    const url = `${window.location.origin}/${user?.username}/Collection`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    toast({
+      title: "Link copied!",
+      description: "Your collection link has been copied to clipboard.",
+    });
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   if (authLoading) {
     return (
@@ -193,13 +208,26 @@ export default function MyList() {
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
-        <header className="mb-10">
-          <h1 className="text-4xl font-display font-bold mb-2">{username}'s Collection</h1>
-          <p className="text-muted-foreground">
-            {isOwner 
-              ? "Track your journey through the world of tea." 
-              : `Browsing ${username}'s favorite teas and brewing history.`}
-          </p>
+        <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-display font-bold mb-2">{username}'s Collection</h1>
+            <p className="text-muted-foreground">
+              {isOwner 
+                ? "Track your journey through the world of tea." 
+                : `Browsing ${username}'s favorite teas and brewing history.`}
+            </p>
+          </div>
+          {isOwner && (
+            <Button 
+              variant="outline" 
+              className="rounded-full gap-2 border-primary/20 hover:bg-primary/5 h-11 px-6 shadow-sm"
+              onClick={handleShare}
+              data-testid="button-share-list"
+            >
+              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
+              <span>{copied ? "Link Copied!" : "Share My List"}</span>
+            </Button>
+          )}
         </header>
 
         <div className="space-y-12">
