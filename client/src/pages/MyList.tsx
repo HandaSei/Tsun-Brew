@@ -217,18 +217,19 @@ export default function MyList() {
                 : `Browsing ${username}'s favorite teas and brewing history.`}
             </p>
           </div>
-          {isOwner && (
-            <Button 
-              variant="outline" 
-              className="rounded-full gap-2 border-primary/20 hover:bg-primary/5 h-11 px-6 shadow-sm"
-              onClick={handleShare}
-              data-testid="button-share-list"
-            >
-              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
-              <span>{copied ? "Link Copied!" : "Share My List"}</span>
-            </Button>
-          )}
         </header>
+
+        {isOwner && (
+          <Button 
+            variant="outline" 
+            className="fixed bottom-6 left-6 z-[60] rounded-full gap-2 border-primary/20 bg-background/80 backdrop-blur-md hover:bg-primary/5 h-9 px-4 shadow-lg animate-in slide-in-from-bottom-4 duration-300"
+            onClick={handleShare}
+            data-testid="button-share-list"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Share2 className="w-3.5 h-3.5" />}
+            <span className="text-sm font-medium">{copied ? "Link Copied!" : "Share List"}</span>
+          </Button>
+        )}
 
         <div className="space-y-12">
           {/* Currently Drinking */}
