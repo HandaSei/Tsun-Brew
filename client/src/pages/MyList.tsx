@@ -96,9 +96,17 @@ export default function MyList() {
               </div>
             )}
           </div>
-          <div>
-            <h3 className="font-display font-bold text-lg group-hover:text-primary transition-colors">{log.tea.name}</h3>
-            <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1" style={getTeaTypeColor(teaTypes, log.tea.type, log.tea as any).style} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <h3 className="font-display font-bold text-lg group-hover:text-primary transition-colors">{log.tea.name}</h3>
+              {!isOwner && user && isInMyList && (
+                <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20 px-2 py-0 h-5 text-[10px] rounded-full animate-in fade-in zoom-in duration-300">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  I had it first!
+                </Badge>
+              )}
+            </div>
+            <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1 w-fit" style={getTeaTypeColor(teaTypes, log.tea.type, log.tea as any).style} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
           </div>
         </Link>
         
@@ -106,7 +114,7 @@ export default function MyList() {
           {!isOwner && user && !isInMyList && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="outline" className="rounded-full gap-2 border-primary/20 bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 hover:text-green-700 dark:hover:text-green-300">
+                <Button size="sm" variant="outline" className="rounded-full gap-2 border-primary/20 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20 hover:text-yellow-700 dark:hover:text-yellow-300">
                   <UserPlus className="w-4 h-4" />
                   <span className="hidden sm:inline">Add to my list</span>
                 </Button>
@@ -123,13 +131,6 @@ export default function MyList() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
-
-          {!isOwner && user && isInMyList && (
-            <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20 px-3 py-1 rounded-full animate-in fade-in zoom-in duration-300">
-              <CheckCircle className="w-3 h-3 mr-1.5" />
-              I had it first!
-            </Badge>
           )}
 
           <div className="text-right hidden sm:block">
