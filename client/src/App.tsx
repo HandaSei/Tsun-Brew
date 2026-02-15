@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -10,7 +10,6 @@ import TeaDetails from "@/pages/TeaDetails";
 import MyList from "@/pages/MyList";
 import AdminPage from "@/pages/Admin";
 import DynamicPage from "@/pages/DynamicPage";
-import AuthPage from "@/pages/Auth";
 import { useEffect } from "react";
 import type { SiteSettings } from "@shared/schema";
 
@@ -21,7 +20,9 @@ function Router() {
       <Route path="/tea/:slug" component={TeaDetails} />
       <Route path="/custom-tea/:slug" component={TeaDetails} />
       <Route path="/:username/Collection" component={MyList} />
-      <Route path="/auth" component={AuthPage} />
+      <Route path="/auth">
+        <Redirect to="/" />
+      </Route>
       <Route path="/admin" component={AdminPage} />
       <Route path="/page/:slug" component={DynamicPage} />
       <Route component={NotFound} />

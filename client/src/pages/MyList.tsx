@@ -39,8 +39,17 @@ export default function MyList() {
   }
 
   if (!user) {
-    setLocation("/auth");
-    return null;
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navigation />
+        <div className="flex-1 flex flex-col items-center justify-center p-4">
+          <h2 className="text-2xl font-display font-bold mb-4 text-center">Please sign in to view your collection</h2>
+          <Link href="/">
+            <Button>Return Home</Button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   if (isLoading) {
