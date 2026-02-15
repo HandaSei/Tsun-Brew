@@ -1,10 +1,10 @@
-import { useLogs, useUpdateLog, useDeleteLog } from "@/hooks/use-logs";
+import { useLogs, useUpdateLog, useDeleteLog, usePublicLogs } from "@/hooks/use-logs";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
 
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical, Trash2 } from "lucide-react";
+import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical, Trash2, UserPlus } from "lucide-react";
 import { Link, useLocation, useRoute } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -21,7 +21,14 @@ export default function MyList() {
   const [, params] = useRoute("/:username/Collection");
   const username = params?.username;
   const { user, isLoading: authLoading } = useAuth();
-  const { data: logs, isLoading } = useLogs();
+  const isOwner = user?.username === username;
+  
+  const { data: myLogs } = useLogs();
+  const { data: publicLogs, isLoading: isPublicLoading } = usePublicLogs(isOwner ? "" : (username || ""));
+  
+  const logs = isOwner ? myLogs : publicLogs;
+  const isLoading = isOwner ? false : isPublicLoading;
+
   const { data: teaTypes } = useTeaTypes();
   const updateLog = useUpdateLog();
   const deleteLog = useDeleteLog();
@@ -38,21 +45,7 @@ export default function MyList() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <Navigation />
-        <div className="flex-1 flex flex-col items-center justify-center p-4">
-          <h2 className="text-2xl font-display font-bold mb-4 text-center">Please sign in to view your collection</h2>
-          <Link href="/">
-            <Button>Return Home</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
+  if (isLoading && !logs) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navigation />
@@ -69,6 +62,8 @@ export default function MyList() {
   const notRebuying = logs?.filter(log => log.status === 'not_rebuying') || [];
 
   const TeaListItem = ({ log }: { log: any }) => {
+    const isInMyList = myLogs?.some(ml => ml.teaId === log.tea.id);
+
     const handleStatusChange = (newStatus: string) => {
       updateLog.mutate({
         teaId: log.tea.id,
@@ -80,6 +75,13 @@ export default function MyList() {
       if (confirm(`Remove ${log.tea.name} from your list?`)) {
         deleteLog.mutate(log.tea.id);
       }
+    };
+
+    const handleAddToList = () => {
+      updateLog.mutate({
+        teaId: log.tea.id,
+        status: 'want_to_try'
+      } as any);
     };
 
     return (
@@ -101,6 +103,13 @@ export default function MyList() {
         </Link>
         
         <div className="flex items-center gap-2 sm:gap-4">
+          {!isOwner && user && !isInMyList && (
+            <Button size="sm" variant="outline" className="rounded-full gap-2 border-primary/20 hover:bg-primary/5" onClick={handleAddToList}>
+              <UserPlus className="w-4 h-4" />
+              <span className="hidden sm:inline">Add to List</span>
+            </Button>
+          )}
+
           <div className="text-right hidden sm:block">
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Brews</p>
             <p className="font-mono font-medium text-lg">{log.totalBrews || 0}</p>
@@ -119,35 +128,37 @@ export default function MyList() {
                   <BrewTimer 
                     tea={log.tea}
                     teaLog={log}
-                    showControls={true}
+                    showControls={isOwner}
                   />
                 </div>
               </DialogContent>
             </Dialog>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="rounded-full w-10 h-10">
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleStatusChange('drinking')}>
-                  Move to Drinking
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('want_to_try')}>
-                  Move to Want to Try
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('not_rebuying')}>
-                  Move to Not Rebuying
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete from List
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {isOwner && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" variant="ghost" className="rounded-full w-10 h-10">
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleStatusChange('drinking')}>
+                    Move to Drinking
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusChange('want_to_try')}>
+                    Move to Want to Try
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusChange('not_rebuying')}>
+                    Move to Not Rebuying
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete from List
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </div>
@@ -161,7 +172,11 @@ export default function MyList() {
       <div className="container mx-auto px-4 py-8">
         <header className="mb-10">
           <h1 className="text-4xl font-display font-bold mb-2">{username}'s Collection</h1>
-          <p className="text-muted-foreground">Track your journey through the world of tea.</p>
+          <p className="text-muted-foreground">
+            {isOwner 
+              ? "Track your journey through the world of tea." 
+              : `Browsing ${username}'s favorite teas and brewing history.`}
+          </p>
         </header>
 
         <div className="space-y-12">
@@ -202,7 +217,9 @@ export default function MyList() {
             <div className="grid gap-4">
               {wantToTry.map(log => <TeaListItem key={log.id} log={log} />)}
               {wantToTry.length === 0 && (
-                <p className="text-muted-foreground italic pl-2">Your wishlist is empty.</p>
+                <p className="text-muted-foreground italic pl-2">
+                  {isOwner ? "Your wishlist is empty." : `${username} hasn't added any teas to their wishlist.`}
+                </p>
               )}
             </div>
           </section>

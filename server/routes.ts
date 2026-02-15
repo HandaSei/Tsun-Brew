@@ -132,6 +132,28 @@ export async function registerRoutes(
     res.json(result);
   });
 
+  app.get(api.logs.publicList.path, async (req, res) => {
+    const username = req.params.username;
+    const user = await storage.getUserByUsername(username);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const logs = await storage.getTeaLogs(user.id);
+    const types = await storage.getTeaTypes();
+    const result = logs.map(log => {
+      const tt = log.tea ? findTeaType(types, log.tea.type) : undefined;
+      return {
+        ...log,
+        tea: log.tea ? {
+          ...log.tea,
+          typeColorHue: tt?.colorHue ?? null,
+          typeColorSaturation: tt?.colorSaturation ?? null,
+          typeColorLightness: tt?.colorLightness ?? null,
+        } : log.tea,
+      };
+    });
+    res.json(result);
+  });
+
   app.post(api.logs.update.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const user = req.user as User;

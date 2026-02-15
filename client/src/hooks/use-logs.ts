@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@shared/routes";
-import { type InsertTeaLog } from "@shared/schema";
+import { api, buildUrl } from "@shared/routes";
+import { type InsertTeaLog, type TeaLog, type Tea } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 export function useLogs() {
@@ -12,8 +12,21 @@ export function useLogs() {
         if (res.status === 401) return []; // Handle unauthorized gracefully
         throw new Error("Failed to fetch logs");
       }
-      return api.logs.list.responses[200].parse(await res.json());
+      return api.logs.list.responses[200].parse(await res.json()) as (TeaLog & { tea: Tea })[];
     },
+  });
+}
+
+export function usePublicLogs(username: string) {
+  return useQuery({
+    queryKey: [api.logs.publicList.path, username],
+    queryFn: async () => {
+      const url = buildUrl(api.logs.publicList.path, { username });
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch public tea logs");
+      return await res.json() as (TeaLog & { tea: Tea })[];
+    },
+    enabled: !!username,
   });
 }
 

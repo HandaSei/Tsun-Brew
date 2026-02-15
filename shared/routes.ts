@@ -124,6 +124,14 @@ export const api = {
         401: errorSchemas.unauthorized,
       },
     },
+    publicList: {
+      method: 'GET' as const,
+      path: '/api/logs/user/:username',
+      responses: {
+        200: z.array(z.custom<typeof teaLogs.$inferSelect & { tea: typeof teas.$inferSelect }>()),
+        404: errorSchemas.notFound,
+      },
+    },
     update: {
       method: 'POST' as const, // Upsert (Add to list or update)
       path: '/api/logs',
