@@ -5,7 +5,7 @@ import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
 
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical, Trash2 } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useRoute } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { BrewTimer } from "@/components/BrewTimer";
@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function MyList() {
+  const [, params] = useRoute("/:username/Collection");
+  const username = params?.username;
   const { user, isLoading: authLoading } = useAuth();
   const { data: logs, isLoading } = useLogs();
   const { data: teaTypes } = useTeaTypes();
@@ -149,7 +151,7 @@ export default function MyList() {
       
       <div className="container mx-auto px-4 py-8">
         <header className="mb-10">
-          <h1 className="text-4xl font-display font-bold mb-2">My Tea Collection</h1>
+          <h1 className="text-4xl font-display font-bold mb-2">{username}'s Collection</h1>
           <p className="text-muted-foreground">Track your journey through the world of tea.</p>
         </header>
 

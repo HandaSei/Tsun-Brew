@@ -77,7 +77,7 @@ export function Navigation() {
 
         <nav className="hidden md:flex items-center gap-6">
           <NavLink href="/">Discovery</NavLink>
-          {user && <NavLink href="/list">My Tea List</NavLink>}
+          {user && <NavLink href={`/${user.username}/Collection`}>My Tea List</NavLink>}
           {user?.role === 'admin' && <NavLink href="/admin">Admin</NavLink>}
         </nav>
 
@@ -148,7 +148,7 @@ export function Navigation() {
               <div className="flex flex-col gap-6 mt-8">
                 <Link href="/" onClick={() => setIsOpen(false)} className="text-lg font-medium">Discovery</Link>
                 {user && (
-                  <Link href="/list" onClick={() => setIsOpen(false)} className="text-lg font-medium">My Tea List</Link>
+                  <Link href={`/${user.username}/Collection`} onClick={() => setIsOpen(false)} className="text-lg font-medium">My Tea List</Link>
                 )}
                 {user?.role === 'admin' && (
                   <Link href="/admin" onClick={() => setIsOpen(false)} className="text-lg font-medium text-primary">Admin Panel</Link>

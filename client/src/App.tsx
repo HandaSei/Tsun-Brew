@@ -20,7 +20,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/tea/:slug" component={TeaDetails} />
       <Route path="/custom-tea/:slug" component={TeaDetails} />
-      <Route path="/list" component={MyList} />
+      <Route path="/:username/Collection" component={MyList} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/admin" component={AdminPage} />
       <Route path="/page/:slug" component={DynamicPage} />
