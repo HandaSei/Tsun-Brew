@@ -226,14 +226,14 @@ export default function Home() {
             <section data-testid="section-your-additions">
               <div className="flex items-center justify-between gap-4 flex-wrap mb-8">
                 <h2 className="text-3xl font-display font-bold" data-testid="text-your-additions">Your Custom Additions</h2>
-                <Button
-                  className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl"
-                  onClick={() => setCreateCustomOpen(true)}
-                  data-testid="button-add-custom-tea-top"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add New Tea
-                </Button>
+                  <Button
+                    className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl"
+                    onClick={() => setCreateCustomOpen(true)}
+                    data-testid="button-add-custom-tea-top"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    {isAdmin ? "Add Custom Tea" : "Add New Tea"}
+                  </Button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                 {myCustomTeas.map((tea) => (
