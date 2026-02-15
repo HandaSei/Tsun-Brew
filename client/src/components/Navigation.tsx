@@ -26,6 +26,13 @@ export function Navigation() {
   const [authOpen, setAuthOpen] = useState(false);
   const { resolvedTheme, cycleTheme } = useTheme();
 
+  // Force AuthModal if user has temporary password
+  const finalAuthOpen = authOpen || !!user?.passwordIsTemporary;
+  const setFinalAuthOpen = (open: boolean) => {
+    if (user?.passwordIsTemporary) return; // Cannot close if password is temporary
+    setAuthOpen(open);
+  };
+
   const { data: siteSettings } = useQuery<SiteSettings>({
     queryKey: ["/api/site-settings"],
   });
@@ -175,7 +182,7 @@ export function Navigation() {
         </div>
       </div>
 
-      <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
+      <AuthModal open={finalAuthOpen} onOpenChange={setFinalAuthOpen} />
     </header>
   );
 }

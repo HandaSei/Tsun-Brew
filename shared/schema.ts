@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
   password: text("password").notNull(),
+  passwordIsTemporary: boolean("password_is_temporary").notNull().default(false),
   role: text("role").notNull().default("user"),
   createdAt: timestamp("created_at").defaultNow(),
 });

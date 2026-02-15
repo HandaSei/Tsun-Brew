@@ -18,7 +18,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser & { role?: string }): Promise<User>;
-  updateUserPassword(id: number, password: string): Promise<User>;
+  updateUserPassword(id: number, password: string, isTemporary?: boolean): Promise<User>;
   setEmailVerified(id: number): Promise<User>;
   getUsers(): Promise<User[]>;
   updateUserRole(id: number, role: string): Promise<User>;
@@ -101,8 +101,8 @@ export class DatabaseStorage implements IStorage {
     return newUser;
   }
 
-  async updateUserPassword(id: number, password: string): Promise<User> {
-    const [updated] = await db.update(users).set({ password }).where(eq(users.id, id)).returning();
+  async updateUserPassword(id: number, password: string, isTemporary: boolean = false): Promise<User> {
+    const [updated] = await db.update(users).set({ password, passwordIsTemporary: isTemporary }).where(eq(users.id, id)).returning();
     return updated;
   }
 

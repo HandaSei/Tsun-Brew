@@ -18,6 +18,7 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
@@ -28,9 +29,13 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto mb-2 text-primary-foreground">
             <Leaf className="w-6 h-6" />
           </div>
-          <DialogTitle className="text-2xl font-display">Welcome to Tsun Brew</DialogTitle>
+          <DialogTitle className="text-2xl font-display">
+            {user?.passwordIsTemporary ? "Security Update" : "Welcome to Tsun Brew"}
+          </DialogTitle>
         </DialogHeader>
-        {showForgotPassword ? (
+        {user?.passwordIsTemporary ? (
+          <UpdatePasswordForm />
+        ) : showForgotPassword ? (
           <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -48,6 +53,83 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function UpdatePasswordForm() {
+  const [updating, setUpdating] = useState(false);
+  const { toast } = useToast();
+  
+  const form = useForm({
+    resolver: zodResolver(z.object({
+      password: z.string().min(6, "Password must be at least 6 characters"),
+      confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+    }).refine(data => data.password === data.confirmPassword, {
+      message: "Passwords don't match",
+      path: ["confirmPassword"],
+    })),
+    defaultValues: { password: "", confirmPassword: "" }
+  });
+
+  const onSubmit = async (data: any) => {
+    setUpdating(true);
+    try {
+      const res = await apiRequest("POST", "/api/user/update-password", { password: data.password });
+      if (!res.ok) {
+        const body = await res.json();
+        toast({ title: "Error", description: body.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: "Success", description: "Password updated successfully." });
+      window.location.reload();
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to update password", variant: "destructive" });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center mb-2">
+        <p className="text-sm text-muted-foreground">
+          You are using a temporary password. Please set a new permanent password to secure your account.
+        </p>
+      </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>New Password</FormLabel>
+                <FormControl>
+                  <Input type="password" placeholder="Min 6 characters" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Confirm New Password</FormLabel>
+                <FormControl>
+                  <Input type="password" placeholder="Repeat new password" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" className="w-full" disabled={updating}>
+            {updating ? "Updating..." : "Update Password"}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 }
 

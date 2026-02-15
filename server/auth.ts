@@ -227,7 +227,7 @@ export function setupAuth(app: Express) {
 
       const tempPassword = generateTempPassword();
       const hashedPassword = await hashPassword(tempPassword);
-      await storage.updateUserPassword(user.id, hashedPassword);
+      await storage.updateUserPassword(user.id, hashedPassword, true);
 
       const sent = await sendPasswordRecoveryEmail(email, user.username, tempPassword);
       if (!sent) {
@@ -239,6 +239,17 @@ export function setupAuth(app: Express) {
       console.error("Error in forgot-password:", err);
       res.status(500).json({ message: "Something went wrong. Please try again." });
     }
+  });
+
+  app.post("/api/user/update-password", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const { password } = req.body;
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+    const hashedPassword = await hashPassword(password);
+    await storage.updateUserPassword((req.user as User).id, hashedPassword, false);
+    res.json({ message: "Password updated successfully" });
   });
 
   app.post("/api/logout", (req, res, next) => {
