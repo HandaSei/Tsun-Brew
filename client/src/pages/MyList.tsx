@@ -231,7 +231,7 @@ export default function MyList() {
               data-testid="button-share-list-mobile"
             >
               <Share2 className="w-3 h-3" />
-              <span className="text-xs font-medium text-primary">Share List</span>
+              <span className="text-xs font-medium">Share List</span>
             </Button>
           </div>
         )}
