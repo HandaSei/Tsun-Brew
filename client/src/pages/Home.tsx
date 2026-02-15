@@ -197,44 +197,79 @@ export default function Home() {
         </div>
       </section>
 
-      <main className="container mx-auto px-4 pb-20 flex-1">
-        <div className="flex items-center justify-between gap-4 flex-wrap mb-8">
-          <h2 className="text-3xl font-display font-bold">Latest Additions</h2>
-          
-          {user && (
-            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-              <DialogTrigger asChild>
-                <Button className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl" data-testid="button-add-tea">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add New Tea
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="font-display text-2xl">Add a New Tea</DialogTitle>
-                </DialogHeader>
-                <CreateTeaForm onSuccess={() => setCreateOpen(false)} />
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-12 h-12 animate-spin text-primary/30" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredTeas?.map((tea) => (
-              <TeaCard key={tea.id} tea={tea} />
-            ))}
-            {filteredTeas?.length === 0 && (
-              <div className="col-span-full py-20 text-center">
-                <p className="text-muted-foreground text-lg">No teas found matching your search.</p>
+      <main className="container mx-auto px-4 pb-20 flex-1 space-y-16">
+        {user && (() => {
+          const myTeas = filteredTeas
+            ?.filter(tea => (tea as any).createdById === user.id)
+            .slice(0, 5);
+          if (!myTeas || myTeas.length === 0) return null;
+          return (
+            <section data-testid="section-your-additions">
+              <div className="flex items-center justify-between gap-4 flex-wrap mb-8">
+                <h2 className="text-3xl font-display font-bold" data-testid="text-your-additions">Your Custom Additions</h2>
+                <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl" data-testid="button-add-tea-top">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add New Tea
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="font-display text-2xl">Add a New Tea</DialogTitle>
+                    </DialogHeader>
+                    <CreateTeaForm onSuccess={() => setCreateOpen(false)} />
+                  </DialogContent>
+                </Dialog>
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                {myTeas.map((tea) => (
+                  <TeaCard key={tea.id} tea={tea} />
+                ))}
+              </div>
+            </section>
+          );
+        })()}
+
+        <section data-testid="section-latest-additions">
+          <div className="flex items-center justify-between gap-4 flex-wrap mb-8">
+            <h2 className="text-3xl font-display font-bold" data-testid="text-latest-additions">Latest Additions</h2>
+            
+            {user && (
+              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl" data-testid="button-add-tea">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add New Tea
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="font-display text-2xl">Add a New Tea</DialogTitle>
+                  </DialogHeader>
+                  <CreateTeaForm onSuccess={() => setCreateOpen(false)} />
+                </DialogContent>
+              </Dialog>
             )}
           </div>
-        )}
+
+          {isLoading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="w-12 h-12 animate-spin text-primary/30" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              {filteredTeas?.slice(0, 5).map((tea) => (
+                <TeaCard key={tea.id} tea={tea} />
+              ))}
+              {filteredTeas?.length === 0 && (
+                <div className="col-span-full py-20 text-center">
+                  <p className="text-muted-foreground text-lg">No teas found matching your search.</p>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
       </main>
       <Footer />
     </div>
