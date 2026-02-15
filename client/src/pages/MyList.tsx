@@ -97,14 +97,7 @@ export default function MyList() {
             )}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-display font-bold text-lg group-hover:text-primary transition-colors">{log.tea.name}</h3>
-              {!isOwner && user && isInMyList && (
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium whitespace-nowrap">
-                  I had it first!
-                </span>
-              )}
-            </div>
+            <h3 className="font-display font-bold text-lg group-hover:text-primary transition-colors">{log.tea.name}</h3>
             <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1" style={getTeaTypeColor(teaTypes, log.tea.type, log.tea as any).style} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
           </div>
         </Link>
@@ -130,6 +123,13 @@ export default function MyList() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
+
+          {!isOwner && user && isInMyList && (
+            <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20 px-3 py-1 rounded-full animate-in fade-in zoom-in duration-300">
+              <CheckCircle className="w-3 h-3 mr-1.5" />
+              I had it first!
+            </Badge>
           )}
 
           <div className="text-right hidden sm:block">
