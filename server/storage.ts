@@ -1,6 +1,6 @@
 import { 
   users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases, teaTypes, siteSettings, verificationCodes, footerLinks, pages, collectionPhrases,
-  scoringSystems, teaScores, userPreferences,
+  scoringSystems, teaScores, userPreferences, scoreDefinitions,
   type User, type InsertUser, type Tea, type InsertTea, type TeaLog, type InsertTeaLog,
   type Guide, type InsertGuide, type Review, type InsertReview,
   type HeroPhrase, type InsertHeroPhrase,
@@ -12,7 +12,8 @@ import {
   type CollectionPhrase, type InsertCollectionPhrase,
   type ScoringSystem, type InsertScoringSystem,
   type TeaScore, type InsertTeaScore,
-  type UserPreference, type InsertUserPreference
+  type UserPreference, type InsertUserPreference,
+  type ScoreDefinition, type InsertScoreDefinition
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gt, or, avg, count, sql } from "drizzle-orm";
@@ -90,12 +91,14 @@ export interface IStorage {
   seedCollectionPhrases(): Promise<void>;
 
   // Scoring Systems
-  getScoringSystems(): Promise<ScoringSystem[]>;
+  getScoringSystems(): Promise<(ScoringSystem & { definitions: ScoreDefinition[] })[]>;
   getScoringSystem(id: number): Promise<ScoringSystem | undefined>;
-  createScoringSystem(system: InsertScoringSystem): Promise<ScoringSystem>;
-  updateScoringSystem(id: number, system: Partial<InsertScoringSystem>): Promise<ScoringSystem>;
+  createScoringSystem(system: InsertScoringSystem & { definitions?: InsertScoreDefinition[] }): Promise<ScoringSystem>;
+  updateScoringSystem(id: number, system: Partial<InsertScoringSystem> & { definitions?: InsertScoreDefinition[] }): Promise<ScoringSystem>;
   deleteScoringSystem(id: number): Promise<void>;
   seedDefaultScoringSystem(): Promise<void>;
+  getScoreDefinitions(systemId: number): Promise<ScoreDefinition[]>;
+  updateScoreDefinitions(systemId: number, definitions: InsertScoreDefinition[]): Promise<void>;
 
   // Tea Scores
   upsertTeaScore(userId: number, data: InsertTeaScore): Promise<TeaScore>;
@@ -574,28 +577,31 @@ export class DatabaseStorage implements IStorage {
         .where(eq(teaScores.id, existing.id))
         .returning();
       return updated;
+    } else {
+      const [created] = await db.insert(teaScores).values({ ...data, userId } as any).returning();
+      return created;
     }
-    const [created] = await db.insert(teaScores).values({ ...data, userId } as any).returning();
-    return created;
   }
 
   async getTeaScoresForUser(userId: number, teaId: number): Promise<TeaScore[]> {
-    return await db.select().from(teaScores).where(
-      and(eq(teaScores.userId, userId), eq(teaScores.teaId, teaId))
-    );
+    return await db.select().from(teaScores).where(and(eq(teaScores.userId, userId), eq(teaScores.teaId, teaId)));
   }
 
   async getTeaScoresForTea(teaId: number): Promise<{ scoringSystemId: number; avgScore: number; voteCount: number }[]> {
-    const results = await db
-      .select({
-        scoringSystemId: teaScores.scoringSystemId,
-        avgScore: sql<number>`round(avg(${teaScores.score})::numeric, 1)::float`,
-        voteCount: sql<number>`count(*)::int`,
-      })
-      .from(teaScores)
-      .where(eq(teaScores.teaId, teaId))
-      .groupBy(teaScores.scoringSystemId);
-    return results;
+    const results = await db.select({
+      scoringSystemId: teaScores.scoringSystemId,
+      avgScore: avg(teaScores.score),
+      voteCount: count(teaScores.id),
+    })
+    .from(teaScores)
+    .where(eq(teaScores.teaId, teaId))
+    .groupBy(teaScores.scoringSystemId);
+
+    return results.map(r => ({
+      scoringSystemId: r.scoringSystemId,
+      avgScore: Number(r.avgScore),
+      voteCount: Number(r.voteCount),
+    }));
   }
 
   async getUserScoresForTeas(userId: number): Promise<TeaScore[]> {
@@ -608,9 +614,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUserPreference(userId: number, data: InsertUserPreference): Promise<UserPreference> {
-    const [existing] = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId));
+    const existing = await this.getUserPreference(userId);
     if (existing) {
-      const [updated] = await db.update(userPreferences).set(data as any).where(eq(userPreferences.id, existing.id)).returning();
+      const [updated] = await db.update(userPreferences).set(data).where(eq(userPreferences.userId, userId)).returning();
       return updated;
     }
     const [created] = await db.insert(userPreferences).values({ ...data, userId } as any).returning();

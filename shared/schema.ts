@@ -52,14 +52,13 @@ export const teas = pgTable("teas", {
   occidentalDuration: integer("occidental_duration"),
   occidentalInfusions: jsonb("occidental_infusions"), // Array of seconds: [180, 240, 300]
   
+  // Visibility & Display
   washingStep: boolean("washing_step").default(false),
   washingDuration: integer("washing_duration"),
-  
   orientalLeafAmount: text("oriental_leaf_amount"),
   orientalWaterAmount: text("oriental_water_amount"),
   occidentalLeafAmount: text("occidental_leaf_amount"),
   occidentalWaterAmount: text("occidental_water_amount"),
-  
   showOriental: boolean("show_oriental").default(true),
   showOccidental: boolean("show_occidental").default(true),
   orientalTimerEnabled: boolean("oriental_timer_enabled").default(true),

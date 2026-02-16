@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Star } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import type { ScoringSystem, TeaScore, SiteSettings } from "@shared/schema";
+import type { ScoringSystem, TeaScore, SiteSettings, ScoreDefinition } from "@shared/schema";
 
 interface ScoreWidgetProps {
   teaId: number;
@@ -21,14 +21,15 @@ function ScoreLogo({ definition, size = "sm" }: { definition: any; size?: "sm" |
 }
 
 function formatScore(score: number, system: ScoringSystem & { definitions: ScoreDefinition[] }) {
-  const def = system.definitions?.find(d => d.scoreValue === score);
+  const def = system.definitions?.find(d => d.scoreValue === Math.round(score));
   const logo = def?.logoUrl ? <ScoreLogo definition={def} /> : null;
-  const text = def?.label ? <span>{def.label} ({score})</span> : <span>{score}/{system.maxScore}</span>;
+  const labelText = def?.label || score.toString();
   
   return (
     <span className="inline-flex items-center gap-1.5">
       {logo}
-      {text}
+      <span className="font-medium">{labelText}</span>
+      {def?.label && <span className="text-[10px] text-muted-foreground">({score})</span>}
     </span>
   );
 }
@@ -44,7 +45,7 @@ export function ScoreWidget({ teaId, compact = false }: ScoreWidgetProps) {
   const [selectedSystemId, setSelectedSystemId] = useState<string>("");
   const [selectedScore, setSelectedScore] = useState<string>("");
 
-  const { data: systems } = useQuery<ScoringSystem[]>({
+  const { data: systems } = useQuery<(ScoringSystem & { definitions: ScoreDefinition[] })[]>({
     queryKey: ["/api/scoring-systems"],
   });
 
@@ -260,11 +261,11 @@ function ScoreDialogContent({
   onSubmit,
   isPending,
 }: {
-  activeSystems: ScoringSystem[];
+  activeSystems: (ScoringSystem & { definitions: ScoreDefinition[] })[];
   selectedSystemId: string;
   selectedScore: string;
   maxScore: number;
-  currentDialogSystem: ScoringSystem | undefined;
+  currentDialogSystem: (ScoringSystem & { definitions: ScoreDefinition[] }) | undefined;
   onSystemChange: (val: string) => void;
   onScoreChange: (val: string) => void;
   onSubmit: () => void;
@@ -292,19 +293,33 @@ function ScoreDialogContent({
         <label className="text-sm font-medium">
           Score {currentDialogSystem ? `(1-${currentDialogSystem.maxScore})` : ""}
         </label>
-        {maxScore <= 10 ? (
-          <div className="flex gap-1 flex-wrap">
-            {Array.from({ length: maxScore }, (_, i) => i + 1).map(val => (
+        {maxScore <= 20 ? (
+          <div className="flex gap-2 flex-wrap">
+            {currentDialogSystem?.definitions?.map(def => (
               <Button
-                key={val}
-                variant={selectedScore === String(val) ? "default" : "outline"}
-                size="sm"
-                onClick={() => onScoreChange(String(val))}
-                data-testid={`button-score-${val}`}
+                key={def.scoreValue}
+                variant={selectedScore === String(def.scoreValue) ? "default" : "outline"}
+                className="flex flex-col h-auto py-2 gap-1 min-w-[4rem]"
+                onClick={() => onScoreChange(String(def.scoreValue))}
+                data-testid={`button-score-${def.scoreValue}`}
               >
-                {val}
+                {def.logoUrl && <ScoreLogo definition={def} size="md" />}
+                <span className="text-xs font-bold">{def.label || def.scoreValue}</span>
               </Button>
             ))}
+            {(!currentDialogSystem?.definitions || currentDialogSystem.definitions.length === 0) && 
+              Array.from({ length: maxScore }, (_, i) => i + 1).map(val => (
+                <Button
+                  key={val}
+                  variant={selectedScore === String(val) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => onScoreChange(String(val))}
+                  data-testid={`button-score-${val}`}
+                >
+                  {val}
+                </Button>
+              ))
+            }
           </div>
         ) : (
           <div className="flex items-center gap-3">
@@ -317,16 +332,20 @@ function ScoreDialogContent({
               className="flex-1 accent-primary"
               data-testid="slider-score"
             />
-            <span className="text-lg font-bold min-w-[3ch] text-center">{selectedScore || "?"}</span>
+            <div className="flex flex-col items-center min-w-[4rem]">
+              {(() => {
+                const def = currentDialogSystem?.definitions?.find(d => d.scoreValue === Number(selectedScore));
+                return (
+                  <>
+                    {def?.logoUrl && <ScoreLogo definition={def} size="md" />}
+                    <span className="text-lg font-bold">{def?.label || selectedScore || "?"}</span>
+                  </>
+                );
+              })()}
+            </div>
           </div>
         )}
       </div>
-
-      {currentDialogSystem?.logoUrl && selectedScore && (
-        <div className="flex items-center justify-center gap-2 text-lg font-semibold py-2">
-          {formatScore(Number(selectedScore), currentDialogSystem)}
-        </div>
-      )}
 
       <Button
         className="w-full"
