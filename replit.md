@@ -5,6 +5,13 @@
 Tsun Brew is a full-stack web application for tea enthusiasts to discover, track, and brew teas. Users can browse a tea library, log their tastings with personal scores, track brewing sessions with a timer, and share brewing guides and reviews. The app features role-based access control with admin, moderator, and user roles.
 
 ## Recent Changes
+- Flexible tea scoring system: scoringSystems table (name, maxScore, logoUrl, logoPosition, isActive), teaScores table (userId, teaId, scoringSystemId, score), userPreferences table (preferredScoringSystemId)
+- ScoreWidget component (compact/full modes): shows user's score, community average (normalized to user's preferred system), submit/edit score dialog
+- Community scores only displayed after reaching configurable minimum vote threshold (minCommunityVotes in siteSettings, default 15)
+- Admin "Scoring" tab for managing scoring systems (create, edit, delete, toggle active, set logo/position)
+- User Settings page (/settings) with preferred scoring system selector, accessible via clickable username in navigation
+- ScoreWidget integrated into TeaDetails page (full mode) and MyList page (compact mode)
+- Admin Dashboard now has 5 tabs: Users, Tea Types, Branding, Bottom Bar, Scoring
 - Collection Phrases system: dynamic badges when visiting another user's collection, based on owner/visitor status combinations (e.g. "I had it first!", "Eyeing mine?", etc.)
 - Admin "Collection Phrases" tab to customize phrase text, icon, and color for all 9 status combinations
 - collectionPhrases table with ownerStatus, visitorStatus, phrase, color HSL, icon name; seeded with default phrases

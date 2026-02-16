@@ -91,9 +91,9 @@ export function Navigation() {
         <div className="hidden md:flex items-center gap-2">
           {user ? (
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground" data-testid="text-username">
+              <Link href="/settings" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-user-settings">
                 {user.username}
-              </span>
+              </Link>
               <Button
                 variant="ghost"
                 size="icon"
@@ -159,6 +159,9 @@ export function Navigation() {
                 )}
                 {user?.role === 'admin' && (
                   <Link href="/admin" onClick={() => setIsOpen(false)} className="text-lg font-medium text-primary">Admin Panel</Link>
+                )}
+                {user && (
+                  <Link href="/settings" onClick={() => setIsOpen(false)} className="text-lg font-medium" data-testid="link-user-settings-mobile">Settings</Link>
                 )}
                 
                 <div className="h-px bg-border my-2" />

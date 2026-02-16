@@ -39,6 +39,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertTeaSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
+import { ScoreWidget } from "@/components/ScoreWidget";
 
 
 export default function TeaDetails() {
@@ -676,16 +677,15 @@ export default function TeaDetails() {
                   <Leaf className="w-4 h-4" />
                   {tea.cultivar || "Unknown Cultivar"}
                 </div>
-                <div className="w-px h-4 bg-border" />
-                <div className="flex items-center gap-1.5 text-primary font-medium">
-                  <Star className="w-4 h-4 fill-primary/20" />
-                  {tea.averageScore ? `${tea.averageScore}/100` : "No Score"}
-                </div>
               </div>
 
               <p className="text-lg leading-relaxed text-muted-foreground max-w-2xl mt-4">
                 {tea.description}
               </p>
+
+              <div className="mt-4">
+                <ScoreWidget teaId={tea.id} />
+              </div>
             </div>
           </div>
         </div>

@@ -148,6 +148,33 @@ export const siteSettings = pgTable("site_settings", {
   logoUrl: text("logo_url"),
   displayFont: text("display_font"),
   faviconUrl: text("favicon_url"),
+  minCommunityVotes: integer("min_community_votes").notNull().default(15),
+});
+
+export const scoringSystems = pgTable("scoring_systems", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  maxScore: integer("max_score").notNull().default(10),
+  logoUrl: text("logo_url"),
+  logoPosition: text("logo_position").notNull().default("before"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").notNull().default(true),
+});
+
+export const teaScores = pgTable("tea_scores", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  teaId: integer("tea_id").notNull().references(() => teas.id),
+  scoringSystemId: integer("scoring_system_id").notNull().references(() => scoringSystems.id),
+  score: integer("score").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const userPreferences = pgTable("user_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id).unique(),
+  preferredScoringSystemId: integer("preferred_scoring_system_id").references(() => scoringSystems.id),
 });
 
 export const collectionPhrases = pgTable("collection_phrases", {
@@ -228,6 +255,9 @@ export const insertFooterLinkSchema = createInsertSchema(footerLinks).omit({ id:
 export const insertPageSchema = createInsertSchema(pages).omit({ id: true, updatedAt: true });
 export const insertCollectionPhraseSchema = createInsertSchema(collectionPhrases).omit({ id: true });
 export const insertSiteSettingsSchema = createInsertSchema(siteSettings).omit({ id: true });
+export const insertScoringSystemSchema = createInsertSchema(scoringSystems).omit({ id: true });
+export const insertTeaScoreSchema = createInsertSchema(teaScores).omit({ id: true, createdAt: true, updatedAt: true, userId: true });
+export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({ id: true, userId: true });
 
 // === TYPES ===
 
@@ -256,3 +286,9 @@ export type Page = typeof pages.$inferSelect;
 export type InsertPage = z.infer<typeof insertPageSchema>;
 export type SiteSettings = typeof siteSettings.$inferSelect;
 export type InsertSiteSettings = z.infer<typeof insertSiteSettingsSchema>;
+export type ScoringSystem = typeof scoringSystems.$inferSelect;
+export type InsertScoringSystem = z.infer<typeof insertScoringSystemSchema>;
+export type TeaScore = typeof teaScores.$inferSelect;
+export type InsertTeaScore = z.infer<typeof insertTeaScoreSchema>;
+export type UserPreference = typeof userPreferences.$inferSelect;
+export type InsertUserPreference = z.infer<typeof insertUserPreferencesSchema>;

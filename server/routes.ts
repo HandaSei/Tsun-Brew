@@ -43,6 +43,13 @@ export async function registerRoutes(
     console.error("Failed to seed collection phrases:", err);
   }
 
+  // Seed default scoring system
+  try {
+    await storage.seedDefaultScoringSystem();
+  } catch (err) {
+    console.error("Failed to seed default scoring system:", err);
+  }
+
   // === Teas ===
   app.get(api.teas.list.path, async (req, res) => {
     const user = req.isAuthenticated() ? req.user as User : undefined;
@@ -426,6 +433,78 @@ export async function registerRoutes(
     const input = api.admin.updateRole.input.parse(req.body);
     const updatedUser = await storage.updateUserRole(Number(req.params.id), input.role);
     res.json(updatedUser);
+  });
+
+  // === Scoring Systems ===
+  app.get(api.scoringSystems.list.path, async (req, res) => {
+    const systems = await storage.getScoringSystems();
+    res.json(systems);
+  });
+
+  app.post(api.scoringSystems.create.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const input = api.scoringSystems.create.input.parse(req.body);
+    const system = await storage.createScoringSystem(input);
+    res.status(201).json(system);
+  });
+
+  app.patch(api.scoringSystems.update.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const input = api.scoringSystems.update.input.parse(req.body);
+    const system = await storage.updateScoringSystem(Number(req.params.id), input);
+    res.json(system);
+  });
+
+  app.delete(api.scoringSystems.delete.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    await storage.deleteScoringSystem(Number(req.params.id));
+    res.sendStatus(200);
+  });
+
+  // === Tea Scores ===
+  app.post(api.teaScores.upsert.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    const input = api.teaScores.upsert.input.parse(req.body);
+    const score = await storage.upsertTeaScore(user.id, input);
+    res.json(score);
+  });
+
+  app.get(api.teaScores.forTea.path, async (req, res) => {
+    const teaId = Number(req.params.teaId);
+    const user = req.isAuthenticated() ? req.user as User : undefined;
+    const userScores = user ? await storage.getTeaScoresForUser(user.id, teaId) : [];
+    const communityScores = await storage.getTeaScoresForTea(teaId);
+    res.json({ userScores, communityScores });
+  });
+
+  app.get(api.teaScores.userScores.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    const scores = await storage.getUserScoresForTeas(user.id);
+    res.json(scores);
+  });
+
+  // === User Preferences ===
+  app.get(api.userPreferences.get.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    const pref = await storage.getUserPreference(user.id);
+    res.json(pref || null);
+  });
+
+  app.patch(api.userPreferences.update.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    const input = api.userPreferences.update.input.parse(req.body);
+    const pref = await storage.upsertUserPreference(user.id, input);
+    res.json(pref);
   });
 
   return httpServer;

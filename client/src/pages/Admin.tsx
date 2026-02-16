@@ -16,7 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { useTeaTypes } from "@/hooks/use-tea-types";
-import type { TeaType, SiteSettings, FooterLink, CollectionPhrase } from "@shared/schema";
+import type { TeaType, SiteSettings, FooterLink, CollectionPhrase, ScoringSystem } from "@shared/schema";
+import { Switch } from "@/components/ui/switch";
 import { apiRequest } from "@/lib/queryClient";
 
 const ICON_MAP: Record<string, any> = {
@@ -299,6 +300,242 @@ function TeaTypesTab() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={!formName.trim() || createMutation.isPending || updateMutation.isPending} data-testid="button-save-type">
               {createMutation.isPending || updateMutation.isPending ? "Saving..." : editingType ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function ScoringSystemsTab() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { data: systems, isLoading } = useQuery<ScoringSystem[]>({
+    queryKey: ["/api/scoring-systems"],
+  });
+  const { data: settings } = useQuery<SiteSettings>({
+    queryKey: ["/api/site-settings"],
+  });
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingSystem, setEditingSystem] = useState<ScoringSystem | null>(null);
+  const [formName, setFormName] = useState("");
+  const [formMaxScore, setFormMaxScore] = useState(10);
+  const [formLogoUrl, setFormLogoUrl] = useState("");
+  const [formLogoPosition, setFormLogoPosition] = useState("before");
+  const [formIsActive, setFormIsActive] = useState(true);
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [minVotes, setMinVotes] = useState(15);
+
+  useEffect(() => {
+    if (settings) {
+      setMinVotes(settings.minCommunityVotes ?? 15);
+    }
+  }, [settings]);
+
+  const openCreate = () => {
+    setEditingSystem(null);
+    setFormName("");
+    setFormMaxScore(10);
+    setFormLogoUrl("");
+    setFormLogoPosition("before");
+    setFormIsActive(true);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (s: ScoringSystem) => {
+    setEditingSystem(s);
+    setFormName(s.name);
+    setFormMaxScore(s.maxScore);
+    setFormLogoUrl(s.logoUrl || "");
+    setFormLogoPosition(s.logoPosition);
+    setFormIsActive(s.isActive);
+    setDialogOpen(true);
+  };
+
+  const createMutation = useMutation({
+    mutationFn: async (data: any) => apiRequest("POST", "/api/scoring-systems", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/scoring-systems"] });
+      setDialogOpen(false);
+      toast({ title: "Scoring System Created" });
+    },
+    onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => apiRequest("PATCH", `/api/scoring-systems/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/scoring-systems"] });
+      setDialogOpen(false);
+      toast({ title: "Scoring System Updated" });
+    },
+    onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => apiRequest("DELETE", `/api/scoring-systems/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/scoring-systems"] });
+      setDeleteConfirm(null);
+      toast({ title: "Scoring System Deleted" });
+    },
+    onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  const updateSettingsMutation = useMutation({
+    mutationFn: async (data: Partial<SiteSettings>) => apiRequest("PATCH", "/api/site-settings", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/site-settings"] });
+      toast({ title: "Settings Updated" });
+    },
+    onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  const handleSubmit = () => {
+    const data = { name: formName, maxScore: formMaxScore, logoUrl: formLogoUrl || null, logoPosition: formLogoPosition, isActive: formIsActive };
+    if (editingSystem) {
+      updateMutation.mutate({ id: editingSystem.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <p className="text-muted-foreground text-sm">Define scoring systems users can rate teas with. Each system has its own scale.</p>
+        <Button onClick={openCreate} data-testid="button-add-scoring-system">
+          <Plus className="w-4 h-4 mr-2" />
+          Add System
+        </Button>
+      </div>
+
+      <Card className="overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Max Score</TableHead>
+              <TableHead>Logo</TableHead>
+              <TableHead>Position</TableHead>
+              <TableHead>Active</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {(systems || []).map((s) => (
+              <TableRow key={s.id} data-testid={`row-scoring-system-${s.id}`}>
+                <TableCell className="font-medium">{s.name}</TableCell>
+                <TableCell>{s.maxScore}</TableCell>
+                <TableCell>
+                  {s.logoUrl ? (
+                    <img src={s.logoUrl} alt="" className="w-5 h-5 object-contain" />
+                  ) : (
+                    <span className="text-muted-foreground text-xs">None</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm capitalize">{s.logoPosition}</TableCell>
+                <TableCell>
+                  <Badge variant={s.isActive ? "default" : "secondary"}>
+                    {s.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(s)} data-testid={`button-edit-scoring-${s.id}`}>
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    {deleteConfirm === s.id ? (
+                      <div className="flex items-center gap-1">
+                        <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate(s.id)} data-testid={`button-confirm-delete-scoring-${s.id}`}>
+                          Confirm
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
+                      </div>
+                    ) : (
+                      <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(s.id)} data-testid={`button-delete-scoring-${s.id}`}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+
+      <Card className="p-6 space-y-4">
+        <h3 className="text-lg font-semibold">Community Score Threshold</h3>
+        <p className="text-sm text-muted-foreground">Community average score for a tea is only shown after this many votes are reached.</p>
+        <div className="flex items-center gap-3 flex-wrap">
+          <Input
+            type="number"
+            value={minVotes}
+            onChange={(e) => setMinVotes(Number(e.target.value))}
+            className="w-32"
+            min={1}
+            data-testid="input-min-community-votes"
+          />
+          <span className="text-sm text-muted-foreground">votes required</span>
+          <Button
+            onClick={() => updateSettingsMutation.mutate({ minCommunityVotes: minVotes })}
+            disabled={updateSettingsMutation.isPending}
+            data-testid="button-save-min-votes"
+          >
+            {updateSettingsMutation.isPending ? "Saving..." : "Save"}
+          </Button>
+        </div>
+      </Card>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingSystem ? "Edit Scoring System" : "Add Scoring System"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="e.g. 5 Stars" data-testid="input-scoring-name" />
+            </div>
+            <div className="space-y-2">
+              <Label>Maximum Score</Label>
+              <Input type="number" value={formMaxScore} onChange={(e) => setFormMaxScore(Number(e.target.value))} min={1} max={100} data-testid="input-scoring-max" />
+              <p className="text-xs text-muted-foreground">Users will rate from 1 to this number.</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Logo URL (optional)</Label>
+              <Input value={formLogoUrl} onChange={(e) => setFormLogoUrl(e.target.value)} placeholder="https://..." data-testid="input-scoring-logo" />
+              <p className="text-xs text-muted-foreground">Small icon displayed next to the score value.</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Logo Position</Label>
+              <Select value={formLogoPosition} onValueChange={setFormLogoPosition}>
+                <SelectTrigger data-testid="select-scoring-logo-position">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="before">Before score</SelectItem>
+                  <SelectItem value="after">After score</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between rounded-md border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <Label>Active</Label>
+                <p className="text-xs text-muted-foreground">Only active systems can be used for scoring.</p>
+              </div>
+              <Switch checked={formIsActive} onCheckedChange={setFormIsActive} data-testid="switch-scoring-active" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={!formName.trim() || createMutation.isPending || updateMutation.isPending} data-testid="button-save-scoring">
+              {createMutation.isPending || updateMutation.isPending ? "Saving..." : editingSystem ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -843,9 +1080,10 @@ export default function AdminPage() {
         </div>
 
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList data-testid="tabs-admin">
+          <TabsList data-testid="tabs-admin" className="flex-wrap">
             <TabsTrigger value="users" data-testid="tab-users">Users</TabsTrigger>
             <TabsTrigger value="tea-types" data-testid="tab-tea-types">Tea Types</TabsTrigger>
+            <TabsTrigger value="scoring" data-testid="tab-scoring">Scoring</TabsTrigger>
             <TabsTrigger value="branding" data-testid="tab-branding">Branding</TabsTrigger>
             <TabsTrigger value="phrases" data-testid="tab-phrases">Collection Phrases</TabsTrigger>
             <TabsTrigger value="bottom-bar" data-testid="tab-bottom-bar">Bottom Bar</TabsTrigger>
@@ -857,6 +1095,10 @@ export default function AdminPage() {
 
           <TabsContent value="tea-types">
             <TeaTypesTab />
+          </TabsContent>
+
+          <TabsContent value="scoring">
+            <ScoringSystemsTab />
           </TabsContent>
 
           <TabsContent value="branding">

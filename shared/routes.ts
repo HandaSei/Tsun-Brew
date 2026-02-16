@@ -11,7 +11,11 @@ import {
   insertPageSchema,
   insertSiteSettingsSchema,
   insertCollectionPhraseSchema,
-  users, teas, teaLogs, brewingGuides, reviews, heroPhrases, teaTypes, footerLinks, pages, siteSettings, collectionPhrases
+  insertScoringSystemSchema,
+  insertTeaScoreSchema,
+  insertUserPreferencesSchema,
+  users, teas, teaLogs, brewingGuides, reviews, heroPhrases, teaTypes, footerLinks, pages, siteSettings, collectionPhrases,
+  scoringSystems, teaScores, userPreferences
 } from './schema';
 
 export type { 
@@ -20,7 +24,10 @@ export type {
   HeroPhrase, InsertHeroPhrase, TeaType, InsertTeaType, 
   FooterLink, InsertFooterLink, Page, InsertPage,
   SiteSettings, InsertSiteSettings,
-  CollectionPhrase, InsertCollectionPhrase
+  CollectionPhrase, InsertCollectionPhrase,
+  ScoringSystem, InsertScoringSystem,
+  TeaScore, InsertTeaScore,
+  UserPreference, InsertUserPreference
 } from './schema';
 
 export const errorSchemas = {
@@ -390,6 +397,93 @@ export const api = {
       responses: {
         200: z.custom<typeof collectionPhrases.$inferSelect>(),
         403: errorSchemas.forbidden,
+      },
+    },
+  },
+  scoringSystems: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/scoring-systems',
+      responses: {
+        200: z.array(z.custom<typeof scoringSystems.$inferSelect>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/scoring-systems',
+      input: insertScoringSystemSchema,
+      responses: {
+        201: z.custom<typeof scoringSystems.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/scoring-systems/:id',
+      input: insertScoringSystemSchema.partial(),
+      responses: {
+        200: z.custom<typeof scoringSystems.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/scoring-systems/:id',
+      responses: {
+        200: z.void(),
+        403: errorSchemas.forbidden,
+      },
+    },
+  },
+  teaScores: {
+    upsert: {
+      method: 'POST' as const,
+      path: '/api/tea-scores',
+      input: insertTeaScoreSchema,
+      responses: {
+        200: z.custom<typeof teaScores.$inferSelect>(),
+        401: errorSchemas.unauthorized,
+      },
+    },
+    forTea: {
+      method: 'GET' as const,
+      path: '/api/teas/:teaId/scores',
+      responses: {
+        200: z.object({
+          userScores: z.array(z.custom<typeof teaScores.$inferSelect>()),
+          communityScores: z.array(z.object({
+            scoringSystemId: z.number(),
+            avgScore: z.number(),
+            voteCount: z.number(),
+          })),
+        }),
+      },
+    },
+    userScores: {
+      method: 'GET' as const,
+      path: '/api/user-scores',
+      responses: {
+        200: z.array(z.custom<typeof teaScores.$inferSelect>()),
+        401: errorSchemas.unauthorized,
+      },
+    },
+  },
+  userPreferences: {
+    get: {
+      method: 'GET' as const,
+      path: '/api/user-preferences',
+      responses: {
+        200: z.custom<typeof userPreferences.$inferSelect>().nullable(),
+        401: errorSchemas.unauthorized,
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/user-preferences',
+      input: insertUserPreferencesSchema,
+      responses: {
+        200: z.custom<typeof userPreferences.$inferSelect>(),
+        401: errorSchemas.unauthorized,
       },
     },
   },

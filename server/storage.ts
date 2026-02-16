@@ -1,5 +1,6 @@
 import { 
   users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases, teaTypes, siteSettings, verificationCodes, footerLinks, pages, collectionPhrases,
+  scoringSystems, teaScores, userPreferences,
   type User, type InsertUser, type Tea, type InsertTea, type TeaLog, type InsertTeaLog,
   type Guide, type InsertGuide, type Review, type InsertReview,
   type HeroPhrase, type InsertHeroPhrase,
@@ -8,10 +9,13 @@ import {
   type Page, type InsertPage,
   type SiteSettings, type InsertSiteSettings,
   type VerificationCode, type InsertVerificationCode,
-  type CollectionPhrase, type InsertCollectionPhrase
+  type CollectionPhrase, type InsertCollectionPhrase,
+  type ScoringSystem, type InsertScoringSystem,
+  type TeaScore, type InsertTeaScore,
+  type UserPreference, type InsertUserPreference
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gt, or } from "drizzle-orm";
+import { eq, desc, and, gt, or, avg, count, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User & Auth
@@ -84,6 +88,24 @@ export interface IStorage {
   getCollectionPhrases(): Promise<CollectionPhrase[]>;
   upsertCollectionPhrase(ownerStatus: string, visitorStatus: string, data: Partial<InsertCollectionPhrase>): Promise<CollectionPhrase>;
   seedCollectionPhrases(): Promise<void>;
+
+  // Scoring Systems
+  getScoringSystems(): Promise<ScoringSystem[]>;
+  getScoringSystem(id: number): Promise<ScoringSystem | undefined>;
+  createScoringSystem(system: InsertScoringSystem): Promise<ScoringSystem>;
+  updateScoringSystem(id: number, system: Partial<InsertScoringSystem>): Promise<ScoringSystem>;
+  deleteScoringSystem(id: number): Promise<void>;
+  seedDefaultScoringSystem(): Promise<void>;
+
+  // Tea Scores
+  upsertTeaScore(userId: number, data: InsertTeaScore): Promise<TeaScore>;
+  getTeaScoresForUser(userId: number, teaId: number): Promise<TeaScore[]>;
+  getTeaScoresForTea(teaId: number): Promise<{ scoringSystemId: number; avgScore: number; voteCount: number }[]>;
+  getUserScoresForTeas(userId: number): Promise<TeaScore[]>;
+
+  // User Preferences
+  getUserPreference(userId: number): Promise<UserPreference | undefined>;
+  upsertUserPreference(userId: number, data: InsertUserPreference): Promise<UserPreference>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -456,6 +478,99 @@ export class DatabaseStorage implements IStorage {
     for (const phrase of defaults) {
       await db.insert(collectionPhrases).values(phrase as any);
     }
+  }
+
+  async getScoringSystems(): Promise<ScoringSystem[]> {
+    return await db.select().from(scoringSystems).orderBy(scoringSystems.sortOrder);
+  }
+
+  async getScoringSystem(id: number): Promise<ScoringSystem | undefined> {
+    const [system] = await db.select().from(scoringSystems).where(eq(scoringSystems.id, id));
+    return system;
+  }
+
+  async createScoringSystem(system: InsertScoringSystem): Promise<ScoringSystem> {
+    const [created] = await db.insert(scoringSystems).values(system as any).returning();
+    return created;
+  }
+
+  async updateScoringSystem(id: number, system: Partial<InsertScoringSystem>): Promise<ScoringSystem> {
+    const [updated] = await db.update(scoringSystems).set(system as any).where(eq(scoringSystems.id, id)).returning();
+    return updated;
+  }
+
+  async deleteScoringSystem(id: number): Promise<void> {
+    await db.delete(teaScores).where(eq(teaScores.scoringSystemId, id));
+    await db.delete(scoringSystems).where(eq(scoringSystems.id, id));
+  }
+
+  async seedDefaultScoringSystem(): Promise<void> {
+    const existing = await db.select().from(scoringSystems);
+    if (existing.length > 0) return;
+    await db.insert(scoringSystems).values({
+      name: "Classic (1-10)",
+      maxScore: 10,
+      logoPosition: "after",
+      sortOrder: 0,
+      isActive: true,
+    } as any);
+  }
+
+  async upsertTeaScore(userId: number, data: InsertTeaScore): Promise<TeaScore> {
+    const [existing] = await db.select().from(teaScores).where(
+      and(
+        eq(teaScores.userId, userId),
+        eq(teaScores.teaId, data.teaId),
+        eq(teaScores.scoringSystemId, data.scoringSystemId)
+      )
+    );
+    if (existing) {
+      const [updated] = await db.update(teaScores)
+        .set({ score: data.score, updatedAt: new Date() })
+        .where(eq(teaScores.id, existing.id))
+        .returning();
+      return updated;
+    }
+    const [created] = await db.insert(teaScores).values({ ...data, userId } as any).returning();
+    return created;
+  }
+
+  async getTeaScoresForUser(userId: number, teaId: number): Promise<TeaScore[]> {
+    return await db.select().from(teaScores).where(
+      and(eq(teaScores.userId, userId), eq(teaScores.teaId, teaId))
+    );
+  }
+
+  async getTeaScoresForTea(teaId: number): Promise<{ scoringSystemId: number; avgScore: number; voteCount: number }[]> {
+    const results = await db
+      .select({
+        scoringSystemId: teaScores.scoringSystemId,
+        avgScore: sql<number>`round(avg(${teaScores.score})::numeric, 1)::float`,
+        voteCount: sql<number>`count(*)::int`,
+      })
+      .from(teaScores)
+      .where(eq(teaScores.teaId, teaId))
+      .groupBy(teaScores.scoringSystemId);
+    return results;
+  }
+
+  async getUserScoresForTeas(userId: number): Promise<TeaScore[]> {
+    return await db.select().from(teaScores).where(eq(teaScores.userId, userId));
+  }
+
+  async getUserPreference(userId: number): Promise<UserPreference | undefined> {
+    const [pref] = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId));
+    return pref;
+  }
+
+  async upsertUserPreference(userId: number, data: InsertUserPreference): Promise<UserPreference> {
+    const [existing] = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId));
+    if (existing) {
+      const [updated] = await db.update(userPreferences).set(data as any).where(eq(userPreferences.id, existing.id)).returning();
+      return updated;
+    }
+    const [created] = await db.insert(userPreferences).values({ ...data, userId } as any).returning();
+    return created;
   }
 }
 

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import type { CollectionPhrase } from "@shared/schema";
+import { ScoreWidget } from "@/components/ScoreWidget";
 
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Timer, Coffee, CheckCircle, XCircle, MoreVertical, Trash2, UserPlus, Share2, Check, Eye, Flame, Users, Skull, Handshake, Ban, Heart, Star, Sparkles, AlertTriangle, ThumbsDown, ThumbsUp, Zap, Crown, Shield, Swords } from "lucide-react";
@@ -172,6 +173,9 @@ export default function MyList() {
               })()}
             </div>
             <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1 w-fit" style={getTeaTypeColor(teaTypes, log.tea.type, log.tea as any).style} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
+            <div className="mt-1">
+              <ScoreWidget teaId={log.tea.id} compact />
+            </div>
           </div>
         </Link>
         

@@ -10,6 +10,7 @@ import TeaDetails from "@/pages/TeaDetails";
 import MyList from "@/pages/MyList";
 import AdminPage from "@/pages/Admin";
 import DynamicPage from "@/pages/DynamicPage";
+import UserSettings from "@/pages/UserSettings";
 import { useEffect } from "react";
 import type { SiteSettings } from "@shared/schema";
 
@@ -24,6 +25,7 @@ function Router() {
         <Redirect to="/" />
       </Route>
       <Route path="/admin" component={AdminPage} />
+      <Route path="/settings" component={UserSettings} />
       <Route path="/page/:slug" component={DynamicPage} />
       <Route component={NotFound} />
     </Switch>
