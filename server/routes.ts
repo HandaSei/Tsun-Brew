@@ -441,6 +441,20 @@ export async function registerRoutes(
     res.json(systems);
   });
 
+  app.get("/api/scoring-systems/:id/definitions", async (req, res) => {
+    const definitions = await storage.getScoreDefinitions(Number(req.params.id));
+    res.json(definitions);
+  });
+
+  app.put("/api/scoring-systems/:id/definitions", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const definitions = z.array(insertScoreDefinitionSchema).parse(req.body);
+    await storage.updateScoreDefinitions(Number(req.params.id), definitions);
+    res.sendStatus(200);
+  });
+
   app.post(api.scoringSystems.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const user = req.user as User;

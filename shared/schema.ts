@@ -155,10 +155,16 @@ export const scoringSystems = pgTable("scoring_systems", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   maxScore: integer("max_score").notNull().default(10),
-  logoUrl: text("logo_url"),
-  logoPosition: text("logo_position").notNull().default("before"),
   sortOrder: integer("sort_order").default(0),
   isActive: boolean("is_active").notNull().default(true),
+});
+
+export const scoreDefinitions = pgTable("score_definitions", {
+  id: serial("id").primaryKey(),
+  scoringSystemId: integer("scoring_system_id").notNull().references(() => scoringSystems.id),
+  scoreValue: integer("score_value").notNull(),
+  label: text("label"),
+  logoUrl: text("logo_url"),
 });
 
 export const teaScores = pgTable("tea_scores", {
@@ -256,6 +262,7 @@ export const insertPageSchema = createInsertSchema(pages).omit({ id: true, updat
 export const insertCollectionPhraseSchema = createInsertSchema(collectionPhrases).omit({ id: true });
 export const insertSiteSettingsSchema = createInsertSchema(siteSettings).omit({ id: true });
 export const insertScoringSystemSchema = createInsertSchema(scoringSystems).omit({ id: true });
+export const insertScoreDefinitionSchema = createInsertSchema(scoreDefinitions).omit({ id: true });
 export const insertTeaScoreSchema = createInsertSchema(teaScores).omit({ id: true, createdAt: true, updatedAt: true, userId: true });
 export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({ id: true, userId: true });
 
@@ -288,6 +295,8 @@ export type SiteSettings = typeof siteSettings.$inferSelect;
 export type InsertSiteSettings = z.infer<typeof insertSiteSettingsSchema>;
 export type ScoringSystem = typeof scoringSystems.$inferSelect;
 export type InsertScoringSystem = z.infer<typeof insertScoringSystemSchema>;
+export type ScoreDefinition = typeof scoreDefinitions.$inferSelect;
+export type InsertScoreDefinition = z.infer<typeof insertScoreDefinitionSchema>;
 export type TeaScore = typeof teaScores.$inferSelect;
 export type InsertTeaScore = z.infer<typeof insertTeaScoreSchema>;
 export type UserPreference = typeof userPreferences.$inferSelect;

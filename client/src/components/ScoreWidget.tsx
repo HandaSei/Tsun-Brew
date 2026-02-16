@@ -14,22 +14,23 @@ interface ScoreWidgetProps {
   compact?: boolean;
 }
 
-function ScoreLogo({ system, size = "sm" }: { system: ScoringSystem; size?: "sm" | "md" }) {
-  if (!system.logoUrl) return null;
-  const sizeClass = size === "sm" ? "w-3.5 h-3.5" : "w-4 h-4";
-  return <img src={system.logoUrl} alt="" className={`${sizeClass} object-contain inline-block`} />;
+function ScoreLogo({ definition, size = "sm" }: { definition: any; size?: "sm" | "md" }) {
+  if (!definition.logoUrl) return null;
+  const sizeClass = size === "sm" ? "w-4 h-4" : "w-6 h-6";
+  return <img src={definition.logoUrl} alt="" className={`${sizeClass} object-contain inline-block`} />;
 }
 
-function formatScore(score: number, system: ScoringSystem) {
-  const logo = system.logoUrl ? <ScoreLogo system={system} /> : null;
-  const text = <span>{score}/{system.maxScore}</span>;
-  if (system.logoPosition === "before" && logo) {
-    return <span className="inline-flex items-center gap-1">{logo}{text}</span>;
-  }
-  if (system.logoPosition === "after" && logo) {
-    return <span className="inline-flex items-center gap-1">{text}{logo}</span>;
-  }
-  return text;
+function formatScore(score: number, system: ScoringSystem & { definitions: ScoreDefinition[] }) {
+  const def = system.definitions?.find(d => d.scoreValue === score);
+  const logo = def?.logoUrl ? <ScoreLogo definition={def} /> : null;
+  const text = def?.label ? <span>{def.label} ({score})</span> : <span>{score}/{system.maxScore}</span>;
+  
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      {logo}
+      {text}
+    </span>
+  );
 }
 
 function normalizeScore(score: number, fromMax: number, toMax: number): number {

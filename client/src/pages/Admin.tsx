@@ -311,7 +311,7 @@ function TeaTypesTab() {
 function ScoringSystemsTab() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: systems, isLoading } = useQuery<ScoringSystem[]>({
+  const { data: systems, isLoading } = useQuery<(ScoringSystem & { definitions: ScoreDefinition[] })[]>({
     queryKey: ["/api/scoring-systems"],
   });
   const { data: settings } = useQuery<SiteSettings>({
@@ -319,12 +319,11 @@ function ScoringSystemsTab() {
   });
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingSystem, setEditingSystem] = useState<ScoringSystem | null>(null);
+  const [editingSystem, setEditingSystem] = useState<(ScoringSystem & { definitions: ScoreDefinition[] }) | null>(null);
   const [formName, setFormName] = useState("");
   const [formMaxScore, setFormMaxScore] = useState(10);
-  const [formLogoUrl, setFormLogoUrl] = useState("");
-  const [formLogoPosition, setFormLogoPosition] = useState("before");
   const [formIsActive, setFormIsActive] = useState(true);
+  const [scoreDefs, setScoreDefs] = useState<{ value: number; label: string; logoUrl: string }[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [minVotes, setMinVotes] = useState(15);
 
@@ -334,23 +333,48 @@ function ScoringSystemsTab() {
     }
   }, [settings]);
 
+  useEffect(() => {
+    if (editingSystem) {
+      setFormName(editingSystem.name);
+      setFormMaxScore(editingSystem.maxScore);
+      setFormIsActive(editingSystem.isActive);
+      setScoreDefs(editingSystem.definitions?.map(d => ({
+        value: d.scoreValue,
+        label: d.label || "",
+        logoUrl: d.logoUrl || ""
+      })) || []);
+    } else {
+      setFormName("");
+      setFormMaxScore(10);
+      setFormIsActive(true);
+      setScoreDefs([]);
+    }
+  }, [editingSystem]);
+
+  useEffect(() => {
+    if (formMaxScore > 0 && !editingSystem) {
+      setScoreDefs(prev => {
+        const next = [];
+        for (let i = 1; i <= formMaxScore; i++) {
+          const existing = prev.find(p => p.value === i);
+          next.push(existing || { value: i, label: `${i}`, logoUrl: "" });
+        }
+        return next;
+      });
+    }
+  }, [formMaxScore, editingSystem]);
+
   const openCreate = () => {
     setEditingSystem(null);
     setFormName("");
     setFormMaxScore(10);
-    setFormLogoUrl("");
-    setFormLogoPosition("before");
     setFormIsActive(true);
+    setScoreDefs([]);
     setDialogOpen(true);
   };
 
-  const openEdit = (s: ScoringSystem) => {
+  const openEdit = (s: ScoringSystem & { definitions: ScoreDefinition[] }) => {
     setEditingSystem(s);
-    setFormName(s.name);
-    setFormMaxScore(s.maxScore);
-    setFormLogoUrl(s.logoUrl || "");
-    setFormLogoPosition(s.logoPosition);
-    setFormIsActive(s.isActive);
     setDialogOpen(true);
   };
 
@@ -394,7 +418,16 @@ function ScoringSystemsTab() {
   });
 
   const handleSubmit = () => {
-    const data = { name: formName, maxScore: formMaxScore, logoUrl: formLogoUrl || null, logoPosition: formLogoPosition, isActive: formIsActive };
+    const data = {
+      name: formName,
+      maxScore: formMaxScore,
+      isActive: formIsActive,
+      definitions: scoreDefs.map(d => ({
+        scoreValue: d.value,
+        label: d.label,
+        logoUrl: d.logoUrl || null
+      }))
+    };
     if (editingSystem) {
       updateMutation.mutate({ id: editingSystem.id, data });
     } else {
@@ -420,8 +453,7 @@ function ScoringSystemsTab() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Max Score</TableHead>
-              <TableHead>Logo</TableHead>
-              <TableHead>Position</TableHead>
+              <TableHead>Options</TableHead>
               <TableHead>Active</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -432,13 +464,16 @@ function ScoringSystemsTab() {
                 <TableCell className="font-medium">{s.name}</TableCell>
                 <TableCell>{s.maxScore}</TableCell>
                 <TableCell>
-                  {s.logoUrl ? (
-                    <img src={s.logoUrl} alt="" className="w-5 h-5 object-contain" />
-                  ) : (
-                    <span className="text-muted-foreground text-xs">None</span>
-                  )}
+                  <div className="flex gap-1 flex-wrap max-w-xs">
+                    {s.definitions?.slice(0, 5).map(d => (
+                      <Badge key={d.id} variant="outline" className="text-[10px] px-1.5 py-0">
+                        {d.logoUrl && <img src={d.logoUrl} alt="" className="w-2.5 h-2.5 mr-1" />}
+                        {d.label}
+                      </Badge>
+                    ))}
+                    {(s.definitions?.length || 0) > 5 && <span className="text-[10px] text-muted-foreground">+{(s.definitions?.length || 0) - 5} more</span>}
+                  </div>
                 </TableCell>
-                <TableCell className="text-muted-foreground text-sm capitalize">{s.logoPosition}</TableCell>
                 <TableCell>
                   <Badge variant={s.isActive ? "default" : "secondary"}>
                     {s.isActive ? "Active" : "Inactive"}
@@ -493,40 +528,65 @@ function ScoringSystemsTab() {
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingSystem ? "Edit Scoring System" : "Add Scoring System"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Name</Label>
-              <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="e.g. 5 Stars" data-testid="input-scoring-name" />
+          <div className="space-y-6 py-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Name</Label>
+                <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="e.g. 5 Stars" data-testid="input-scoring-name" />
+              </div>
+              <div className="space-y-2">
+                <Label>Maximum Score</Label>
+                <Input type="number" value={formMaxScore} onChange={(e) => setFormMaxScore(Number(e.target.value))} min={1} max={50} data-testid="input-scoring-max" />
+                <p className="text-xs text-muted-foreground">Limit 50 for custom options.</p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Maximum Score</Label>
-              <Input type="number" value={formMaxScore} onChange={(e) => setFormMaxScore(Number(e.target.value))} min={1} max={100} data-testid="input-scoring-max" />
-              <p className="text-xs text-muted-foreground">Users will rate from 1 to this number.</p>
+
+            <div className="space-y-4">
+              <Label className="text-base font-semibold">Scoring Options</Label>
+              <div className="space-y-3">
+                {scoreDefs.map((def, idx) => (
+                  <div key={def.value} className="grid grid-cols-[3rem_1fr_1fr] items-center gap-3 p-3 rounded-lg border bg-card/50">
+                    <div className="text-center font-bold text-lg text-primary">{def.value}</div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] uppercase text-muted-foreground">Label</Label>
+                      <Input
+                        value={def.label}
+                        onChange={(e) => {
+                          const next = [...scoreDefs];
+                          next[idx].label = e.target.value;
+                          setScoreDefs(next);
+                        }}
+                        placeholder={`Score ${def.value}`}
+                        className="h-8 text-sm"
+                        data-testid={`input-label-${def.value}`}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] uppercase text-muted-foreground">Logo URL</Label>
+                      <Input
+                        value={def.logoUrl}
+                        onChange={(e) => {
+                          const next = [...scoreDefs];
+                          next[idx].logoUrl = e.target.value;
+                          setScoreDefs(next);
+                        }}
+                        placeholder="https://..."
+                        className="h-8 text-sm"
+                        data-testid={`input-logo-${def.value}`}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Logo URL (optional)</Label>
-              <Input value={formLogoUrl} onChange={(e) => setFormLogoUrl(e.target.value)} placeholder="https://..." data-testid="input-scoring-logo" />
-              <p className="text-xs text-muted-foreground">Small icon displayed next to the score value.</p>
-            </div>
-            <div className="space-y-2">
-              <Label>Logo Position</Label>
-              <Select value={formLogoPosition} onValueChange={setFormLogoPosition}>
-                <SelectTrigger data-testid="select-scoring-logo-position">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="before">Before score</SelectItem>
-                  <SelectItem value="after">After score</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center justify-between rounded-md border p-3 shadow-sm">
+
+            <div className="flex items-center justify-between rounded-md border p-3 shadow-sm bg-accent/10">
               <div className="space-y-0.5">
-                <Label>Active</Label>
+                <Label className="text-base">Active</Label>
                 <p className="text-xs text-muted-foreground">Only active systems can be used for scoring.</p>
               </div>
               <Switch checked={formIsActive} onCheckedChange={setFormIsActive} data-testid="switch-scoring-active" />

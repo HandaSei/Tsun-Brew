@@ -480,8 +480,15 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getScoringSystems(): Promise<ScoringSystem[]> {
-    return await db.select().from(scoringSystems).orderBy(scoringSystems.sortOrder);
+  // Scoring Systems
+  async getScoringSystems(): Promise<(ScoringSystem & { definitions: ScoreDefinition[] })[]> {
+    const systems = await db.select().from(scoringSystems).orderBy(scoringSystems.sortOrder);
+    const results = [];
+    for (const system of systems) {
+      const definitions = await db.select().from(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, system.id)).orderBy(scoreDefinitions.scoreValue);
+      results.push({ ...system, definitions });
+    }
+    return results;
   }
 
   async getScoringSystem(id: number): Promise<ScoringSystem | undefined> {
@@ -489,31 +496,68 @@ export class DatabaseStorage implements IStorage {
     return system;
   }
 
-  async createScoringSystem(system: InsertScoringSystem): Promise<ScoringSystem> {
-    const [created] = await db.insert(scoringSystems).values(system as any).returning();
+  async createScoringSystem(system: InsertScoringSystem & { definitions?: InsertScoreDefinition[] }): Promise<ScoringSystem> {
+    const { definitions, ...systemData } = system;
+    const [created] = await db.insert(scoringSystems).values(systemData as any).returning();
+    if (definitions && definitions.length > 0) {
+      await db.insert(scoreDefinitions).values(
+        definitions.map(d => ({ ...d, scoringSystemId: created.id }))
+      );
+    }
     return created;
   }
 
-  async updateScoringSystem(id: number, system: Partial<InsertScoringSystem>): Promise<ScoringSystem> {
-    const [updated] = await db.update(scoringSystems).set(system as any).where(eq(scoringSystems.id, id)).returning();
+  async updateScoringSystem(id: number, system: Partial<InsertScoringSystem> & { definitions?: InsertScoreDefinition[] }): Promise<ScoringSystem> {
+    const { definitions, ...systemData } = system;
+    const [updated] = await db.update(scoringSystems).set(systemData as any).where(eq(scoringSystems.id, id)).returning();
+    
+    if (definitions) {
+      await db.delete(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, id));
+      if (definitions.length > 0) {
+        await db.insert(scoreDefinitions).values(
+          definitions.map(d => ({ ...d, scoringSystemId: id }))
+        );
+      }
+    }
     return updated;
   }
 
   async deleteScoringSystem(id: number): Promise<void> {
+    await db.delete(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, id));
     await db.delete(teaScores).where(eq(teaScores.scoringSystemId, id));
     await db.delete(scoringSystems).where(eq(scoringSystems.id, id));
+  }
+
+  async getScoreDefinitions(systemId: number): Promise<ScoreDefinition[]> {
+    return await db.select().from(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, systemId)).orderBy(scoreDefinitions.scoreValue);
+  }
+
+  async updateScoreDefinitions(systemId: number, definitions: InsertScoreDefinition[]): Promise<void> {
+    await db.delete(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, systemId));
+    if (definitions.length > 0) {
+      await db.insert(scoreDefinitions).values(
+        definitions.map(d => ({ ...d, scoringSystemId: systemId }))
+      );
+    }
   }
 
   async seedDefaultScoringSystem(): Promise<void> {
     const existing = await db.select().from(scoringSystems);
     if (existing.length > 0) return;
-    await db.insert(scoringSystems).values({
+    const [system] = await db.insert(scoringSystems).values({
       name: "Classic (1-10)",
       maxScore: 10,
-      logoPosition: "after",
       sortOrder: 0,
       isActive: true,
-    } as any);
+    } as any).returning();
+
+    const defs = Array.from({ length: 10 }, (_, i) => ({
+      scoringSystemId: system.id,
+      scoreValue: i + 1,
+      label: `${i + 1}`,
+      logoUrl: null
+    }));
+    await db.insert(scoreDefinitions).values(defs);
   }
 
   async upsertTeaScore(userId: number, data: InsertTeaScore): Promise<TeaScore> {
