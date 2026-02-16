@@ -485,82 +485,121 @@ export class DatabaseStorage implements IStorage {
 
   // Scoring Systems
   async getScoringSystems(): Promise<(ScoringSystem & { definitions: ScoreDefinition[] })[]> {
-    const systems = await db.select().from(scoringSystems).orderBy(scoringSystems.sortOrder);
-    const results = [];
-    for (const system of systems) {
-      const definitions = await db.select().from(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, system.id)).orderBy(scoreDefinitions.scoreValue);
-      results.push({ ...system, definitions });
+    try {
+      const systems = await db.select().from(scoringSystems).orderBy(scoringSystems.sortOrder);
+      const results = [];
+      for (const system of systems) {
+        const definitions = await db.select().from(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, system.id)).orderBy(scoreDefinitions.scoreValue);
+        results.push({ ...system, definitions });
+      }
+      return results;
+    } catch (err) {
+      console.error("Error in getScoringSystems:", err);
+      return [];
     }
-    return results;
   }
 
   async getScoringSystem(id: number): Promise<ScoringSystem | undefined> {
-    const [system] = await db.select().from(scoringSystems).where(eq(scoringSystems.id, id));
-    return system;
+    try {
+      const [system] = await db.select().from(scoringSystems).where(eq(scoringSystems.id, id));
+      return system;
+    } catch (err) {
+      console.error("Error in getScoringSystem:", err);
+      return undefined;
+    }
   }
 
   async createScoringSystem(system: InsertScoringSystem & { definitions?: InsertScoreDefinition[] }): Promise<ScoringSystem> {
-    const { definitions, ...systemData } = system;
-    const [created] = await db.insert(scoringSystems).values(systemData as any).returning();
-    if (definitions && definitions.length > 0) {
-      await db.insert(scoreDefinitions).values(
-        definitions.map(d => ({ ...d, scoringSystemId: created.id }))
-      );
+    try {
+      const { definitions, ...systemData } = system;
+      const [created] = await db.insert(scoringSystems).values(systemData as any).returning();
+      if (definitions && definitions.length > 0) {
+        await db.insert(scoreDefinitions).values(
+          definitions.map(d => ({ ...d, scoringSystemId: created.id }))
+        );
+      }
+      return created;
+    } catch (err) {
+      console.error("Error in createScoringSystem:", err);
+      throw err;
     }
-    return created;
   }
 
   async updateScoringSystem(id: number, system: Partial<InsertScoringSystem> & { definitions?: InsertScoreDefinition[] }): Promise<ScoringSystem> {
-    const { definitions, ...systemData } = system;
-    const [updated] = await db.update(scoringSystems).set(systemData as any).where(eq(scoringSystems.id, id)).returning();
-    
-    if (definitions) {
-      await db.delete(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, id));
-      if (definitions.length > 0) {
-        await db.insert(scoreDefinitions).values(
-          definitions.map(d => ({ ...d, scoringSystemId: id }))
-        );
+    try {
+      const { definitions, ...systemData } = system;
+      const [updated] = await db.update(scoringSystems).set(systemData as any).where(eq(scoringSystems.id, id)).returning();
+      
+      if (definitions) {
+        await db.delete(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, id));
+        if (definitions.length > 0) {
+          await db.insert(scoreDefinitions).values(
+            definitions.map(d => ({ ...d, scoringSystemId: id }))
+          );
+        }
       }
+      return updated;
+    } catch (err) {
+      console.error("Error in updateScoringSystem:", err);
+      throw err;
     }
-    return updated;
   }
 
   async deleteScoringSystem(id: number): Promise<void> {
-    await db.delete(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, id));
-    await db.delete(teaScores).where(eq(teaScores.scoringSystemId, id));
-    await db.delete(scoringSystems).where(eq(scoringSystems.id, id));
+    try {
+      await db.delete(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, id));
+      await db.delete(teaScores).where(eq(teaScores.scoringSystemId, id));
+      await db.delete(scoringSystems).where(eq(scoringSystems.id, id));
+    } catch (err) {
+      console.error("Error in deleteScoringSystem:", err);
+      throw err;
+    }
   }
 
   async getScoreDefinitions(systemId: number): Promise<ScoreDefinition[]> {
-    return await db.select().from(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, systemId)).orderBy(scoreDefinitions.scoreValue);
+    try {
+      return await db.select().from(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, systemId)).orderBy(scoreDefinitions.scoreValue);
+    } catch (err) {
+      console.error("Error in getScoreDefinitions:", err);
+      return [];
+    }
   }
 
   async updateScoreDefinitions(systemId: number, definitions: InsertScoreDefinition[]): Promise<void> {
-    await db.delete(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, systemId));
-    if (definitions.length > 0) {
-      await db.insert(scoreDefinitions).values(
-        definitions.map(d => ({ ...d, scoringSystemId: systemId }))
-      );
+    try {
+      await db.delete(scoreDefinitions).where(eq(scoreDefinitions.scoringSystemId, systemId));
+      if (definitions.length > 0) {
+        await db.insert(scoreDefinitions).values(
+          definitions.map(d => ({ ...d, scoringSystemId: systemId }))
+        );
+      }
+    } catch (err) {
+      console.error("Error in updateScoreDefinitions:", err);
+      throw err;
     }
   }
 
   async seedDefaultScoringSystem(): Promise<void> {
-    const existing = await db.select().from(scoringSystems);
-    if (existing.length > 0) return;
-    const [system] = await db.insert(scoringSystems).values({
-      name: "Classic (1-10)",
-      maxScore: 10,
-      sortOrder: 0,
-      isActive: true,
-    } as any).returning();
+    try {
+      const existing = await db.select().from(scoringSystems);
+      if (existing.length > 0) return;
+      const [system] = await db.insert(scoringSystems).values({
+        name: "Classic (1-10)",
+        maxScore: 10,
+        sortOrder: 0,
+        isActive: true,
+      } as any).returning();
 
-    const defs = Array.from({ length: 10 }, (_, i) => ({
-      scoringSystemId: system.id,
-      scoreValue: i + 1,
-      label: `${i + 1}`,
-      logoUrl: null
-    }));
-    await db.insert(scoreDefinitions).values(defs);
+      const defs = Array.from({ length: 10 }, (_, i) => ({
+        scoringSystemId: system.id,
+        scoreValue: i + 1,
+        label: `${i + 1}`,
+        logoUrl: null
+      }));
+      await db.insert(scoreDefinitions).values(defs);
+    } catch (err) {
+      console.error("Error in seedDefaultScoringSystem:", err);
+    }
   }
 
   async upsertTeaScore(userId: number, data: InsertTeaScore): Promise<TeaScore> {
