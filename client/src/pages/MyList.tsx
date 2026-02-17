@@ -144,54 +144,43 @@ export default function MyList() {
 
     return (
       <div className="glass-card p-4 rounded-xl flex items-center gap-4 group transition-all hover:shadow-lg">
-        <div className="flex-1 flex items-center gap-4" onClick={(e) => {
-          // If the click target is a button or inside a button (like the Rate/Edit button), don't navigate
-          if ((e.target as HTMLElement).closest('button')) {
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        }}>
-          <Link href={`/${(log.tea as any).isCustom ? 'custom-tea' : 'tea'}/${(log.tea as any).slug}`} className="flex items-center gap-4 flex-1">
-            <div className="w-16 h-16 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
-              {log.tea.photoUrl ? (
-                <img src={log.tea.photoUrl} alt={log.tea.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary/30">
-                  <Coffee className="w-6 h-6" />
-                </div>
-              )}
-            </div>
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-display font-bold text-lg group-hover:text-primary transition-colors truncate">{log.tea.name}</h3>
-                {!isOwner && user && (() => {
-                  const phraseData = getPhrase();
-                  if (!phraseData) return null;
-                  const IconComp = ICON_MAP[phraseData.icon] || CheckCircle;
-                  const bg = `hsla(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%, 0.1)`;
-                  const fg = `hsl(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%)`;
-                  const border = `hsla(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%, 0.2)`;
-                  return (
-                    <Badge variant="outline" className="px-2 py-0 h-5 text-[10px] rounded-full animate-in fade-in zoom-in duration-300" style={{ backgroundColor: bg, color: fg, borderColor: border }} data-testid={`badge-phrase-${log.tea.id}`}>
-                      <IconComp className="w-3 h-3 mr-1" />
-                      {phraseData.phrase}
-                    </Badge>
-                  );
-                })()}
+        <Link href={`/${(log.tea as any).isCustom ? 'custom-tea' : 'tea'}/${(log.tea as any).slug}`} className="flex-1 flex items-center gap-4">
+          <div className="w-16 h-16 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
+            {log.tea.photoUrl ? (
+              <img src={log.tea.photoUrl} alt={log.tea.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary/30">
+                <Coffee className="w-6 h-6" />
               </div>
-              <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1 w-fit" style={getTeaTypeColor(teaTypes, log.tea.type, log.tea as any).style} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
-              <div className="mt-1" onClick={(e) => e.stopPropagation()}>
-                <ScoreWidget teaId={log.tea.id} compact />
-              </div>
+            )}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-display font-bold text-lg group-hover:text-primary transition-colors truncate">{log.tea.name}</h3>
+              {!isOwner && user && (() => {
+                const phraseData = getPhrase();
+                if (!phraseData) return null;
+                const IconComp = ICON_MAP[phraseData.icon] || CheckCircle;
+                const bg = `hsla(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%, 0.1)`;
+                const fg = `hsl(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%)`;
+                const border = `hsla(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%, 0.2)`;
+                return (
+                  <Badge variant="outline" className="px-2 py-0 h-5 text-[10px] rounded-full animate-in fade-in zoom-in duration-300" style={{ backgroundColor: bg, color: fg, borderColor: border }} data-testid={`badge-phrase-${log.tea.id}`}>
+                    <IconComp className="w-3 h-3 mr-1" />
+                    {phraseData.phrase}
+                  </Badge>
+                );
+              })()}
             </div>
-          </Link>
-        </div>
+            <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1 w-fit" style={getTeaTypeColor(teaTypes, log.tea.type, log.tea as any).style} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
+          </div>
+        </Link>
         
         <div className="flex items-center gap-2 sm:gap-4">
           {!isOwner && user && !isInMyList && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="outline" className="rounded-full gap-2 border-primary/20 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20 hover:text-yellow-700 dark:hover:text-yellow-300">
+                <Button size="sm" variant="outline" className="rounded-full gap-2 border-primary/20 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
                   <UserPlus className="w-4 h-4" />
                   <span className="hidden sm:inline">Add to my list</span>
                 </Button>
@@ -210,34 +199,38 @@ export default function MyList() {
             </DropdownMenu>
           )}
 
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="icon" variant="outline" className="rounded-full border-primary/20">
+                <Timer className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <div className="pt-6">
+                <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
+                <BrewTimer 
+                  tea={log.tea}
+                  teaLog={log}
+                  showControls={isOwner}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <div className="flex-shrink-0">
+            <ScoreWidget teaId={log.tea.id} compact />
+          </div>
+
           <div className="text-right hidden sm:block">
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Brews</p>
             <p className="font-mono font-medium text-lg">{log.totalBrews || 0}</p>
           </div>
 
           <div className="flex items-center gap-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button size="icon" variant="outline" className="rounded-full border-primary/20">
-                  <Timer className="w-4 h-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <div className="pt-6">
-                  <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
-                  <BrewTimer 
-                    tea={log.tea}
-                    teaLog={log}
-                    showControls={isOwner}
-                  />
-                </div>
-              </DialogContent>
-            </Dialog>
-
             {isOwner && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="ghost" className="rounded-full w-10 h-10">
+                  <Button size="icon" variant="ghost" className="rounded-full">
                     <MoreVertical className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
