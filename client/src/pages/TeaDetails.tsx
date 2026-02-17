@@ -200,7 +200,7 @@ export default function TeaDetails() {
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(135deg, var(--glass-highlight) 0%, transparent 50%)' }} />
         <div className="container mx-auto px-4 py-6 md:py-8 relative">
           <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="w-28 h-28 md:w-64 md:h-64 rounded-md bg-secondary/30 relative shrink-0 group mx-auto md:mx-0" style={{ perspective: '800px' }}>
+            <div className="w-44 h-44 md:w-64 md:h-64 rounded-md bg-secondary/30 relative shrink-0 group mx-auto md:mx-0" style={{ perspective: '800px' }}>
               <div className="w-full h-full rounded-md overflow-hidden shadow-2xl shadow-foreground/10 transition-transform duration-500 ease-out group-hover:[transform:rotateY(-4deg)_rotateX(2deg)_scale(1.02)]" style={{ transformStyle: 'preserve-3d' }}>
               {tea.photoUrl ? (
                 <img src={tea.photoUrl} alt={tea.name} className="w-full h-full object-cover" />
