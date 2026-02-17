@@ -154,12 +154,13 @@ export default function MyList() {
 
     return (
       <div
-        className="grid items-center rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-3 sm:p-4 transition-shadow hover:shadow-lg"
-        style={{ gridTemplateColumns: '1fr auto auto auto auto' }}
+        className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-3 sm:p-4 transition-shadow hover:shadow-lg"
+        style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center' }}
         data-testid={`tea-row-${log.tea.id}`}
       >
+        {/* LEFT: Tea image + name */}
         <div
-          className="flex items-center gap-3 min-w-0 cursor-pointer pr-3"
+          className="flex items-center gap-3 min-w-0 cursor-pointer"
           onClick={navigateToTea}
           data-testid={`link-tea-${log.tea.id}`}
         >
@@ -193,62 +194,68 @@ export default function MyList() {
           </div>
         </div>
 
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="icon" variant="outline" className="rounded-full border-primary/20 mx-1" data-testid={`button-timer-${log.tea.id}`}>
-              <Timer className="w-4 h-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <div className="pt-6">
-              <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
-              <BrewTimer tea={log.tea} teaLog={log} showControls={isOwner} />
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {!isOwner && user && !isInMyList ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="outline" className="rounded-full gap-2 border-primary/20 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 mx-1">
-                <UserPlus className="w-4 h-4" />
-                <span className="hidden sm:inline">Add to my list</span>
+        {/* CENTER: Timer button — truly centered in the row */}
+        <div className="flex justify-center px-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="icon" variant="outline" className="rounded-full border-primary/20" data-testid={`button-timer-${log.tea.id}`}>
+                <Timer className="w-4 h-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleAddToList('drinking')}>Add to Drinking</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddToList('want_to_try')}>Add to Want to Try</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddToList('not_rebuying')}>Add to Not Rebuying</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <ScoreWidget teaId={log.tea.id} compact />
-        )}
-
-        <div className="text-right hidden sm:flex flex-col items-center justify-center mx-2">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight">Brews</span>
-          <span className="font-mono font-medium text-lg leading-tight">{log.totalBrews || 0}</span>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <div className="pt-6">
+                <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
+                <BrewTimer tea={log.tea} teaLog={log} showControls={!!isOwner} />
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
-        {isOwner ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" className="rounded-full" data-testid={`button-menu-${log.tea.id}`}>
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleStatusChange('drinking')}>Move to Drinking</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusChange('want_to_try')}>Move to Want to Try</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusChange('not_rebuying')}>Move to Not Rebuying</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete from List
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : <div />}
+        {/* RIGHT: Score, Brews, Menu — all pushed to the right */}
+        <div className="flex items-center gap-2 sm:gap-3 justify-end">
+          {!isOwner && user && !isInMyList && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="rounded-full gap-2 border-primary/20 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
+                  <UserPlus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add to my list</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleAddToList('drinking')}>Add to Drinking</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAddToList('want_to_try')}>Add to Want to Try</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAddToList('not_rebuying')}>Add to Not Rebuying</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          <ScoreWidget teaId={log.tea.id} compact />
+
+          <div className="text-right hidden sm:flex flex-col items-center justify-center">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight">Brews</span>
+            <span className="font-mono font-medium text-lg leading-tight">{log.totalBrews || 0}</span>
+          </div>
+
+          {isOwner && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" className="rounded-full" data-testid={`button-menu-${log.tea.id}`}>
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleStatusChange('drinking')}>Move to Drinking</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('want_to_try')}>Move to Want to Try</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('not_rebuying')}>Move to Not Rebuying</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete from List
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
     );
   };
