@@ -447,7 +447,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         </div>
       )}
 
-      <div className="w-56 h-56 relative my-2">
+      <div className="w-56 h-56 relative my-0">
         <CircularProgressbar
           value={progress}
           text={formatTime(seconds)}

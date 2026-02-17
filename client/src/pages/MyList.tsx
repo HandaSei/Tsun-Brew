@@ -203,8 +203,8 @@ export default function MyList() {
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-[340px] p-0 overflow-hidden mx-auto">
-              <div className="p-2 sm:p-4">
-                <h3 className="text-center font-display text-2xl mb-1">{log.tea.name}</h3>
+              <div className="p-1 sm:p-2">
+                <h3 className="text-center font-display text-2xl mb-0.5">{log.tea.name}</h3>
                 <BrewTimer tea={log.tea} teaLog={log} showControls={!!isOwner} />
               </div>
             </DialogContent>
