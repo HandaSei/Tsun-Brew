@@ -195,11 +195,11 @@ export default function MyList() {
         </div>
 
         {/* CENTER: Timer button — truly centered in the row */}
-        <div className="flex justify-center px-1">
+        <div className="flex justify-center px-2">
           <Dialog>
             <DialogTrigger asChild>
-              <Button size="icon" variant="outline" className="h-8 w-8 rounded-full border-primary/20" data-testid={`button-timer-${log.tea.id}`}>
-                <Timer className="w-3.5 h-3.5" />
+              <Button size="icon" variant="outline" className="rounded-full border-primary/20" data-testid={`button-timer-${log.tea.id}`}>
+                <Timer className="w-4 h-4" />
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
