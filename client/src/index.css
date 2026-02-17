@@ -11,7 +11,7 @@
   --background: 0 0% 100%;
   --foreground: 90 12% 14%;
 
-  --card: 42 35% 93%;
+  --card: 42 35% 95%;
   --card-foreground: 90 12% 14%;
   --card-border: 38 20% 78%;
 
@@ -19,9 +19,9 @@
   --popover-foreground: 90 12% 14%;
   --popover-border: 38 20% 78%;
 
-  --primary: 95 30% 35%;
+  --primary: 95 30% 40%;
   --primary-foreground: 42 40% 96%;
-  --primary-border: hsl(95 30% 28%);
+  --primary-border: hsl(95 30% 32%);
 
   --secondary: 38 25% 82%;
   --secondary-foreground: 90 12% 18%;
@@ -66,8 +66,8 @@
   --wash-border: 95 22% 82%;
   --wash-text: 95 22% 35%;
 
-  --glass-bg: hsl(42 35% 93% / 0.95);
-  --glass-bg-subtle: hsl(42 35% 93% / 0.85);
+  --glass-bg: hsl(42 35% 95% / 0.95);
+  --glass-bg-subtle: hsl(42 35% 95% / 0.85);
   --glass-border: hsl(38 20% 78% / 0.6);
   --glass-highlight: rgba(255, 255, 255, 0.5);
   --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
