@@ -2,7 +2,7 @@ import { useRoute } from "wouter";
 import { useTea, useTeaBySlug, useUpdateTea } from "@/hooks/use-teas";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
-import smokeImage from "@assets/unnamed_1771303800044.jpg";
+import smokeImage from "@assets/—Pngtree—smoke_white_dream_fog_6860988_1771304972249.png";
 
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -201,8 +201,8 @@ export default function TeaDetails() {
           src={smokeImage}
           alt=""
           aria-hidden="true"
-          className="absolute right-0 top-0 h-full w-auto max-w-[50%] object-cover object-left pointer-events-none opacity-[0.15] dark:opacity-[0.08] mix-blend-multiply dark:mix-blend-screen select-none"
-          style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 30%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 30%)' }}
+          className="absolute right-0 top-0 h-full w-auto max-w-[50%] object-cover object-left pointer-events-none opacity-[0.25] dark:opacity-[0.15] mix-blend-screen select-none"
+          style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 50%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 50%)' }}
         />
         <div className="container mx-auto px-4 py-6 md:py-8 relative">
           <div className="flex flex-col md:flex-row gap-6 items-start">
