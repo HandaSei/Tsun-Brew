@@ -58,16 +58,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const stored = safeGetStorage("tsun-brew-theme") as Theme;
     
     // Check for a "hard reset" flag to force fresh theme load if needed
-    const lastReset = safeGetStorage("tsun-brew-theme-reset-v6");
+    const lastReset = safeGetStorage("tsun-brew-theme-reset-v8");
     if (!lastReset) {
-      safeSetStorage("tsun-brew-theme-reset-v6", "true");
-      // Force a clean state by clearing old possibly corrupt keys
-      localStorage.removeItem("tsun-brew-theme-reset-v4");
-      localStorage.removeItem("tsun-brew-theme-reset-v5");
-      localStorage.removeItem("tsun-brew-theme-v2");
-      localStorage.removeItem("tsun-brew-theme-v3");
+      safeSetStorage("tsun-brew-theme-reset-v8", "true");
+      // Clean slate for Brave and other stubborn browsers
+      const keysToClear = [
+        "tsun-brew-theme-reset-v4",
+        "tsun-brew-theme-reset-v5",
+        "tsun-brew-theme-reset-v6",
+        "tsun-brew-theme-reset-v7",
+        "tsun-brew-theme-v2",
+        "tsun-brew-theme-v3"
+      ];
+      keysToClear.forEach(k => localStorage.removeItem(k));
       
-      // If we're on a theme that might be buggy or if it's the first time
+      // If no theme or buggy "dark", default to "dusk"
       if (stored === "dark" || !stored) {
         safeSetStorage("tsun-brew-theme", "dusk");
         return "dusk";
@@ -121,6 +126,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const nextTheme = order[(currentIdx + 1) % order.length];
     setTheme(nextTheme);
   };
+
+  // Force re-application of theme on every render to combat stubborn browser caching
+  if (typeof window !== "undefined") {
+    // We wrap this in a small check to avoid infinite loops if applyThemeClass 
+    // were to somehow trigger a re-render (which it shouldn't as it touches DOM directly)
+    applyThemeClass(resolvedTheme);
+  }
 
   // Add an effect to listen for a custom "theme-refresh" event that we can trigger on login
   useEffect(() => {

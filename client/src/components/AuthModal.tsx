@@ -143,7 +143,7 @@ function LoginForm({ onSuccess, onForgotPassword }: { onSuccess: () => void; onF
     login.mutate(data, {
       onSuccess: () => {
         // Force a theme refresh on login success and clear any potential cached CSS state
-        localStorage.removeItem("tsun-brew-theme-reset-v6"); // Force the v6 reset logic
+        localStorage.removeItem("tsun-brew-theme-reset-v8"); // Force the v8 reset logic
         window.dispatchEvent(new CustomEvent("tsun-brew-theme-refresh"));
         onSuccess();
       }
