@@ -197,7 +197,6 @@ export default function TeaDetails() {
       <Navigation />
       
       <div className="glass-card relative overflow-hidden rounded-none border-t-0 border-x-0">
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(135deg, var(--glass-highlight) 0%, transparent 50%)' }} />
         <div className="container mx-auto px-4 py-6 md:py-8 relative">
           <div className="flex flex-col md:flex-row gap-6 items-start">
             <div className="w-full max-w-[320px] aspect-square rounded-md bg-secondary/30 relative shrink-0 group mx-auto md:mx-0" style={{ perspective: '800px' }}>
