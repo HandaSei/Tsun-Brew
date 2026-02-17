@@ -202,9 +202,9 @@ export default function MyList() {
                 <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md p-0 overflow-hidden">
-              <div className="p-4">
-                <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
+            <DialogContent className="max-w-[340px] p-0 overflow-hidden mx-auto">
+              <div className="p-2 sm:p-4">
+                <h3 className="text-center font-display text-2xl mb-1">{log.tea.name}</h3>
                 <BrewTimer tea={log.tea} teaLog={log} showControls={!!isOwner} />
               </div>
             </DialogContent>
