@@ -195,8 +195,14 @@ export default function TeaDetails() {
     <div className="min-h-screen bg-background pb-20 flex flex-col">
       <Navigation />
       
-      <div className="bg-card border-b border-border/50">
-        <div className="container mx-auto px-4 py-6 md:py-8">
+      <div className="bg-card border-b border-border/50 relative overflow-hidden">
+        <div className="absolute inset-y-0 right-0 w-1/3 pointer-events-none" style={{
+          background: 'radial-gradient(ellipse at 80% 50%, hsl(var(--primary) / 0.04) 0%, transparent 70%)',
+        }} />
+        <div className="absolute -right-20 top-1/2 -translate-y-1/2 w-64 h-64 pointer-events-none rounded-full opacity-30 blur-3xl" style={{
+          background: 'hsl(var(--primary) / 0.08)',
+        }} />
+        <div className="container mx-auto px-4 py-6 md:py-8 relative">
           <div className="flex flex-col md:flex-row gap-6 items-start">
             <div className="w-full md:w-64 aspect-square rounded-md overflow-hidden shadow-2xl shadow-foreground/5 bg-secondary/30 relative shrink-0">
               {tea.photoUrl ? (
@@ -598,14 +604,10 @@ export default function TeaDetails() {
                     teaLog ? (
                       <Dialog open={listSelectOpen} onOpenChange={setListSelectOpen}>
                         <DialogTrigger asChild>
-                          <button
-                            type="button"
-                            className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-0.5 text-xs font-semibold cursor-pointer transition-colors"
-                            data-testid="button-change-status"
-                          >
-                            <Edit2 className="w-3 h-3" />
+                          <Button variant="outline" size="default" className="gap-2" data-testid="button-change-status">
+                            <Edit2 className="w-4 h-4" />
                             {teaLog.status === 'drinking' ? 'Drinking' : teaLog.status === 'want_to_try' ? 'Want to Try' : 'Not Rebuying'}
-                          </button>
+                          </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-sm">
                           <DialogHeader>
