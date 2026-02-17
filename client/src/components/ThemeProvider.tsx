@@ -35,6 +35,11 @@ function applyThemeClass(resolved: ResolvedTheme) {
   // Always remove all possible theme classes first to ensure a clean slate
   root.classList.remove("light", "dark", "dusk");
   
+  // Use a data attribute as well for more robust styling and debugging
+  root.setAttribute("data-theme", resolved);
+  // Also force a re-render of any CSS by briefly toggling a class if needed, 
+  // but attribute + classes should be enough for most modern browsers.
+  
   if (resolved === "dusk") {
     root.classList.add("dusk");
     root.classList.add("dark");
@@ -52,11 +57,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Check for both old and new keys to handle migration gracefully
     const stored = safeGetStorage("tsun-brew-theme") as Theme;
     
-    // Migration logic for old "dark" users to "dusk"
-    if (stored === "dark" && !safeGetStorage("tsun-brew-theme-v3")) {
-      safeSetStorage("tsun-brew-theme", "dusk");
-      safeSetStorage("tsun-brew-theme-v3", "1");
-      return "dusk";
+    // Check for a "hard reset" flag to force fresh theme load if needed
+    const lastReset = safeGetStorage("tsun-brew-theme-reset-v4");
+    if (!lastReset) {
+      safeSetStorage("tsun-brew-theme-reset-v4", "true");
+      // If we're coming from an old version, maybe we want to force a default
+      if (stored === "dark") {
+        safeSetStorage("tsun-brew-theme", "dusk");
+        return "dusk";
+      }
     }
     
     return stored || "system";

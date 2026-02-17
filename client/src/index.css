@@ -4,7 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+:root, [data-theme="light"] {
   --font-display: 'Cormorant Garamond', serif;
   --font-body: 'Lato', sans-serif;
 
@@ -74,7 +74,7 @@
   --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
-.dusk {
+.dusk, [data-theme="dusk"] {
   --background: 70 8% 12%;
   --foreground: 42 20% 92%;
 
@@ -139,7 +139,7 @@
   --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.dark:not(.dusk) {
+.dark:not(.dusk), [data-theme="dark"] {
   --background: 0 0% 3%;
   --foreground: 40 14% 88%;
 
