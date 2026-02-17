@@ -154,8 +154,8 @@ export default function MyList() {
 
     return (
       <div
-        className="rounded-xl glass-card p-3 sm:p-4 transition-shadow hover:shadow-lg"
-        style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center' }}
+        className="rounded-xl glass-card p-2 sm:p-4 transition-shadow hover:shadow-lg"
+        style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', alignItems: 'center' }}
         data-testid={`tea-row-${log.tea.id}`}
       >
         {/* LEFT: Tea image + name */}
@@ -195,11 +195,11 @@ export default function MyList() {
         </div>
 
         {/* CENTER: Timer button — truly centered in the row */}
-        <div className="flex justify-center px-2">
+        <div className="flex justify-center px-1">
           <Dialog>
             <DialogTrigger asChild>
-              <Button size="icon" variant="outline" className="rounded-full border-primary/20" data-testid={`button-timer-${log.tea.id}`}>
-                <Timer className="w-4 h-4" />
+              <Button size="icon" variant="outline" className="h-8 w-8 rounded-full border-primary/20 sm:h-9 sm:w-9" data-testid={`button-timer-${log.tea.id}`}>
+                <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
