@@ -116,7 +116,16 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   const triggerAlarm = useCallback(() => {
     setAlarmActive(true);
     if (audioRef.current) {
-      audioRef.current.play().catch(() => {});
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((err) => {
+        console.error("Audio play failed:", err);
+        // Fallback for browsers that require interaction
+        toast({
+          title: "Timer Done!",
+          description: "Click here to stop the alarm.",
+          action: <Button variant="outline" size="sm" onClick={() => audioRef.current?.play()}>Start Audio</Button>
+        });
+      });
     }
 
     toast({
@@ -237,7 +246,16 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
 
   const toggleTimer = () => {
     if (alarmActive) stopAlarm();
-    if (!isActive) requestNotificationPermission();
+    if (!isActive) {
+      requestNotificationPermission();
+      // Resume audio context or play silent sound to unlock audio
+      if (audioRef.current) {
+        audioRef.current.play().then(() => {
+          audioRef.current?.pause();
+          audioRef.current!.currentTime = 0;
+        }).catch(() => {});
+      }
+    }
     setIsActive(!isActive);
   };
   
