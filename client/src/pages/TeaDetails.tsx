@@ -25,7 +25,8 @@ import {
   Droplets,
   Zap,
   X,
-  RotateCcw
+  RotateCcw,
+  Tag
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -195,7 +196,8 @@ export default function TeaDetails() {
     <div className="min-h-screen bg-background pb-20 flex flex-col">
       <Navigation />
       
-      <div className="bg-card/30 backdrop-blur-xl border-b border-white/10 dark:border-white/5 relative overflow-hidden shadow-sm">
+      <div className="glass-card relative overflow-hidden border-t-0 border-x-0 rounded-none shadow-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
         <div className="container mx-auto px-4 py-6 md:py-8 relative">
           <div className="flex flex-col md:flex-row gap-6 items-start">
             <div className="w-full md:w-64 aspect-square rounded-md bg-secondary/30 relative shrink-0 group" style={{ perspective: '800px' }}>

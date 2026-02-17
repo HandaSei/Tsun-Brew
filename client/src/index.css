@@ -200,7 +200,19 @@
 
 @layer components {
   .glass-card {
-    @apply bg-card backdrop-blur-md border border-card-border shadow-md;
+    @apply backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-2xl;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .glass-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+
+  .dusk .glass-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   }
 
   .btn-primary {
