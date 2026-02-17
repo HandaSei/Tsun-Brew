@@ -296,7 +296,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 p-4 w-full">
+    <div className="flex flex-col items-center gap-4 p-2 w-full">
       <div className="flex flex-wrap justify-center gap-2 mb-4">
         {orientalEnabled && (
           <Button 
@@ -526,7 +526,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         ) : null;
       })()}
 
-      <p className="text-sm text-muted-foreground text-center max-w-xs italic min-h-[1.25rem]">
+      <p className="text-sm text-muted-foreground text-center max-w-xs italic empty:hidden">
         {alarmActive
           ? "Your brew is ready! Tap stop to silence the alarm."
           : isActive 
