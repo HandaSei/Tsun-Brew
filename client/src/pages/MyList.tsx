@@ -142,38 +142,48 @@ export default function MyList() {
       } as any);
     };
 
-    const teaUrl = `/${(log.tea as any).isCustom ? 'custom-tea' : 'tea'}/${(log.tea as any).slug}`;
+    const navigateToTea = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      const slug = (log.tea as any).slug;
+      const prefix = (log.tea as any).isCustom ? 'custom-tea' : 'tea';
+      setLocation(`/${prefix}/${slug}`);
+    };
+
+    const phraseData = !isOwner && user ? getPhrase() : null;
+    const phraseIcon = phraseData ? (ICON_MAP[phraseData.icon] || CheckCircle) : null;
 
     return (
-      <div className="glass-card p-4 rounded-xl flex items-center gap-3 group transition-all hover:shadow-lg">
-        {/* Section 1: Tea image + name (clickable, navigates to tea page) */}
+      <div
+        className="grid items-center rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-3 sm:p-4 transition-shadow hover:shadow-lg"
+        style={{ gridTemplateColumns: '1fr auto auto auto auto' }}
+        data-testid={`tea-row-${log.tea.id}`}
+      >
         <div
-          className="flex items-center gap-4 min-w-0 flex-1 cursor-pointer"
-          onClick={() => setLocation(teaUrl)}
+          className="flex items-center gap-3 min-w-0 cursor-pointer pr-3"
+          onClick={navigateToTea}
           data-testid={`link-tea-${log.tea.id}`}
         >
-          <div className="w-16 h-16 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
             {log.tea.photoUrl ? (
               <img src={log.tea.photoUrl} alt={log.tea.name} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary/30">
-                <Coffee className="w-6 h-6" />
+                <Coffee className="w-5 h-5" />
               </div>
             )}
           </div>
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-display font-bold text-lg group-hover:text-primary transition-colors truncate">{log.tea.name}</h3>
-              {!isOwner && user && (() => {
-                const phraseData = getPhrase();
-                if (!phraseData) return null;
-                const IconComp = ICON_MAP[phraseData.icon] || CheckCircle;
-                const bg = `hsla(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%, 0.1)`;
-                const fg = `hsl(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%)`;
-                const border = `hsla(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%, 0.2)`;
+              <span className="font-display font-bold text-base sm:text-lg truncate">{log.tea.name}</span>
+              {phraseData && phraseIcon && (() => {
+                const PIcon = phraseIcon;
                 return (
-                  <Badge variant="outline" className="px-2 py-0 h-5 text-[10px] rounded-full animate-in fade-in zoom-in duration-300" style={{ backgroundColor: bg, color: fg, borderColor: border }} data-testid={`badge-phrase-${log.tea.id}`}>
-                    <IconComp className="w-3 h-3 mr-1" />
+                  <Badge variant="outline" className="px-2 py-0 h-5 text-[10px] rounded-full animate-in fade-in zoom-in duration-300" style={{
+                    backgroundColor: `hsla(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%, 0.1)`,
+                    color: `hsl(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%)`,
+                    borderColor: `hsla(${phraseData.colorHue}, ${phraseData.colorSaturation}%, ${phraseData.colorLightness}%, 0.2)`,
+                  }} data-testid={`badge-phrase-${log.tea.id}`}>
+                    <PIcon className="w-3 h-3 mr-1" />
                     {phraseData.phrase}
                   </Badge>
                 );
@@ -183,82 +193,62 @@ export default function MyList() {
           </div>
         </div>
 
-        {/* Section 2: Timer button (in the middle) */}
         <Dialog>
           <DialogTrigger asChild>
-            <Button size="icon" variant="outline" className="rounded-full border-primary/20 flex-shrink-0" data-testid={`button-timer-${log.tea.id}`}>
+            <Button size="icon" variant="outline" className="rounded-full border-primary/20 mx-1" data-testid={`button-timer-${log.tea.id}`}>
               <Timer className="w-4 h-4" />
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <div className="pt-6">
               <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
-              <BrewTimer
-                tea={log.tea}
-                teaLog={log}
-                showControls={isOwner}
-              />
+              <BrewTimer tea={log.tea} teaLog={log} showControls={isOwner} />
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* Section 3: Right-side controls — Rate, Brews, Menu */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          {!isOwner && user && !isInMyList && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="outline" className="rounded-full gap-2 border-primary/20 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
-                  <UserPlus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Add to my list</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleAddToList('drinking')}>
-                  Add to Drinking
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAddToList('want_to_try')}>
-                  Add to Want to Try
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAddToList('not_rebuying')}>
-                  Add to Not Rebuying
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-
+        {!isOwner && user && !isInMyList ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" className="rounded-full gap-2 border-primary/20 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 mx-1">
+                <UserPlus className="w-4 h-4" />
+                <span className="hidden sm:inline">Add to my list</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleAddToList('drinking')}>Add to Drinking</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAddToList('want_to_try')}>Add to Want to Try</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAddToList('not_rebuying')}>Add to Not Rebuying</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
           <ScoreWidget teaId={log.tea.id} compact />
+        )}
 
-          <div className="text-right hidden sm:block">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider">Brews</p>
-            <p className="font-mono font-medium text-lg">{log.totalBrews || 0}</p>
-          </div>
-
-          {isOwner && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="rounded-full" data-testid={`button-menu-${log.tea.id}`}>
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleStatusChange('drinking')}>
-                  Move to Drinking
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('want_to_try')}>
-                  Move to Want to Try
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('not_rebuying')}>
-                  Move to Not Rebuying
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete from List
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+        <div className="text-right hidden sm:flex flex-col items-center justify-center mx-2">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight">Brews</span>
+          <span className="font-mono font-medium text-lg leading-tight">{log.totalBrews || 0}</span>
         </div>
+
+        {isOwner ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" variant="ghost" className="rounded-full" data-testid={`button-menu-${log.tea.id}`}>
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleStatusChange('drinking')}>Move to Drinking</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusChange('want_to_try')}>Move to Want to Try</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusChange('not_rebuying')}>Move to Not Rebuying</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete from List
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : <div />}
       </div>
     );
   };
