@@ -66,9 +66,9 @@
   --wash-border: 95 22% 82%;
   --wash-text: 95 22% 35%;
 
-  --glass-bg: hsla(330, 25%, 94%, 0.45);
-  --glass-bg-subtle: hsla(330, 25%, 94%, 0.3);
-  --glass-border: hsla(330, 20%, 80%, 0.4);
+  --glass-bg: hsla(330, 30%, 92%, 0.55);
+  --glass-bg-subtle: hsla(330, 30%, 92%, 0.4);
+  --glass-border: hsla(330, 25%, 75%, 0.5);
   --glass-highlight: rgba(255, 255, 255, 0.3);
   --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
   --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.6);
