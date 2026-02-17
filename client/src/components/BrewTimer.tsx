@@ -314,7 +314,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   }
 
   return (
-    <div className="flex flex-col items-center gap-2 p-0 w-full">
+    <div className="flex flex-col items-center gap-2 p-0 w-full min-h-[70vh] md:min-h-0 justify-center">
       <div className="flex flex-wrap justify-center gap-2 mb-1">
         {orientalEnabled && (
           <Button 
@@ -465,12 +465,12 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         </div>
       )}
 
-      <div className="w-56 h-56 relative my-0">
+      <div className="w-56 h-56 sm:w-64 sm:h-64 md:w-56 md:h-56 relative my-0 transition-all duration-300">
         <CircularProgressbar
           value={progress}
           text={formatTime(seconds)}
           styles={buildStyles({
-            textSize: '1.5rem',
+            textSize: '1.25rem',
             pathColor: 'hsl(var(--primary))',
             textColor: 'hsl(var(--foreground))',
             trailColor: 'hsl(var(--muted))',
@@ -479,16 +479,16 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         />
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-6 sm:gap-8 mt-4 md:mt-0">
         {alarmActive ? (
           <Button
             onClick={stopAlarm}
             size="lg"
             variant="destructive"
-            className="rounded-full px-6 h-14 shadow-lg animate-pulse gap-2"
+            className="rounded-full px-8 h-16 shadow-xl animate-pulse gap-3 text-lg font-bold"
             data-testid="button-stop-alarm"
           >
-            <BellOff className="w-6 h-6" />
+            <BellOff className="w-8 h-8" />
             Stop Alarm
           </Button>
         ) : (
@@ -496,20 +496,20 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
             <Button
               onClick={toggleTimer}
               size="lg"
-              className="rounded-full w-16 h-16 p-0 shadow-lg hover:shadow-xl transition-all"
+              className="rounded-full w-20 h-20 sm:w-24 sm:h-24 p-0 shadow-xl hover:shadow-2xl transition-all active:scale-95"
               data-testid="button-toggle-timer"
             >
-              {isActive ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
+              {isActive ? <Pause className="w-10 h-10 sm:w-12 sm:h-12" /> : <Play className="w-10 h-10 sm:w-12 sm:h-12 ml-1" />}
             </Button>
             
             <Button
               onClick={resetTimer}
               variant="outline"
               size="icon"
-              className="rounded-full w-12 h-12"
+              className="rounded-full w-14 h-14 sm:w-16 sm:h-16 border-2"
               data-testid="button-reset-timer"
             >
-              <RotateCcw className="w-5 h-5 text-muted-foreground" />
+              <RotateCcw className="w-6 h-6 sm:w-7 sm:h-7 text-muted-foreground" />
             </Button>
 
             {showControls && (
@@ -517,7 +517,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
                 onClick={handleSaveSettings}
                 variant="ghost"
                 size="sm"
-                className="text-xs text-primary"
+                className="text-xs text-primary h-10 px-3"
                 disabled={updateLog.isPending}
                 data-testid="button-save-timer-settings"
               >
