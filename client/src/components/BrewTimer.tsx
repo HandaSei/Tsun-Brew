@@ -296,8 +296,8 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 p-4 w-full">
-      <div className="flex flex-wrap justify-center gap-2 mb-4">
+    <div className="flex flex-col items-center gap-2 p-1 w-full">
+      <div className="flex flex-wrap justify-center gap-2 mb-1">
         {orientalEnabled && (
           <Button 
             variant={method === 'oriental' ? 'default' : 'outline'} 
@@ -321,7 +321,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       </div>
 
       {showControls && (
-        <div className="grid grid-cols-2 gap-3 w-full max-w-sm p-3 bg-secondary/20 rounded-xl border border-border/50 animate-in fade-in slide-in-from-top-2">
+        <div className="grid grid-cols-2 gap-2 w-full max-w-[320px] p-2 bg-secondary/20 rounded-xl border border-border/50 animate-in fade-in slide-in-from-top-2">
           <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase text-muted-foreground">Temperature (°C)</label>
             <Input type="number" value={temp} onChange={e => setTemp(parseInt(e.target.value) || 0)} className="h-8 text-xs" data-testid="input-timer-temp" />
@@ -428,7 +428,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       )}
 
       {method === 'oriental' && tea.washingStep && infusion === 1 && (
-        <div className="mb-2 p-3 bg-[hsl(var(--wash-bg))] border border-[hsl(var(--wash-border))] rounded-md flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 w-full max-w-sm">
+        <div className="mb-0 p-2 bg-[hsl(var(--wash-bg))] border border-[hsl(var(--wash-border))] rounded-md flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 w-full max-w-[320px]">
           <div className="flex items-center gap-2 text-[hsl(var(--wash-text))] text-sm font-medium">
             <Droplets className="w-4 h-4" />
             Wash: {washingDuration}s
@@ -447,7 +447,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         </div>
       )}
 
-      <div className="w-56 h-56 relative">
+      <div className="w-56 h-56 relative -my-2">
         <CircularProgressbar
           value={progress}
           text={formatTime(seconds)}
