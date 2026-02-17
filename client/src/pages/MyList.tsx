@@ -142,9 +142,16 @@ export default function MyList() {
       } as any);
     };
 
+    const teaUrl = `/${(log.tea as any).isCustom ? 'custom-tea' : 'tea'}/${(log.tea as any).slug}`;
+
     return (
-      <div className="glass-card p-4 rounded-xl flex items-center gap-4 group transition-all hover:shadow-lg">
-        <Link href={`/${(log.tea as any).isCustom ? 'custom-tea' : 'tea'}/${(log.tea as any).slug}`} className="flex-1 flex items-center gap-4">
+      <div className="glass-card p-4 rounded-xl flex items-center gap-3 group transition-all hover:shadow-lg">
+        {/* Section 1: Tea image + name (clickable, navigates to tea page) */}
+        <div
+          className="flex items-center gap-4 min-w-0 flex-1 cursor-pointer"
+          onClick={() => setLocation(teaUrl)}
+          data-testid={`link-tea-${log.tea.id}`}
+        >
           <div className="w-16 h-16 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
             {log.tea.photoUrl ? (
               <img src={log.tea.photoUrl} alt={log.tea.name} className="w-full h-full object-cover" />
@@ -174,18 +181,19 @@ export default function MyList() {
             </div>
             <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1 w-fit" style={getTeaTypeColor(teaTypes, log.tea.type, log.tea as any).style} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
           </div>
-        </Link>
+        </div>
 
+        {/* Section 2: Timer button (in the middle) */}
         <Dialog>
           <DialogTrigger asChild>
-            <Button size="icon" variant="outline" className="rounded-full border-primary/20 flex-shrink-0">
+            <Button size="icon" variant="outline" className="rounded-full border-primary/20 flex-shrink-0" data-testid={`button-timer-${log.tea.id}`}>
               <Timer className="w-4 h-4" />
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <div className="pt-6">
               <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
-              <BrewTimer 
+              <BrewTimer
                 tea={log.tea}
                 teaLog={log}
                 showControls={isOwner}
@@ -193,8 +201,9 @@ export default function MyList() {
             </div>
           </DialogContent>
         </Dialog>
-        
-        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+
+        {/* Section 3: Right-side controls — Rate, Brews, Menu */}
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           {!isOwner && user && !isInMyList && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -217,42 +226,38 @@ export default function MyList() {
             </DropdownMenu>
           )}
 
-          <div className="flex-shrink-0">
-            <ScoreWidget teaId={log.tea.id} compact />
-          </div>
+          <ScoreWidget teaId={log.tea.id} compact />
 
           <div className="text-right hidden sm:block">
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Brews</p>
             <p className="font-mono font-medium text-lg">{log.totalBrews || 0}</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            {isOwner && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="ghost" className="rounded-full">
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleStatusChange('drinking')}>
-                    Move to Drinking
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusChange('want_to_try')}>
-                    Move to Want to Try
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusChange('not_rebuying')}>
-                    Move to Not Rebuying
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete from List
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
+          {isOwner && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" className="rounded-full" data-testid={`button-menu-${log.tea.id}`}>
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleStatusChange('drinking')}>
+                  Move to Drinking
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('want_to_try')}>
+                  Move to Want to Try
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('not_rebuying')}>
+                  Move to Not Rebuying
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete from List
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
     );
