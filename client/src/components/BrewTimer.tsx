@@ -321,14 +321,14 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       </div>
 
       {showControls && (
-        <div className="grid grid-cols-2 gap-2 w-full max-w-[300px] p-2 bg-secondary/20 rounded-xl border border-border/50 animate-in fade-in slide-in-from-top-2">
+        <div className="grid grid-cols-2 gap-2 w-full max-w-[325px] p-2 bg-secondary/20 rounded-xl border border-border/50 animate-in fade-in slide-in-from-top-2">
           <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase text-muted-foreground">Temperature (°C)</label>
             <Input type="number" value={temp} onChange={e => setTemp(parseInt(e.target.value) || 0)} className="h-8 text-xs" data-testid="input-timer-temp" />
           </div>
-          <div className="space-y-2 flex flex-col items-center justify-center">
+          <div className="space-y-1 flex flex-col items-center justify-center">
             <label className="text-[10px] font-bold uppercase text-muted-foreground">Infusion</label>
-            <div className="flex items-center gap-4 h-10">
+            <div className="flex items-center gap-1.5 h-10">
               <Button 
                 variant="outline" 
                 size="icon" 
@@ -337,7 +337,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
               >
                 <span className="text-xl font-bold">-</span>
               </Button>
-              <div className="flex flex-col items-center min-w-[3rem]">
+              <div className="flex flex-col items-center min-w-[2.5rem]">
                 <span className="text-3xl font-display font-black text-primary leading-none">{infusion}</span>
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1">
                   {infusion === 1 ? '1st' : infusion === 2 ? '2nd' : infusion === 3 ? '3rd' : `${infusion}th`}
@@ -428,7 +428,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       )}
 
       {method === 'oriental' && tea.washingStep && infusion === 1 && (
-        <div className="mb-0 p-2 bg-[hsl(var(--wash-bg))] border border-[hsl(var(--wash-border))] rounded-md flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 w-full max-w-[300px]">
+        <div className="mb-0 p-2 bg-[hsl(var(--wash-bg))] border border-[hsl(var(--wash-border))] rounded-md flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 w-full max-w-[325px]">
           <div className="flex items-center gap-2 text-[hsl(var(--wash-text))] text-sm font-medium">
             <Droplets className="w-4 h-4" />
             Wash: {washingDuration}s
