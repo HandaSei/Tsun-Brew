@@ -141,50 +141,56 @@ export function ScoreWidget({ teaId, compact = false }: ScoreWidgetProps) {
 
   if (compact) {
     return (
-      <div className="flex items-center gap-2 flex-wrap">
-        {userScoreDisplay && (
-          <Badge variant="outline" className="gap-1 py-0.5 text-xs border-primary/20" data-testid={`badge-user-score-${teaId}`}>
-            <Star className="w-3 h-3 fill-primary/30 text-primary" />
-            {formatScore(userScoreDisplay.score, userScoreDisplay.system)}
-          </Badge>
-        )}
-        {communityDisplay && !communityDisplay.notEnough && (
-          <Badge variant="secondary" className="gap-1 py-0.5 text-xs" data-testid={`badge-community-score-${teaId}`}>
-            {formatScore(communityDisplay.avg, communityDisplay.system)}
-            <span className="text-muted-foreground ml-0.5">({communityDisplay.count})</span>
-          </Badge>
-        )}
-        {user && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <div className="flex items-center gap-2 flex-wrap">
+          {userScoreDisplay ? (
             <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1" onClick={openScoreDialog} data-testid={`button-rate-tea-${teaId}`}>
-                <Star className="w-3 h-3" />
-                {userScoreDisplay ? "Edit" : "Rate"}
+              <button
+                type="button"
+                onClick={openScoreDialog}
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-sm font-semibold cursor-pointer transition-colors hover:bg-primary/10"
+                data-testid={`button-score-display-${teaId}`}
+              >
+                <Star className="w-3.5 h-3.5 fill-primary/30 text-primary" />
+                {formatScore(userScoreDisplay.score, userScoreDisplay.system)}
+              </button>
+            </DialogTrigger>
+          ) : user ? (
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1" onClick={openScoreDialog} data-testid={`button-rate-tea-${teaId}`}>
+                <Star className="w-3.5 h-3.5" />
+                Rate
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-sm">
-              <DialogHeader>
-                <DialogTitle>Rate this tea</DialogTitle>
-              </DialogHeader>
-              <ScoreDialogContent
-                activeSystems={activeSystems}
-                selectedSystemId={selectedSystemId}
-                selectedScore={selectedScore}
-                maxScore={maxScore}
-                currentDialogSystem={currentDialogSystem}
-                onSystemChange={handleSystemChange}
-                onScoreChange={setSelectedScore}
-                onSubmit={() => {
-                  if (selectedScore && selectedSystemId) {
-                    submitScore.mutate({ teaId, scoringSystemId: Number(selectedSystemId), score: Number(selectedScore) });
-                  }
-                }}
-                isPending={submitScore.isPending}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
+          ) : null}
+          {communityDisplay && !communityDisplay.notEnough && (
+            <Badge variant="secondary" className="gap-1 py-0.5 text-xs" data-testid={`badge-community-score-${teaId}`}>
+              {formatScore(communityDisplay.avg, communityDisplay.system)}
+              <span className="text-muted-foreground ml-0.5">({communityDisplay.count})</span>
+            </Badge>
+          )}
+        </div>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Rate this tea</DialogTitle>
+          </DialogHeader>
+          <ScoreDialogContent
+            activeSystems={activeSystems}
+            selectedSystemId={selectedSystemId}
+            selectedScore={selectedScore}
+            maxScore={maxScore}
+            currentDialogSystem={currentDialogSystem}
+            onSystemChange={handleSystemChange}
+            onScoreChange={setSelectedScore}
+            onSubmit={() => {
+              if (selectedScore && selectedSystemId) {
+                submitScore.mutate({ teaId, scoringSystemId: Number(selectedSystemId), score: Number(selectedScore) });
+              }
+            }}
+            isPending={submitScore.isPending}
+          />
+        </DialogContent>
+      </Dialog>
     );
   }
 
