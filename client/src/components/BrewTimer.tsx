@@ -296,7 +296,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   }
 
   return (
-    <div className="flex flex-col items-center gap-2 p-1 w-full">
+    <div className="flex flex-col items-center gap-2 p-0 w-full">
       <div className="flex flex-wrap justify-center gap-2 mb-1">
         {orientalEnabled && (
           <Button 
@@ -447,7 +447,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         </div>
       )}
 
-      <div className="w-56 h-56 relative -my-2">
+      <div className="w-56 h-56 relative my-2">
         <CircularProgressbar
           value={progress}
           text={formatTime(seconds)}
