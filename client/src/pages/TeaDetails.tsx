@@ -2,6 +2,7 @@ import { useRoute } from "wouter";
 import { useTea, useTeaBySlug, useUpdateTea } from "@/hooks/use-teas";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
+import smokeImage from "@assets/unnamed_1771303800044.jpg";
 
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -196,15 +197,17 @@ export default function TeaDetails() {
       <Navigation />
       
       <div className="bg-card border-b border-border/50 relative overflow-hidden">
-        <div className="absolute inset-y-0 right-0 w-1/3 pointer-events-none" style={{
-          background: 'radial-gradient(ellipse at 80% 50%, hsl(var(--primary) / 0.04) 0%, transparent 70%)',
-        }} />
-        <div className="absolute -right-20 top-1/2 -translate-y-1/2 w-64 h-64 pointer-events-none rounded-full opacity-30 blur-3xl" style={{
-          background: 'hsl(var(--primary) / 0.08)',
-        }} />
+        <img
+          src={smokeImage}
+          alt=""
+          aria-hidden="true"
+          className="absolute right-0 top-0 h-full w-auto max-w-[50%] object-cover object-left pointer-events-none opacity-[0.15] dark:opacity-[0.08] mix-blend-multiply dark:mix-blend-screen select-none"
+          style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 30%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 30%)' }}
+        />
         <div className="container mx-auto px-4 py-6 md:py-8 relative">
           <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="w-full md:w-64 aspect-square rounded-md overflow-hidden shadow-2xl shadow-foreground/5 bg-secondary/30 relative shrink-0">
+            <div className="w-full md:w-64 aspect-square rounded-md bg-secondary/30 relative shrink-0 group" style={{ perspective: '800px' }}>
+              <div className="w-full h-full rounded-md overflow-hidden shadow-2xl shadow-foreground/10 transition-transform duration-500 ease-out group-hover:[transform:rotateY(-4deg)_rotateX(2deg)_scale(1.02)]" style={{ transformStyle: 'preserve-3d' }}>
               {tea.photoUrl ? (
                 <img src={tea.photoUrl} alt={tea.name} className="w-full h-full object-cover" />
               ) : (
@@ -212,6 +215,8 @@ export default function TeaDetails() {
                   <Leaf className="w-24 h-24" />
                 </div>
               )}
+              </div>
+              <div className="absolute -bottom-2 left-2 right-2 h-4 rounded-md bg-foreground/5 blur-md" />
             </div>
 
             <div className="flex-1 space-y-3">
