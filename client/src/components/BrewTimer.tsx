@@ -296,8 +296,8 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   }
 
   return (
-    <div className="flex flex-col items-center gap-3 p-2 w-full">
-      <div className="flex flex-wrap justify-center gap-2 mb-2">
+    <div className="flex flex-col items-center gap-4 p-4 w-full">
+      <div className="flex flex-wrap justify-center gap-2 mb-4">
         {orientalEnabled && (
           <Button 
             variant={method === 'oriental' ? 'default' : 'outline'} 
@@ -322,59 +322,59 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
 
       {showControls && (
         <div className="grid grid-cols-2 gap-3 w-full max-w-sm p-3 bg-secondary/20 rounded-xl border border-border/50 animate-in fade-in slide-in-from-top-2">
-          <div className="space-y-0.5">
-            <label className="text-[9px] font-bold uppercase text-muted-foreground">Temperature (°C)</label>
-            <Input type="number" value={temp} onChange={e => setTemp(parseInt(e.target.value) || 0)} className="h-7 text-xs" data-testid="input-timer-temp" />
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase text-muted-foreground">Temperature (°C)</label>
+            <Input type="number" value={temp} onChange={e => setTemp(parseInt(e.target.value) || 0)} className="h-8 text-xs" data-testid="input-timer-temp" />
           </div>
-          <div className="space-y-1 flex flex-col items-center justify-center">
-            <label className="text-[9px] font-bold uppercase text-muted-foreground">Infusion</label>
-            <div className="flex items-center gap-3 h-8">
+          <div className="space-y-2 flex flex-col items-center justify-center">
+            <label className="text-[10px] font-bold uppercase text-muted-foreground">Infusion</label>
+            <div className="flex items-center gap-4 h-10">
               <Button 
                 variant="outline" 
                 size="icon" 
-                className="h-8 w-8 rounded-full border-2 hover:bg-primary/10 active:scale-95 transition-transform" 
+                className="h-10 w-10 rounded-full border-2 hover:bg-primary/10 active:scale-95 transition-transform" 
                 onClick={() => setInfusion(Math.max(1, infusion - 1))}
               >
-                <span className="text-lg font-bold">-</span>
+                <span className="text-xl font-bold">-</span>
               </Button>
-              <div className="flex flex-col items-center min-w-[2.5rem]">
-                <span className="text-2xl font-display font-black text-primary leading-none">{infusion}</span>
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">
+              <div className="flex flex-col items-center min-w-[3rem]">
+                <span className="text-3xl font-display font-black text-primary leading-none">{infusion}</span>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1">
                   {infusion === 1 ? '1st' : infusion === 2 ? '2nd' : infusion === 3 ? '3rd' : `${infusion}th`}
                 </span>
               </div>
               <Button 
                 variant="outline" 
                 size="icon" 
-                className="h-8 w-8 rounded-full border-2 hover:bg-primary/10 active:scale-95 transition-transform" 
+                className="h-10 w-10 rounded-full border-2 hover:bg-primary/10 active:scale-95 transition-transform" 
                 onClick={() => setInfusion(infusion + 1)}
               >
-                <span className="text-lg font-bold">+</span>
+                <span className="text-xl font-bold">+</span>
               </Button>
             </div>
           </div>
           
           {method === 'oriental' ? (
             <>
-              <div className="space-y-0.5">
-                <label className="text-[9px] font-bold uppercase text-muted-foreground">Initial (s)</label>
-                <Input type="number" value={oDuration} onChange={e => setODuration(parseInt(e.target.value) || 0)} className="h-7 text-xs" />
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground">Initial (s)</label>
+                <Input type="number" value={oDuration} onChange={e => setODuration(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
               </div>
-              <div className="space-y-0.5">
-                <label className="text-[9px] font-bold uppercase text-muted-foreground">Increment (s)</label>
-                <Input type="number" value={oIncrement} onChange={e => setOIncrement(parseInt(e.target.value) || 0)} className="h-7 text-xs" />
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground">Increment (s)</label>
+                <Input type="number" value={oIncrement} onChange={e => setOIncrement(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
               </div>
             </>
           ) : (
-            <div className="col-span-2 space-y-1">
-              <label className="text-[9px] font-bold uppercase text-muted-foreground">Occidental Infusions (s)</label>
-              <div className="flex flex-wrap gap-1.5">
+            <div className="col-span-2 space-y-2">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground">Occidental Infusions (s)</label>
+              <div className="flex flex-wrap gap-2">
                 {occInfusions.map((dur, idx) => {
                   const label = idx === 0 ? "1st" : idx === 1 ? "2nd" : idx === 2 ? "3rd" : `${idx + 1}th`;
                   return (
-                    <div key={idx} className="flex flex-col gap-0.5">
+                    <div key={idx} className="flex flex-col gap-1">
                       <span className="text-[8px] text-muted-foreground font-bold text-center">{label}</span>
-                      <div className="flex items-center gap-1 bg-background rounded border p-0.5">
+                      <div className="flex items-center gap-1 bg-background rounded border p-1">
                         <Input 
                           type="number" 
                           value={dur} 
@@ -383,40 +383,43 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
                             newInfusions[idx] = parseInt(e.target.value) || 0;
                             setOccInfusions(newInfusions);
                           }}
-                          className="h-5 w-10 text-[9px] border-none p-0 text-center"
+                          className="h-6 w-12 text-[10px] border-none p-0 text-center"
                         />
-                        <Button variant="ghost" size="icon" className="h-3 w-3" onClick={() => setOccInfusions(occInfusions.filter((_, i) => i !== idx))}>
+                        <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => setOccInfusions(occInfusions.filter((_, i) => i !== idx))}>
                           <X className="w-2 h-2" />
                         </Button>
                       </div>
                     </div>
                   );
                 })}
-                <Button variant="outline" size="icon" className="h-7 w-7 mt-3" onClick={() => setOccInfusions([...occInfusions, 180])}>
-                  <Plus className="w-3 h-3" />
-                </Button>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[8px] invisible">add</span>
+                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setOccInfusions([...occInfusions, 180])}>
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
               </div>
             </div>
           )}
 
-          <div className="col-span-2 grid grid-cols-2 gap-3 pt-2 border-t border-border/30">
-            <div className="space-y-0.5">
-              <label className="text-[9px] font-bold uppercase text-muted-foreground">Leaf Amount</label>
+          <div className="col-span-2 grid grid-cols-2 gap-4 pt-2 border-t border-border/30">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground">Leaf Amount</label>
               <Input 
                 value={method === 'oriental' ? orientalLeafAmount : occidentalLeafAmount} 
                 onChange={e => method === 'oriental' ? setOrientalLeafAmount(e.target.value) : setOccidentalLeafAmount(e.target.value)} 
-                placeholder={method === 'oriental' ? (tea.orientalLeafAmount || "5g") : (tea.occidentalLeafAmount || "3g")} 
-                className="h-7 text-xs" 
+                placeholder={method === 'oriental' ? (tea.orientalLeafAmount || "e.g. 5g") : (tea.occidentalLeafAmount || "e.g. 3g")} 
+                className="h-8 text-xs" 
                 data-testid="input-timer-leaf" 
               />
             </div>
-            <div className="space-y-0.5">
-              <label className="text-[9px] font-bold uppercase text-muted-foreground">Water Amount</label>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground">Water Amount</label>
               <Input 
                 value={method === 'oriental' ? orientalWaterAmount : occidentalWaterAmount} 
                 onChange={e => method === 'oriental' ? setOrientalWaterAmount(e.target.value) : setOccidentalWaterAmount(e.target.value)} 
-                placeholder={method === 'oriental' ? (tea.orientalWaterAmount || "100ml") : (tea.occidentalWaterAmount || "250ml")} 
-                className="h-7 text-xs" 
+                placeholder={method === 'oriental' ? (tea.orientalWaterAmount || "e.g. 100ml") : (tea.occidentalWaterAmount || "e.g. 250ml")} 
+                className="h-8 text-xs" 
                 data-testid="input-timer-water" 
               />
             </div>
@@ -425,26 +428,26 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       )}
 
       {method === 'oriental' && tea.washingStep && infusion === 1 && (
-        <div className="mb-1 p-2 bg-[hsl(var(--wash-bg))] border border-[hsl(var(--wash-border))] rounded-md flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 w-full max-w-sm">
-          <div className="flex items-center gap-2 text-[hsl(var(--wash-text))] text-xs font-medium">
-            <Droplets className="w-3.5 h-3.5" />
+        <div className="mb-2 p-3 bg-[hsl(var(--wash-bg))] border border-[hsl(var(--wash-border))] rounded-md flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 w-full max-w-sm">
+          <div className="flex items-center gap-2 text-[hsl(var(--wash-text))] text-sm font-medium">
+            <Droplets className="w-4 h-4" />
             Wash: {washingDuration}s
           </div>
           {showControls && (
-            <div className="flex items-center gap-2">
-              <label className="text-[8px] font-bold uppercase text-[hsl(var(--wash-text)/0.7)]">Edit (s)</label>
+            <div className="flex items-center gap-3">
+              <label className="text-[10px] font-bold uppercase text-[hsl(var(--wash-text)/0.7)]">Edit (s)</label>
               <Input 
                 type="number" 
                 value={washingDuration} 
                 onChange={e => setWashingDuration(parseInt(e.target.value) || 0)} 
-                className="h-6 w-12 text-[10px] bg-background/50 border-[hsl(var(--wash-border))]"
+                className="h-8 w-16 text-xs bg-background/50 border-[hsl(var(--wash-border))]"
               />
             </div>
           )}
         </div>
       )}
 
-      <div className="w-40 h-40 relative">
+      <div className="w-56 h-56 relative">
         <CircularProgressbar
           value={progress}
           text={formatTime(seconds)}
@@ -458,16 +461,16 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         />
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
         {alarmActive ? (
           <Button
             onClick={stopAlarm}
             size="lg"
             variant="destructive"
-            className="rounded-full px-4 h-10 shadow-lg animate-pulse gap-2 text-sm"
+            className="rounded-full px-6 h-14 shadow-lg animate-pulse gap-2"
             data-testid="button-stop-alarm"
           >
-            <BellOff className="w-4 h-4" />
+            <BellOff className="w-6 h-6" />
             Stop Alarm
           </Button>
         ) : (
@@ -475,20 +478,20 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
             <Button
               onClick={toggleTimer}
               size="lg"
-              className="rounded-full w-12 h-12 p-0 shadow-lg hover:shadow-xl transition-all"
+              className="rounded-full w-16 h-16 p-0 shadow-lg hover:shadow-xl transition-all"
               data-testid="button-toggle-timer"
             >
-              {isActive ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}
+              {isActive ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
             </Button>
             
             <Button
               onClick={resetTimer}
               variant="outline"
               size="icon"
-              className="rounded-full w-9 h-9"
+              className="rounded-full w-12 h-12"
               data-testid="button-reset-timer"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-muted-foreground" />
+              <RotateCcw className="w-5 h-5 text-muted-foreground" />
             </Button>
 
             {showControls && (
@@ -496,11 +499,11 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
                 onClick={handleSaveSettings}
                 variant="ghost"
                 size="sm"
-                className="text-[9px] text-primary h-6 px-1.5"
+                className="text-xs text-primary"
                 disabled={updateLog.isPending}
                 data-testid="button-save-timer-settings"
               >
-                Save
+                Save Preference
               </Button>
             )}
           </>
