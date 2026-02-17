@@ -526,12 +526,12 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         ) : null;
       })()}
 
-      <p className="text-sm text-muted-foreground text-center max-w-xs italic">
+      <p className="text-sm text-muted-foreground text-center max-w-xs italic min-h-[1.25rem]">
         {alarmActive
           ? "Your brew is ready! Tap stop to silence the alarm."
           : isActive 
             ? "The essence of the leaves is coming alive..." 
-            : "Ready to brew? Check your settings and begin."}
+            : ""}
       </p>
     </div>
   );
