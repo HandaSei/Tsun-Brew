@@ -196,9 +196,9 @@ export default function TeaDetails() {
       <Navigation />
       
       <div className="bg-card border-b border-border/50">
-        <div className="container mx-auto px-4 py-8 md:py-12">
-          <div className="flex flex-col md:flex-row gap-8 items-start">
-            <div className="w-full md:w-1/3 aspect-[4/3] rounded-md overflow-hidden shadow-2xl shadow-foreground/5 bg-secondary/30 relative">
+        <div className="container mx-auto px-4 py-6 md:py-8">
+          <div className="flex flex-col md:flex-row gap-6 items-start">
+            <div className="w-full md:w-64 aspect-square rounded-md overflow-hidden shadow-2xl shadow-foreground/5 bg-secondary/30 relative shrink-0">
               {tea.photoUrl ? (
                 <img src={tea.photoUrl} alt={tea.name} className="w-full h-full object-cover" />
               ) : (
@@ -208,17 +208,14 @@ export default function TeaDetails() {
               )}
             </div>
 
-            <div className="flex-1 space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold shadow-sm mb-3" style={getTeaTypeColor(teaTypes, tea.type, tea as any).style}>{tea.type}</span>
-                  <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground">{tea.name}</h1>
-                </div>
-                <div className="flex gap-2">
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold shadow-sm" style={getTeaTypeColor(teaTypes, tea.type, tea as any).style}>{tea.type}</span>
+                <div className="flex items-center gap-2">
                   {isAdmin && (
                     <Dialog open={isEditing} onOpenChange={setIsEditing}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="icon" className="rounded-full shadow-sm hover:shadow-md transition-all">
+                        <Button variant="outline" size="icon" data-testid="button-edit-tea">
                           <Edit2 className="w-4 h-4" />
                         </Button>
                       </DialogTrigger>
@@ -599,16 +596,71 @@ export default function TeaDetails() {
                   )}
                   {user && (
                     teaLog ? (
-                      <Badge variant="outline" className="gap-1.5 py-1.5 px-4 border-primary/30 text-primary">
-                        <Leaf className="w-3.5 h-3.5" />
-                        {teaLog.status === 'drinking' ? 'Drinking' : teaLog.status === 'want_to_try' ? 'Want to Try' : 'Not Rebuying'}
-                      </Badge>
+                      <Dialog open={listSelectOpen} onOpenChange={setListSelectOpen}>
+                        <DialogTrigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-0.5 text-xs font-semibold cursor-pointer transition-colors"
+                            data-testid="button-change-status"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                            {teaLog.status === 'drinking' ? 'Drinking' : teaLog.status === 'want_to_try' ? 'Want to Try' : 'Not Rebuying'}
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-sm">
+                          <DialogHeader>
+                            <DialogTitle>Change status</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex flex-col gap-3 pt-2">
+                            <Button
+                              variant="outline"
+                              className="justify-start gap-3 h-auto py-3 px-4"
+                              onClick={() => handleAddToList('drinking')}
+                              disabled={updateLog.isPending}
+                              data-testid="button-list-drinking"
+                            >
+                              <Leaf className="w-5 h-5 text-primary" />
+                              <div className="text-left">
+                                <div className="font-medium">Drinking</div>
+                                <div className="text-xs text-muted-foreground">Currently brewing this tea</div>
+                              </div>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="justify-start gap-3 h-auto py-3 px-4"
+                              onClick={() => handleAddToList('want_to_try')}
+                              disabled={updateLog.isPending}
+                              data-testid="button-list-want-to-try"
+                            >
+                              <Star className="w-5 h-5 text-accent" />
+                              <div className="text-left">
+                                <div className="font-medium">Want to Try</div>
+                                <div className="text-xs text-muted-foreground">On my wishlist</div>
+                              </div>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="justify-start gap-3 h-auto py-3 px-4"
+                              onClick={() => handleAddToList('not_rebuying')}
+                              disabled={updateLog.isPending}
+                              data-testid="button-list-not-rebuying"
+                            >
+                              <X className="w-5 h-5 text-destructive" />
+                              <div className="text-left">
+                                <div className="font-medium">Not Rebuying</div>
+                                <div className="text-xs text-muted-foreground">Tried it, not for me</div>
+                              </div>
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     ) : (
                       <Dialog open={listSelectOpen} onOpenChange={setListSelectOpen}>
                         <DialogTrigger asChild>
                           <Button 
                             variant="outline" 
-                            className="gap-2 shadow-sm rounded-full"
+                            size="sm"
+                            className="gap-2"
                             disabled={updateLog.isPending}
                             data-testid="button-add-to-list"
                           >
@@ -666,30 +718,38 @@ export default function TeaDetails() {
                   )}
                 </div>
               </div>
-              
-              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4" />
-                  {tea.origin || "Unknown Origin"}
-                </div>
-                <div className="w-px h-4 bg-border" />
+
+              <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground" data-testid="text-tea-name">{tea.name}</h1>
+
+              <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
+                {tea.origin && (
+                  <>
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4" />
+                      {tea.origin}
+                    </div>
+                    <span className="text-border">|</span>
+                  </>
+                )}
                 <div className="flex items-center gap-1.5">
                   <Leaf className="w-4 h-4" />
                   {tea.cultivar || "Unknown Cultivar"}
                 </div>
               </div>
 
-              <p className="text-lg leading-relaxed text-muted-foreground max-w-2xl mt-4">
-                {tea.description}
-              </p>
-
-              <div className="mt-4">
-                <ScoreWidget teaId={tea.id} />
-              </div>
+              <ScoreWidget teaId={tea.id} />
             </div>
           </div>
         </div>
       </div>
+
+      {tea.description && (
+        <div className="container mx-auto px-4 pt-6">
+          <div className="max-w-2xl mx-auto">
+            <p className="text-base leading-relaxed text-muted-foreground">{tea.description}</p>
+          </div>
+        </div>
+      )}
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
