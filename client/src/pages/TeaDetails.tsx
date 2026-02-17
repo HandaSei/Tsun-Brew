@@ -219,9 +219,10 @@ export default function TeaDetails() {
               <div className="absolute -bottom-2 left-2 right-2 h-4 rounded-md bg-foreground/5 blur-md" />
             </div>
 
-            <div className="flex-1 space-y-3">
-              <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex-1 space-y-6 w-full pt-2">
+              <div className="flex items-center justify-between w-full gap-3">
                 <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold shadow-sm" style={getTeaTypeColor(teaTypes, tea.type, tea as any).style}>{tea.type}</span>
+                
                 <div className="flex items-center gap-2">
                   {isAdmin && (
                     <Dialog open={isEditing} onOpenChange={setIsEditing}>
@@ -319,154 +320,9 @@ export default function TeaDetails() {
                                     </FormItem>
                                   )}
                                 />
-                                <div className="p-4 bg-secondary/20 rounded-lg space-y-4">
-                                  <FormField
-                                    control={form.control}
-                                    name="washingStep"
-                                    render={({ field }) => (
-                                      <FormItem className="flex items-center justify-between rounded-md border p-3 shadow-sm bg-card">
-                                        <div className="space-y-0.5">
-                                          <FormLabel>Washing Step</FormLabel>
-                                          <FormDescription>Optional initial rinse of the leaves</FormDescription>
-                                        </div>
-                                        <FormControl>
-                                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                                        </FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                  {form.watch('washingStep') && (
-                                    <FormField
-                                      control={form.control}
-                                      name="washingDuration"
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel>Washing Duration (s)</FormLabel>
-                                          <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
-                                        </FormItem>
-                                      )}
-                                    />
-                                  )}
-                                </div>
-
-                                <div className="p-4 bg-secondary/20 rounded-lg space-y-4">
-                                  <h4 className="text-sm font-semibold text-muted-foreground">Visibility & Display</h4>
-                                  <FormField
-                                    control={form.control}
-                                    name="showOriental"
-                                    render={({ field }) => (
-                                      <FormItem className="flex items-center justify-between rounded-md border p-3 shadow-sm bg-card">
-                                        <div className="space-y-0.5">
-                                          <FormLabel>Show Oriental in Parameters</FormLabel>
-                                          <FormDescription>Display oriental section in recommended parameters</FormDescription>
-                                        </div>
-                                        <FormControl>
-                                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                                        </FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name="showOccidental"
-                                    render={({ field }) => (
-                                      <FormItem className="flex items-center justify-between rounded-md border p-3 shadow-sm bg-card">
-                                        <div className="space-y-0.5">
-                                          <FormLabel>Show Occidental in Parameters</FormLabel>
-                                          <FormDescription>Display occidental section in recommended parameters</FormDescription>
-                                        </div>
-                                        <FormControl>
-                                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                                        </FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name="orientalTimerEnabled"
-                                    render={({ field }) => (
-                                      <FormItem className="flex items-center justify-between rounded-md border p-3 shadow-sm bg-card">
-                                        <div className="space-y-0.5">
-                                          <FormLabel>Allow Oriental in Timer</FormLabel>
-                                          <FormDescription>Let users select oriental method in the brew timer</FormDescription>
-                                        </div>
-                                        <FormControl>
-                                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                                        </FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name="occidentalTimerEnabled"
-                                    render={({ field }) => (
-                                      <FormItem className="flex items-center justify-between rounded-md border p-3 shadow-sm bg-card">
-                                        <div className="space-y-0.5">
-                                          <FormLabel>Allow Occidental in Timer</FormLabel>
-                                          <FormDescription>Let users select occidental method in the brew timer</FormDescription>
-                                        </div>
-                                        <FormControl>
-                                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                                        </FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
-
-                                <div className="p-4 bg-secondary/20 rounded-lg space-y-4">
-                                  <FormField
-                                    control={form.control}
-                                    name="showBrewingNote"
-                                    render={({ field }) => (
-                                      <FormItem className="flex items-center justify-between rounded-md border p-3 shadow-sm bg-card">
-                                        <div className="space-y-0.5">
-                                          <FormLabel>Show Brewing Note</FormLabel>
-                                          <FormDescription>Display a custom instruction note in the brewing section</FormDescription>
-                                        </div>
-                                        <FormControl>
-                                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                                        </FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                  {form.watch('showBrewingNote') && (
-                                    <FormField
-                                      control={form.control}
-                                      name="brewingNote"
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel>Brewing Note</FormLabel>
-                                          <FormControl><Textarea {...field} value={field.value || ""} placeholder="Add custom brewing instructions or notes..." className="min-h-[80px]" /></FormControl>
-                                        </FormItem>
-                                      )}
-                                    />
-                                  )}
-                                </div>
                               </TabsContent>
 
                               <TabsContent value="oriental" className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <FormField
-                                    control={form.control}
-                                    name="orientalLeafAmount"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Leaf Amount (e.g. 5g)</FormLabel>
-                                        <FormControl><Input {...field} placeholder="e.g. 5g" data-testid="input-oriental-leaf" /></FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name="orientalWaterAmount"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Water Amount (e.g. 100ml)</FormLabel>
-                                        <FormControl><Input {...field} placeholder="e.g. 100ml" data-testid="input-oriental-water" /></FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
                                 <div className="grid grid-cols-2 gap-4">
                                   <FormField
                                     control={form.control}
@@ -483,17 +339,19 @@ export default function TeaDetails() {
                                     name="orientalDuration"
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel>Initial Duration (s)</FormLabel>
+                                        <FormLabel>Base Duration (s)</FormLabel>
                                         <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
                                       </FormItem>
                                     )}
                                   />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
                                   <FormField
                                     control={form.control}
                                     name="orientalInfusionIncrement"
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel>Infusion Increment (s)</FormLabel>
+                                        <FormLabel>Increment (s)</FormLabel>
                                         <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
                                       </FormItem>
                                     )}
@@ -512,77 +370,48 @@ export default function TeaDetails() {
                               </TabsContent>
 
                               <TabsContent value="occidental" className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <FormField
-                                    control={form.control}
-                                    name="occidentalLeafAmount"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Leaf Amount (e.g. 3g)</FormLabel>
-                                        <FormControl><Input {...field} placeholder="e.g. 3g" data-testid="input-occidental-leaf" /></FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name="occidentalWaterAmount"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Water Amount (e.g. 250ml)</FormLabel>
-                                        <FormControl><Input {...field} placeholder="e.g. 250ml" data-testid="input-occidental-water" /></FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">Infusion Durations (s)</label>
-                                  <div className="flex flex-wrap gap-4">
-                                    {((form.watch('occidentalInfusions' as any) as number[]) || []).map((dur: number, idx: number) => {
-                                      const label = idx === 0 ? "1st" : idx === 1 ? "2nd" : idx === 2 ? "3rd" : `${idx + 1}th`;
-                                      return (
-                                        <div key={idx} className="flex flex-col gap-1 items-center">
-                                          <span className="text-[10px] text-muted-foreground font-bold">{label}</span>
-                                          <div className="flex items-center gap-1 bg-secondary/20 rounded p-1">
-                                            <Input 
-                                              type="number" 
-                                              value={dur} 
-                                              onChange={e => {
-                                                const infs = [...(form.getValues('occidentalInfusions' as any) as number[])];
-                                                infs[idx] = parseInt(e.target.value) || 0;
-                                                form.setValue('occidentalInfusions' as any, infs);
-                                              }}
-                                              className="h-8 w-16 text-xs"
-                                            />
-                                            <Button 
-                                              type="button"
-                                              variant="ghost" 
-                                              size="icon" 
-                                              className="h-6 w-6" 
-                                              onClick={() => {
-                                                const infs = (form.getValues('occidentalInfusions' as any) as number[]).filter((_, i) => i !== idx);
-                                                form.setValue('occidentalInfusions' as any, infs);
-                                              }}
-                                            >
-                                              <X className="w-3 h-3" />
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                    <div className="flex flex-col gap-1 justify-end">
-                                      <Button 
-                                        type="button"
-                                        variant="outline" 
-                                        size="sm" 
-                                        className="h-10"
-                                        onClick={() => {
-                                          const current = form.getValues('occidentalInfusions' as any) as number[] || [];
-                                          form.setValue('occidentalInfusions' as any, [...current, 180]);
-                                        }}
-                                      >
-                                        <Plus className="w-3 h-3 mr-1" /> Add
-                                      </Button>
-                                    </div>
+                                <div className="space-y-4">
+                                  <FormLabel>Infusion Durations (seconds)</FormLabel>
+                                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                    {(form.watch("occidentalInfusions" as any) || []).map((_: any, index: number) => (
+                                      <div key={index} className="flex items-center gap-1">
+                                        <Input
+                                          type="number"
+                                          className="h-8 text-xs"
+                                          value={form.watch(`occidentalInfusions.${index}` as any)}
+                                          onChange={e => {
+                                            const current = [...form.getValues("occidentalInfusions" as any)];
+                                            current[index] = parseInt(e.target.value);
+                                            form.setValue("occidentalInfusions" as any, current);
+                                          }}
+                                        />
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6"
+                                          onClick={() => {
+                                            const current = [...form.getValues("occidentalInfusions" as any)];
+                                            current.splice(index, 1);
+                                            form.setValue("occidentalInfusions" as any, current);
+                                          }}
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 text-xs"
+                                      onClick={() => {
+                                        const current = form.getValues("occidentalInfusions" as any) || [];
+                                        form.setValue("occidentalInfusions" as any, [...current, 180]);
+                                      }}
+                                    >
+                                      <Plus className="w-3 h-3 mr-1" /> Add
+                                    </Button>
                                   </div>
                                 </div>
                                 <FormField
@@ -611,7 +440,7 @@ export default function TeaDetails() {
                         <DialogTrigger asChild>
                           <Button variant="outline" size="default" className="gap-2" data-testid="button-change-status">
                             <Edit2 className="w-4 h-4" />
-                            {teaLog.status === 'drinking' ? 'Drinking' : teaLog.status === 'want_to_try' ? 'Want to Try' : 'Not Rebuying'}
+                            {teaLog.status === "drinking" ? "Drinking" : teaLog.status === "want_to_try" ? "Want to Try" : "Not Rebuying"}
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-sm">
@@ -622,7 +451,7 @@ export default function TeaDetails() {
                             <Button
                               variant="outline"
                               className="justify-start gap-3 h-auto py-3 px-4"
-                              onClick={() => handleAddToList('drinking')}
+                              onClick={() => handleAddToList("drinking")}
                               disabled={updateLog.isPending}
                               data-testid="button-list-drinking"
                             >
@@ -635,7 +464,7 @@ export default function TeaDetails() {
                             <Button
                               variant="outline"
                               className="justify-start gap-3 h-auto py-3 px-4"
-                              onClick={() => handleAddToList('want_to_try')}
+                              onClick={() => handleAddToList("want_to_try")}
                               disabled={updateLog.isPending}
                               data-testid="button-list-want-to-try"
                             >
@@ -648,7 +477,7 @@ export default function TeaDetails() {
                             <Button
                               variant="outline"
                               className="justify-start gap-3 h-auto py-3 px-4"
-                              onClick={() => handleAddToList('not_rebuying')}
+                              onClick={() => handleAddToList("not_rebuying")}
                               disabled={updateLog.isPending}
                               data-testid="button-list-not-rebuying"
                             >
@@ -682,7 +511,7 @@ export default function TeaDetails() {
                             <Button
                               variant="outline"
                               className="justify-start gap-3 h-auto py-3 px-4"
-                              onClick={() => handleAddToList('drinking')}
+                              onClick={() => handleAddToList("drinking")}
                               disabled={updateLog.isPending}
                               data-testid="button-list-drinking"
                             >
@@ -695,7 +524,7 @@ export default function TeaDetails() {
                             <Button
                               variant="outline"
                               className="justify-start gap-3 h-auto py-3 px-4"
-                              onClick={() => handleAddToList('want_to_try')}
+                              onClick={() => handleAddToList("want_to_try")}
                               disabled={updateLog.isPending}
                               data-testid="button-list-want-to-try"
                             >
@@ -708,7 +537,7 @@ export default function TeaDetails() {
                             <Button
                               variant="outline"
                               className="justify-start gap-3 h-auto py-3 px-4"
-                              onClick={() => handleAddToList('not_rebuying')}
+                              onClick={() => handleAddToList("not_rebuying")}
                               disabled={updateLog.isPending}
                               data-testid="button-list-not-rebuying"
                             >
@@ -726,21 +555,22 @@ export default function TeaDetails() {
                 </div>
               </div>
 
-              <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4" data-testid="text-tea-name">{tea.name}</h1>
-
-              <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap mb-4">
-                {tea.origin && (
-                  <>
-                    <div className="flex items-center gap-1.5">
-                      <MapPin className="w-4 h-4" />
-                      {tea.origin}
+              <div>
+                <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4" data-testid="text-tea-name">{tea.name}</h1>
+                <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
+                  {tea.origin && (
+                    <div className="flex items-center gap-1.5" data-testid="text-origin">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>{tea.origin}</span>
                     </div>
-                    <span className="text-border">|</span>
-                  </>
-                )}
-                <div className="flex items-center gap-1.5">
-                  <Leaf className="w-4 h-4" />
-                  {tea.cultivar || "Unknown Cultivar"}
+                  )}
+                  {tea.origin && tea.cultivar && <span className="opacity-20">•</span>}
+                  {tea.cultivar && (
+                    <div className="flex items-center gap-1.5" data-testid="text-cultivar">
+                      <Tag className="w-3.5 h-3.5" />
+                      <span>{tea.cultivar}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -749,7 +579,6 @@ export default function TeaDetails() {
           </div>
         </div>
       </div>
-
       {tea.description && (
         <div className="container mx-auto px-4 pt-6">
           <div className="max-w-2xl mx-auto">

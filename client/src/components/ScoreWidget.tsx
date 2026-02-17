@@ -227,12 +227,12 @@ export function ScoreWidget({ teaId, compact = false }: ScoreWidgetProps) {
         </div>
 
         {communityDisplay && (
-          <div className="flex items-center gap-2 pt-1" data-testid={`display-community-score-${teaId}`}>
-            <span className="text-base text-muted-foreground">General Tolerance:</span>
+          <div className="flex items-center gap-2 pt-2" data-testid={`display-community-score-${teaId}`}>
+            <span className="text-lg font-medium text-muted-foreground">General Tolerance:</span>
             {communityDisplay.notEnough ? (
               <span className="text-sm text-muted-foreground italic">Not enough data yet</span>
             ) : (
-              <Badge variant="secondary" className="gap-1.5 py-1 px-3 text-sm font-semibold">
+              <Badge variant="secondary" className="gap-1.5 py-1 px-3 text-base font-semibold">
                 {scoreToPercent(communityDisplay.avg, communityDisplay.system.maxScore)}%
               </Badge>
             )}
