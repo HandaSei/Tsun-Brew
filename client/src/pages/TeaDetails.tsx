@@ -726,9 +726,9 @@ export default function TeaDetails() {
                 </div>
               </div>
 
-              <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground" data-testid="text-tea-name">{tea.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4" data-testid="text-tea-name">{tea.name}</h1>
 
-              <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
+              <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap mb-4">
                 {tea.origin && (
                   <>
                     <div className="flex items-center gap-1.5">
