@@ -2,7 +2,6 @@ import { useRoute } from "wouter";
 import { useTea, useTeaBySlug, useUpdateTea } from "@/hooks/use-teas";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
-import smokeImage from "@assets/—Pngtree—smoke_white_dream_fog_6860988_1771304972249.png";
 
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -196,14 +195,7 @@ export default function TeaDetails() {
     <div className="min-h-screen bg-background pb-20 flex flex-col">
       <Navigation />
       
-      <div className="bg-card border-b border-border/50 relative overflow-hidden">
-        <img
-          src={smokeImage}
-          alt=""
-          aria-hidden="true"
-          className="absolute right-0 top-0 h-full w-auto max-w-[50%] object-cover object-left pointer-events-none opacity-[0.25] dark:opacity-[0.15] mix-blend-screen select-none"
-          style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 50%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 50%)' }}
-        />
+      <div className="bg-card/30 backdrop-blur-xl border-b border-white/10 dark:border-white/5 relative overflow-hidden shadow-sm">
         <div className="container mx-auto px-4 py-6 md:py-8 relative">
           <div className="flex flex-col md:flex-row gap-6 items-start">
             <div className="w-full md:w-64 aspect-square rounded-md bg-secondary/30 relative shrink-0 group" style={{ perspective: '800px' }}>
