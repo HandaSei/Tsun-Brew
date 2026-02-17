@@ -62,7 +62,7 @@ export function Navigation() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-primary/10 backdrop-blur-xl">
       <div className="container mx-auto px-4 h-[4.5rem] flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 group">
           {logoUrl ? (
