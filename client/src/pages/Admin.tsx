@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { useTeaTypes } from "@/hooks/use-tea-types";
-import type { TeaType, SiteSettings, FooterLink, CollectionPhrase, ScoringSystem } from "@shared/schema";
+import type { TeaType, SiteSettings, FooterLink, CollectionPhrase, ScoringSystem, ScoreDefinition } from "@shared/schema";
 import { Switch } from "@/components/ui/switch";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -338,11 +338,20 @@ function ScoringSystemsTab() {
       setFormName(editingSystem.name);
       setFormMaxScore(editingSystem.maxScore);
       setFormIsActive(editingSystem.isActive);
-      setScoreDefs(editingSystem.definitions?.map(d => ({
+      const existingDefs = editingSystem.definitions?.map(d => ({
         value: d.scoreValue,
         label: d.label || "",
         logoUrl: d.logoUrl || ""
-      })) || []);
+      })) || [];
+      if (existingDefs.length > 0) {
+        setScoreDefs(existingDefs);
+      } else {
+        const defaults = [];
+        for (let i = 1; i <= editingSystem.maxScore; i++) {
+          defaults.push({ value: i, label: `${i}`, logoUrl: "" });
+        }
+        setScoreDefs(defaults);
+      }
     } else {
       setFormName("");
       setFormMaxScore(10);
@@ -352,7 +361,7 @@ function ScoringSystemsTab() {
   }, [editingSystem]);
 
   useEffect(() => {
-    if (formMaxScore > 0 && !editingSystem) {
+    if (formMaxScore > 0) {
       setScoreDefs(prev => {
         const next = [];
         for (let i = 1; i <= formMaxScore; i++) {
@@ -362,7 +371,7 @@ function ScoringSystemsTab() {
         return next;
       });
     }
-  }, [formMaxScore, editingSystem]);
+  }, [formMaxScore]);
 
   const openCreate = () => {
     setEditingSystem(null);

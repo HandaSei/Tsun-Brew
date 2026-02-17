@@ -12,6 +12,7 @@ import {
   insertSiteSettingsSchema,
   insertCollectionPhraseSchema,
   insertScoringSystemSchema,
+  insertScoreDefinitionSchema,
   insertTeaScoreSchema,
   insertUserPreferencesSchema,
   users, teas, teaLogs, brewingGuides, reviews, heroPhrases, teaTypes, footerLinks, pages, siteSettings, collectionPhrases,
@@ -411,7 +412,9 @@ export const api = {
     create: {
       method: 'POST' as const,
       path: '/api/scoring-systems',
-      input: insertScoringSystemSchema,
+      input: insertScoringSystemSchema.extend({
+        definitions: z.array(insertScoreDefinitionSchema.omit({ scoringSystemId: true })).optional(),
+      }),
       responses: {
         201: z.custom<typeof scoringSystems.$inferSelect>(),
         403: errorSchemas.forbidden,
@@ -420,7 +423,9 @@ export const api = {
     update: {
       method: 'PATCH' as const,
       path: '/api/scoring-systems/:id',
-      input: insertScoringSystemSchema.partial(),
+      input: insertScoringSystemSchema.partial().extend({
+        definitions: z.array(insertScoreDefinitionSchema.omit({ scoringSystemId: true })).optional(),
+      }),
       responses: {
         200: z.custom<typeof scoringSystems.$inferSelect>(),
         403: errorSchemas.forbidden,
