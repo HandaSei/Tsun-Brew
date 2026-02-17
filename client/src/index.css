@@ -66,11 +66,11 @@
   --wash-border: 95 22% 82%;
   --wash-text: 95 22% 35%;
 
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-bg-subtle: rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.9);
+  --glass-bg: hsl(42 36% 91% / 0.95);
+  --glass-bg-subtle: hsl(42 36% 91% / 0.85);
+  --glass-border: hsl(38 20% 78% / 0.6);
   --glass-highlight: rgba(255, 255, 255, 0.5);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
   --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
