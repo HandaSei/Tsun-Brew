@@ -196,7 +196,7 @@ export default function TeaDetails() {
     <div className="min-h-screen bg-background pb-20 flex flex-col">
       <Navigation />
       
-      <div className="glass-card relative overflow-hidden rounded-none" style={{ borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}>
+      <div className="glass-card relative overflow-hidden rounded-none border-t-0 border-x-0">
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(135deg, var(--glass-highlight) 0%, transparent 50%)' }} />
         <div className="container mx-auto px-4 py-6 md:py-8 relative">
           <div className="flex flex-col md:flex-row gap-6 items-start">
