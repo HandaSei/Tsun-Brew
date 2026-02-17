@@ -174,27 +174,27 @@ export default function MyList() {
             </div>
             <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold shadow-sm mt-1 w-fit" style={getTeaTypeColor(teaTypes, log.tea.type, log.tea as any).style} data-testid={`badge-type-${log.tea.id}`}>{log.tea.type}</span>
           </div>
-        </Link>
 
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="icon" variant="outline" className="rounded-full border-primary/20 flex-shrink-0">
-              <Timer className="w-4 h-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <div className="pt-6">
-              <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
-              <BrewTimer 
-                tea={log.tea}
-                teaLog={log}
-                showControls={isOwner}
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="icon" variant="outline" className="rounded-full border-primary/20 flex-shrink-0 ml-auto mr-2">
+                <Timer className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <div className="pt-6">
+                <h3 className="text-center font-display text-2xl mb-2">{log.tea.name}</h3>
+                <BrewTimer 
+                  tea={log.tea}
+                  teaLog={log}
+                  showControls={isOwner}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </Link>
         
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
           {!isOwner && user && !isInMyList && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
