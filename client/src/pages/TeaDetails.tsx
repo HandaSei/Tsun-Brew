@@ -197,9 +197,9 @@ export default function TeaDetails() {
       <Navigation />
       
       <div className="glass-card relative overflow-hidden rounded-none border-t-0 border-x-0">
-        <div className="container mx-auto px-4 py-6 md:py-8 relative">
-          <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="w-full max-w-[320px] aspect-square rounded-md bg-secondary/30 relative shrink-0 group mx-auto md:mx-0" style={{ perspective: '800px' }}>
+        <div className="container mx-auto px-4 py-4 md:py-8 relative">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start">
+            <div className="w-full max-w-[340px] aspect-square rounded-md bg-secondary/30 relative shrink-0 group mx-auto md:mx-0" style={{ perspective: '800px' }}>
               <div className="w-full h-full rounded-md overflow-hidden shadow-2xl shadow-foreground/10 transition-transform duration-500 ease-out group-hover:[transform:rotateY(-4deg)_rotateX(2deg)_scale(1.02)]" style={{ transformStyle: 'preserve-3d' }}>
               {tea.photoUrl ? (
                 <img src={tea.photoUrl} alt={tea.name} className="w-full h-full object-cover" />
