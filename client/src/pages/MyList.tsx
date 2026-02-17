@@ -154,7 +154,7 @@ export default function MyList() {
 
     return (
       <div
-        className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-3 sm:p-4 transition-shadow hover:shadow-lg"
+        className="rounded-xl glass-card p-3 sm:p-4 transition-shadow hover:shadow-lg"
         style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center' }}
         data-testid={`tea-row-${log.tea.id}`}
       >
