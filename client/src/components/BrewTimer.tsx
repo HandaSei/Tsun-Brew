@@ -296,7 +296,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   }
 
   return (
-    <div className="flex flex-col items-center gap-2 p-0 w-full">
+    <div className="flex flex-col items-center gap-2 p-0 w-full max-w-[280px] mx-auto">
       <div className="flex flex-wrap justify-center gap-2 mb-1">
         {orientalEnabled && (
           <Button 
@@ -461,7 +461,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         />
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 mt-6">
         {alarmActive ? (
           <Button
             onClick={stopAlarm}
@@ -474,7 +474,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
             Stop Alarm
           </Button>
         ) : (
-          <>
+          <div className="flex items-center gap-4">
             <Button
               onClick={toggleTimer}
               size="lg"
@@ -506,7 +506,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
                 Save Preference
               </Button>
             )}
-          </>
+          </div>
         )}
       </div>
 
