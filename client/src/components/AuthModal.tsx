@@ -141,7 +141,12 @@ function LoginForm({ onSuccess, onForgotPassword }: { onSuccess: () => void; onF
 
   const onSubmit = (data: any) => {
     login.mutate(data, {
-      onSuccess: () => onSuccess()
+      onSuccess: () => {
+        // Force a theme refresh on login success and clear any potential cached CSS state
+        localStorage.removeItem("tsun-brew-theme-reset-v6"); // Force the v6 reset logic
+        window.dispatchEvent(new CustomEvent("tsun-brew-theme-refresh"));
+        onSuccess();
+      }
     });
   };
 
@@ -254,6 +259,8 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
         return;
       }
       toast({ title: "Welcome!", description: "Your account has been created." });
+      // Trigger a theme refresh event before reloading to ensure the next session starts clean
+      window.dispatchEvent(new CustomEvent("tsun-brew-theme-refresh"));
       window.location.reload();
     } catch (err: any) {
       toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });

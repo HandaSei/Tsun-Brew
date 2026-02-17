@@ -58,11 +58,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const stored = safeGetStorage("tsun-brew-theme") as Theme;
     
     // Check for a "hard reset" flag to force fresh theme load if needed
-    const lastReset = safeGetStorage("tsun-brew-theme-reset-v4");
+    const lastReset = safeGetStorage("tsun-brew-theme-reset-v6");
     if (!lastReset) {
-      safeSetStorage("tsun-brew-theme-reset-v4", "true");
-      // If we're coming from an old version, maybe we want to force a default
-      if (stored === "dark") {
+      safeSetStorage("tsun-brew-theme-reset-v6", "true");
+      // Force a clean state by clearing old possibly corrupt keys
+      localStorage.removeItem("tsun-brew-theme-reset-v4");
+      localStorage.removeItem("tsun-brew-theme-reset-v5");
+      localStorage.removeItem("tsun-brew-theme-v2");
+      localStorage.removeItem("tsun-brew-theme-v3");
+      
+      // If we're on a theme that might be buggy or if it's the first time
+      if (stored === "dark" || !stored) {
         safeSetStorage("tsun-brew-theme", "dusk");
         return "dusk";
       }
@@ -73,10 +79,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const resolvedTheme: ResolvedTheme = theme === "system" ? getSystemTheme() : theme;
 
-  // Apply theme immediately on mount and whenever it changes
+  // Use a layout effect to apply the theme before the browser paints
   useEffect(() => {
     applyThemeClass(resolvedTheme);
+    
+    // Also re-apply after a short delay to catch any race conditions during login/mount
+    const timer = setTimeout(() => applyThemeClass(resolvedTheme), 50);
+    return () => clearTimeout(timer);
   }, [resolvedTheme]);
+
+  useEffect(() => {
+    // Listen for storage changes from other tabs/windows
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "tsun-brew-theme" && e.newValue) {
+        setThemeState(e.newValue as Theme);
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   useEffect(() => {
     if (theme !== "system") return;
@@ -100,6 +121,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const nextTheme = order[(currentIdx + 1) % order.length];
     setTheme(nextTheme);
   };
+
+  // Add an effect to listen for a custom "theme-refresh" event that we can trigger on login
+  useEffect(() => {
+    const handleRefresh = () => {
+      // Re-read from storage in case it changed during login/session start
+      const stored = safeGetStorage("tsun-brew-theme") as Theme;
+      if (stored && stored !== theme) {
+        setThemeState(stored);
+      }
+      applyThemeClass(resolvedTheme);
+    };
+    window.addEventListener("tsun-brew-theme-refresh", handleRefresh);
+    return () => window.removeEventListener("tsun-brew-theme-refresh", handleRefresh);
+  }, [resolvedTheme, theme]);
 
   return (
     <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, cycleTheme }}>
