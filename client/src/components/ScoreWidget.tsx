@@ -38,6 +38,10 @@ function normalizeScore(score: number, fromMax: number, toMax: number): number {
   return Math.round((score / fromMax) * toMax * 10) / 10;
 }
 
+function scoreToPercent(score: number, maxScore: number): number {
+  return Math.round((score / maxScore) * 100);
+}
+
 export function ScoreWidget({ teaId, compact = false }: ScoreWidgetProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -165,8 +169,7 @@ export function ScoreWidget({ teaId, compact = false }: ScoreWidgetProps) {
           ) : null}
           {communityDisplay && !communityDisplay.notEnough && (
             <Badge variant="secondary" className="gap-1 py-0.5 text-xs" data-testid={`badge-community-score-${teaId}`}>
-              {formatScore(communityDisplay.avg, communityDisplay.system)}
-              <span className="text-muted-foreground ml-0.5">({communityDisplay.count})</span>
+              {scoreToPercent(communityDisplay.avg, communityDisplay.system.maxScore)}%
             </Badge>
           )}
         </div>
@@ -209,13 +212,12 @@ export function ScoreWidget({ teaId, compact = false }: ScoreWidgetProps) {
 
         {communityDisplay && (
           <div className="flex items-center gap-2" data-testid={`display-community-score-${teaId}`}>
-            <span className="text-sm text-muted-foreground">Community:</span>
+            <span className="text-sm text-muted-foreground">General Tolerance:</span>
             {communityDisplay.notEnough ? (
-              <span className="text-xs text-muted-foreground">{communityDisplay.count}/{minVotes} votes needed</span>
+              <span className="text-xs text-muted-foreground italic">Not enough data yet</span>
             ) : (
               <Badge variant="secondary" className="gap-1.5 py-1 px-3 font-semibold">
-                {formatScore(communityDisplay.avg, communityDisplay.system)}
-                <span className="text-muted-foreground font-normal ml-1">({communityDisplay.count} votes)</span>
+                {scoreToPercent(communityDisplay.avg, communityDisplay.system.maxScore)}%
               </Badge>
             )}
           </div>
