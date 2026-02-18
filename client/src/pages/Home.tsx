@@ -219,7 +219,7 @@ export default function Home() {
           
           <div className="max-w-md mx-auto relative mt-8">
             <Popover 
-              open={isSearchOpen && search.trim().length >= 2 && filteredTeas && filteredTeas.length > 0} 
+              open={isSearchOpen && search.trim().length >= 2 && filteredTeas && (filteredTeas.length > 0 || search.trim().length >= 3)} 
               onOpenChange={(open) => {
                 if (!open) setIsSearchOpen(false);
                 else if (search.trim().length >= 2) setIsSearchOpen(true);
@@ -257,7 +257,7 @@ export default function Home() {
               >
                 <ScrollArea className="max-h-[400px]">
                   <div className="p-2 space-y-1">
-                    {filteredTeas && filteredTeas.length > 0 && (
+                    {filteredTeas && filteredTeas.length > 0 ? (
                       <>
                         {filteredTeas.slice(0, 10).map((tea) => (
                           <Link key={tea.id} href={`/tea/${tea.slug}`}>
@@ -296,6 +296,12 @@ export default function Home() {
                           </p>
                         )}
                       </>
+                    ) : (
+                      search.trim().length >= 3 && (
+                        <div className="p-4 text-center">
+                          <p className="text-sm text-muted-foreground">No teas found matching "{search}"</p>
+                        </div>
+                      )
                     )}
                   </div>
                 </ScrollArea>
