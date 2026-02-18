@@ -138,9 +138,8 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async setEmailVerified(id: number): Promise<User> {
-    const [updated] = await db.update(users).set({ emailVerified: true }).where(eq(users.id, id)).returning();
-    return updated;
+  async updateUserEmail(id: number, email: string): Promise<void> {
+    await db.update(users).set({ email, emailVerified: true }).where(eq(users.id, id));
   }
 
   async getUsers(): Promise<User[]> {

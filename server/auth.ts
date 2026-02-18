@@ -297,6 +297,62 @@ export function setupAuth(app: Express) {
     res.json({ message: "Password updated successfully" });
   });
 
+  app.post("/api/user/update-email/send-code", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    try {
+      const { email } = req.body;
+      const user = req.user as User;
+
+      if (!email) return res.status(400).json({ message: "Email is required" });
+      if (email === user.email) return res.status(400).json({ message: "New email must be different from current email" });
+
+      if (!rateLimit(`update-email:${user.id}`, 3, 60 * 1000)) {
+        return res.status(429).json({ message: "Too many requests. Please wait a minute." });
+      }
+
+      const existing = await storage.getUserByEmail(email);
+      if (existing) return res.status(400).json({ message: "Email already in use" });
+
+      await storage.deleteVerificationCodesForEmail(email, "email_change");
+      const code = generateOTP();
+      await storage.createVerificationCode({
+        email,
+        code,
+        type: "email_change",
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      });
+
+      const sent = await sendVerificationEmail(email, code);
+      if (!sent) return res.status(500).json({ message: "Failed to send verification email" });
+
+      res.json({ message: "Verification code sent to your new email" });
+    } catch (err) {
+      console.error("Error in update-email/send-code:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/user/update-email/verify", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    try {
+      const { email, code } = req.body;
+      const user = req.user as User;
+
+      if (!email || !code) return res.status(400).json({ message: "Email and code are required" });
+
+      const validCode = await storage.getValidVerificationCode(email, code, "email_change");
+      if (!validCode) return res.status(400).json({ message: "Invalid or expired code" });
+
+      await storage.markVerificationCodeUsed(validCode.id);
+      await storage.updateUserEmail(user.id, email);
+
+      res.json({ message: "Email updated successfully" });
+    } catch (err) {
+      console.error("Error in update-email/verify:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post("/api/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
