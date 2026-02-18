@@ -284,7 +284,7 @@ function FilterSidebar({
             if (sort === "trending") {
               onSortChange("latest");
             } else {
-              setSelectedTypes([]);
+              onClearTypes();
               onSortChange("trending");
             }
           }}
