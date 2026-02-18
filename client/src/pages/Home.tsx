@@ -85,11 +85,8 @@ export default function Home() {
     const matchesName = nameWords.some(word => 
       isStrict ? word === searchTerm : word.startsWith(searchTerm)
     ) || name.startsWith(searchTerm);
-    const matchesType = typeWords.some(word => 
-      isStrict ? word === searchTerm : word.startsWith(searchTerm)
-    ) || type.startsWith(searchTerm);
     
-    return matchesName || matchesType;
+    return matchesName;
   });
 
   const phraseTexts = useMemo(() => heroPhrases?.map(p => p.text) || [], [heroPhrases]);
@@ -228,7 +225,7 @@ export default function Home() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
                   <Input 
                     ref={searchInputRef}
-                    placeholder="Search teas by name or type..." 
+                    placeholder="Search teas..." 
                     className="pl-10 h-12 text-lg rounded-full shadow-sm border-primary/20 focus-visible:ring-primary/30"
                     value={search}
                     onChange={(e) => {
