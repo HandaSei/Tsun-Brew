@@ -279,12 +279,29 @@ function FilterSidebar({
         
         <Button
           variant={sort === "trending" ? "default" : "outline"}
-          className="w-full justify-start gap-2 h-9"
-          onClick={() => onSortChange("trending")}
+          className="w-full justify-between gap-2 h-9 group/trending"
+          onClick={() => {
+            if (sort === "trending") {
+              setSort("latest");
+            } else {
+              onSortChange("trending");
+            }
+          }}
           data-testid="button-filter-trending"
         >
-          <TrendingUp className="w-4 h-4" />
-          <span className="text-sm font-medium">Trending Now</span>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            <span className="text-sm font-medium">Trending Now</span>
+          </div>
+          {sort === "trending" && (
+            <X 
+              className="w-3.5 h-3.5 opacity-60 hover:opacity-100 transition-opacity" 
+              onClick={(e) => {
+                e.stopPropagation();
+                onSortChange("latest");
+              }}
+            />
+          )}
         </Button>
       </div>
 
@@ -497,9 +514,9 @@ export default function BrowseTeas() {
                 <Button variant="outline" size="sm" data-testid="button-mobile-filters">
                   <SlidersHorizontal className="w-4 h-4 mr-1.5" />
                   Filters
-                  {selectedTypes.length > 0 && (
+                  {(selectedTypes.length > 0 || sort === "trending") && (
                     <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5">
-                      {selectedTypes.length}
+                      {selectedTypes.length + (sort === "trending" ? 1 : 0)}
                     </Badge>
                   )}
                 </Button>
@@ -515,9 +532,20 @@ export default function BrowseTeas() {
             </Sheet>
           </div>
 
-          {selectedTypes.length > 0 && (
+          {(selectedTypes.length > 0 || sort === "trending") && (
             <div className="flex items-center gap-1.5 flex-wrap mb-4">
               <span className="text-xs text-muted-foreground">Filtering:</span>
+              {sort === "trending" && (
+                <button
+                  onClick={() => setSort("latest")}
+                  className="inline-flex items-center gap-1 rounded-md border border-primary bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-semibold cursor-pointer"
+                  data-testid="active-filter-trending"
+                >
+                  <TrendingUp className="w-3 h-3" />
+                  Trending
+                  <X className="w-3 h-3" />
+                </button>
+              )}
               {selectedTypes.map((t) => {
                 const tt = teaTypes?.find((x) => x.name.toLowerCase() === t);
                 const color = tt ? getTeaTypeColor([tt], tt.name) : undefined;
