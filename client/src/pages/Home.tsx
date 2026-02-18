@@ -218,7 +218,13 @@ export default function Home() {
           </h1>
           
           <div className="max-w-md mx-auto relative mt-8">
-            <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+            <Popover 
+              open={isSearchOpen && search.trim().length >= 2} 
+              onOpenChange={(open) => {
+                if (!open) setIsSearchOpen(false);
+                else if (search.trim().length >= 2) setIsSearchOpen(true);
+              }}
+            >
               <PopoverAnchor asChild>
                 <div className="flex items-center relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
@@ -228,7 +234,7 @@ export default function Home() {
                     className="pl-10 h-12 text-lg rounded-full shadow-sm border-primary/20 focus-visible:ring-primary/30"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    onFocus={() => search.length > 0 && setIsSearchOpen(true)}
+                    onFocus={() => search.trim().length >= 2 && setIsSearchOpen(true)}
                     data-testid="input-search"
                   />
                 </div>
