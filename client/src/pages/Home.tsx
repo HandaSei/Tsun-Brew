@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
 import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { HorizontalScroll, ScrollItem } from "@/components/HorizontalScroll";
 
 function TrendingSection() {
   const { data: trendingTeas, isLoading } = useQuery<any[]>({
@@ -50,11 +51,13 @@ function TrendingSection() {
           </div>
         </Link>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {trendingTeas.map((tea: any) => (
-          <TeaCard key={tea.id} tea={tea} />
+      <HorizontalScroll>
+        {trendingTeas.slice(0, 10).map((tea: any) => (
+          <ScrollItem key={tea.id} className="w-[45%] sm:w-[30%] lg:w-[22%] xl:w-[18%]">
+            <TeaCard tea={tea} />
+          </ScrollItem>
         ))}
-      </div>
+      </HorizontalScroll>
     </section>
   );
 }
@@ -372,7 +375,7 @@ export default function Home() {
         {user && (() => {
           const myCustomTeas = teas
             ?.filter(tea => (tea as any).isCustom && (tea as any).createdById === user.id)
-            .slice(0, 5);
+            .slice(0, 10);
           if (!myCustomTeas || myCustomTeas.length === 0) return null;
           return (
             <section data-testid="section-your-additions">
@@ -389,11 +392,13 @@ export default function Home() {
                     {isAdmin ? "Add Custom Tea" : "Add New Tea"}
                   </Button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              <HorizontalScroll>
                 {myCustomTeas.map((tea) => (
-                  <TeaCard key={tea.id} tea={tea} />
+                  <ScrollItem key={tea.id} className="w-[45%] sm:w-[30%] lg:w-[22%] xl:w-[18%]">
+                    <TeaCard tea={tea} />
+                  </ScrollItem>
                 ))}
-              </div>
+              </HorizontalScroll>
             </section>
           );
         })()}
@@ -438,16 +443,22 @@ export default function Home() {
               <Loader2 className="w-12 h-12 animate-spin text-primary/30" />
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-              {teas?.filter(tea => !(tea as any).isCustom).slice(0, 5).map((tea) => (
-                <TeaCard key={tea.id} tea={tea} />
-              ))}
-              {(!teas || teas.filter(tea => !(tea as any).isCustom).length === 0) && (
-                <div className="col-span-full py-20 text-center">
+            (() => {
+              const officialTeas = teas?.filter(tea => !(tea as any).isCustom).slice(0, 10) || [];
+              return officialTeas.length > 0 ? (
+                <HorizontalScroll>
+                  {officialTeas.map((tea) => (
+                    <ScrollItem key={tea.id} className="w-[45%] sm:w-[30%] lg:w-[22%] xl:w-[18%]">
+                      <TeaCard tea={tea} />
+                    </ScrollItem>
+                  ))}
+                </HorizontalScroll>
+              ) : (
+                <div className="py-20 text-center">
                   <p className="text-muted-foreground text-lg">No teas found.</p>
                 </div>
-              )}
-            </div>
+              );
+            })()
           )}
         </section>
       </main>
