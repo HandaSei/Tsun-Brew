@@ -19,61 +19,6 @@ import { Link } from "wouter";
 import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-function HorizontalScroll({ children, dataTestId }: { children: React.ReactNode, dataTestId?: string }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!scrollRef.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !scrollRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!scrollRef.current) return;
-    setStartX(e.touches[0].pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!scrollRef.current) return;
-    const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 1.5;
-    scrollRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  return (
-    <div 
-      ref={scrollRef}
-      className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide cursor-grab active:cursor-grabbing scroll-smooth select-none touch-pan-x"
-      onMouseDown={handleMouseDown}
-      onMouseLeave={handleMouseUp}
-      onMouseUp={handleMouseUp}
-      onMouseMove={handleMouseMove}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      data-testid={dataTestId}
-    >
-      {children}
-    </div>
-  );
-}
-
 function TrendingSection() {
   const { data: trendingTeas, isLoading } = useQuery<any[]>({
     queryKey: ['/api/trending-teas'],
@@ -105,13 +50,11 @@ function TrendingSection() {
           </div>
         </Link>
       </div>
-      <HorizontalScroll dataTestId="trending-scroll">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         {trendingTeas.map((tea: any) => (
-          <div key={tea.id} className="min-w-[280px] sm:min-w-[320px] shrink-0">
-            <TeaCard tea={tea} />
-          </div>
+          <TeaCard key={tea.id} tea={tea} />
         ))}
-      </HorizontalScroll>
+      </div>
     </section>
   );
 }
@@ -429,7 +372,7 @@ export default function Home() {
         {user && (() => {
           const myCustomTeas = teas
             ?.filter(tea => (tea as any).isCustom && (tea as any).createdById === user.id)
-            .slice(0, 10);
+            .slice(0, 5);
           if (!myCustomTeas || myCustomTeas.length === 0) return null;
           return (
             <section data-testid="section-your-additions">
@@ -446,13 +389,11 @@ export default function Home() {
                     {isAdmin ? "Add Custom Tea" : "Add New Tea"}
                   </Button>
               </div>
-              <HorizontalScroll dataTestId="custom-scroll">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                 {myCustomTeas.map((tea) => (
-                  <div key={tea.id} className="min-w-[280px] sm:min-w-[320px] shrink-0">
-                    <TeaCard tea={tea} />
-                  </div>
+                  <TeaCard key={tea.id} tea={tea} />
                 ))}
-              </HorizontalScroll>
+              </div>
             </section>
           );
         })()}
@@ -497,20 +438,16 @@ export default function Home() {
               <Loader2 className="w-12 h-12 animate-spin text-primary/30" />
             </div>
           ) : (
-            <>
-              <HorizontalScroll dataTestId="latest-scroll">
-                {teas?.filter(tea => !(tea as any).isCustom).slice(0, 10).map((tea) => (
-                  <div key={tea.id} className="min-w-[280px] sm:min-w-[320px] shrink-0">
-                    <TeaCard tea={tea} />
-                  </div>
-                ))}
-                {(!teas || teas.filter(tea => !(tea as any).isCustom).length === 0) && (
-                  <div className="w-full py-20 text-center">
-                    <p className="text-muted-foreground text-lg">No teas found.</p>
-                  </div>
-                )}
-              </HorizontalScroll>
-            </>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              {teas?.filter(tea => !(tea as any).isCustom).slice(0, 5).map((tea) => (
+                <TeaCard key={tea.id} tea={tea} />
+              ))}
+              {(!teas || teas.filter(tea => !(tea as any).isCustom).length === 0) && (
+                <div className="col-span-full py-20 text-center">
+                  <p className="text-muted-foreground text-lg">No teas found.</p>
+                </div>
+              )}
+            </div>
           )}
         </section>
       </main>
