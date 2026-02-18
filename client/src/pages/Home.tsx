@@ -84,10 +84,10 @@ export default function Home() {
     
     const matchesName = nameWords.some(word => 
       isStrict ? word === searchTerm : word.startsWith(searchTerm)
-    );
+    ) || name.includes(searchTerm);
     const matchesType = typeWords.some(word => 
       isStrict ? word === searchTerm : word.startsWith(searchTerm)
-    );
+    ) || type.includes(searchTerm);
     
     return matchesName || matchesType;
   });
