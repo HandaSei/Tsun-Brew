@@ -151,6 +151,8 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
     toast({
       title: "Brew Complete!",
       description: `Your ${tea.name} is ready to enjoy.`,
+      duration: 10000, // Keep it visible for 10 seconds
+      id: `brew-complete-${tea.id}`, // Unique ID to prevent duplicates but allow it to stay
     });
 
     if ("Notification" in window && Notification.permission === "granted") {
@@ -229,6 +231,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
     if (user) {
       // Background update using raw fetch to avoid any React Query state sync that might close dialogs
       // We also use a small delay to ensure the UI has time to process the alarm trigger
+      // Use a slightly longer delay to ensure the toast is definitely triggered first
       setTimeout(() => {
         fetch(`/api/logs/${tea.id}`, {
           method: 'PATCH',
@@ -239,7 +242,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
             status: 'drinking'
           })
         }).catch(e => console.error("Auto log update failed:", e));
-      }, 1000);
+      }, 1500);
     }
   };
 
