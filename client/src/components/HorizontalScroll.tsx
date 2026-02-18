@@ -32,24 +32,14 @@ export function HorizontalScroll({ children, className = "" }: HorizontalScrollP
   }, [checkScroll, children]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setIsDragging(true);
-    setDragDistance(0);
-    setStartX(e.pageX - el.offsetLeft);
-    setScrollLeft(el.scrollLeft);
+    // Disable mouse dragging
+    return;
   }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const el = scrollRef.current;
-    if (!el) return;
-    const x = e.pageX - el.offsetLeft;
-    const walk = (x - startX) * 1.5;
-    setDragDistance(Math.abs(walk));
-    el.scrollLeft = scrollLeft - walk;
-  }, [isDragging, startX, scrollLeft]);
+    // Disable mouse dragging
+    return;
+  }, []);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -89,7 +79,7 @@ export function HorizontalScroll({ children, className = "" }: HorizontalScrollP
 
       <div
         ref={scrollRef}
-        className={`flex gap-4 md:gap-6 overflow-x-auto [&::-webkit-scrollbar]:hidden ${isDragging ? "cursor-grabbing select-none" : "cursor-grab scroll-smooth"}`}
+        className={`flex gap-4 md:gap-6 overflow-x-auto [&::-webkit-scrollbar]:hidden ${isDragging ? "select-none" : "scroll-smooth"}`}
         style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}

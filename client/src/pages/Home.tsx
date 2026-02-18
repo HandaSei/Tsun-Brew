@@ -52,7 +52,7 @@ function TrendingSection() {
         </Link>
       </div>
       <HorizontalScroll>
-        {trendingTeas.slice(0, 10).map((tea: any) => (
+        {trendingTeas.slice(0, 8).map((tea: any) => (
           <ScrollItem key={tea.id} className="w-[45%] sm:w-[30%] lg:w-[22%] xl:w-[18%]">
             <TeaCard tea={tea} />
           </ScrollItem>
@@ -375,7 +375,7 @@ export default function Home() {
         {user && (() => {
           const myCustomTeas = teas
             ?.filter(tea => (tea as any).isCustom && (tea as any).createdById === user.id)
-            .slice(0, 10);
+            .slice(0, 8);
           if (!myCustomTeas || myCustomTeas.length === 0) return null;
           return (
             <section data-testid="section-your-additions">
@@ -444,7 +444,7 @@ export default function Home() {
             </div>
           ) : (
             (() => {
-              const officialTeas = teas?.filter(tea => !(tea as any).isCustom).slice(0, 10) || [];
+              const officialTeas = teas?.filter(tea => !(tea as any).isCustom).slice(0, 8) || [];
               return officialTeas.length > 0 ? (
                 <HorizontalScroll>
                   {officialTeas.map((tea) => (
