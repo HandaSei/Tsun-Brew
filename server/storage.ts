@@ -180,8 +180,8 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
-  async browseTeas(options: { userId?: number; customOnly?: boolean; sort?: string; types?: string[]; page?: number; limit?: number }): Promise<{ teas: Tea[]; total: number }> {
-    const { userId, customOnly = false, sort = "latest", types, page = 1, limit = 36 } = options;
+  async browseTeas(options: { userId?: number; customOnly?: boolean; officialOnly?: boolean; sort?: string; types?: string[]; page?: number; limit?: number }): Promise<{ teas: Tea[]; total: number }> {
+    const { userId, customOnly = false, officialOnly = false, sort = "latest", types, page = 1, limit = 36 } = options;
     const offset = (page - 1) * limit;
 
     const conditions: any[] = [];
@@ -193,6 +193,8 @@ export class DatabaseStorage implements IStorage {
     if (customOnly && userId) {
       conditions.push(eq(teas.isCustom, true));
       conditions.push(eq(teas.createdById, userId));
+    } else if (officialOnly) {
+      conditions.push(eq(teas.isCustom, false));
     } else if (userId) {
       conditions.push(
         or(

@@ -248,9 +248,9 @@ function FilterSidebar({
   selectedTypes,
   onToggleType,
   onClearTypes,
-  customOnly,
-  onCustomOnlyChange,
-  showCustomToggle,
+  source,
+  onSourceChange,
+  showSourceSelector,
 }: {
   sort: string;
   onSortChange: (v: string) => void;
@@ -258,9 +258,9 @@ function FilterSidebar({
   selectedTypes: string[];
   onToggleType: (name: string) => void;
   onClearTypes: () => void;
-  customOnly: boolean;
-  onCustomOnlyChange: (v: boolean) => void;
-  showCustomToggle: boolean;
+  source: "official" | "custom" | "all";
+  onSourceChange: (v: "official" | "custom" | "all") => void;
+  showSourceSelector: boolean;
 }) {
   return (
     <div className="space-y-6">
@@ -275,28 +275,6 @@ function FilterSidebar({
 
       <SortSelect value={sort} onChange={onSortChange} />
 
-      {showCustomToggle && (
-        <div className="flex items-center justify-between gap-2 p-2 rounded-md border border-border/40 bg-muted/30">
-          <div className="space-y-0.5">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Custom Teas
-            </label>
-            <p className="text-[11px] text-muted-foreground">
-              Only show your additions
-            </p>
-          </div>
-          <Button
-            variant={customOnly ? "default" : "outline"}
-            size="sm"
-            className="h-7 px-3 text-[11px] rounded-full"
-            onClick={() => onCustomOnlyChange(!customOnly)}
-            data-testid="toggle-custom-only"
-          >
-            {customOnly ? "On" : "Off"}
-          </Button>
-        </div>
-      )}
-
       {teaTypes.length > 0 && (
         <TypeFilter
           teaTypes={teaTypes}
@@ -304,6 +282,33 @@ function FilterSidebar({
           onToggle={onToggleType}
           onClearAll={onClearTypes}
         />
+      )}
+
+      {showSourceSelector && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Tea Source</label>
+          <div className="grid grid-cols-1 gap-1.5">
+            {[
+              { id: "official", label: "Official Database", description: "Standard teas only" },
+              { id: "custom", label: "Your Additions", description: "Personal teas only" },
+              { id: "all", label: "Everything", description: "Official & personal" },
+            ].map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => onSourceChange(opt.id as any)}
+                className={`flex flex-col items-start p-2 rounded-md border text-left transition-all ${
+                  source === opt.id
+                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                    : "border-border/40 hover:border-border hover:bg-muted/30"
+                }`}
+                data-testid={`source-opt-${opt.id}`}
+              >
+                <span className="text-sm font-medium leading-none">{opt.label}</span>
+                <span className="text-[10px] text-muted-foreground mt-1">{opt.description}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
@@ -317,12 +322,13 @@ export default function BrowseTeas() {
 
   const params = new URLSearchParams(location.split("?")[1] || "");
   const urlSort = params.get("sort") || "latest";
-  const urlCustomOnly = params.get("custom") === "true";
+  const urlCustom = params.get("custom");
+  const urlSource: "official" | "custom" | "all" = urlCustom === "true" ? "custom" : urlCustom === "false" ? "official" : "official";
   const urlTypes = params.get("types")?.split(",").filter(Boolean) || [];
 
   const [sort, setSort] = useState(urlSort);
   const [selectedTypes, setSelectedTypes] = useState<string[]>(urlTypes);
-  const [customOnly, setCustomOnly] = useState(urlCustomOnly);
+  const [source, setSource] = useState<"official" | "custom" | "all">(urlSource);
   const [page, setPage] = useState(1);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
@@ -333,13 +339,13 @@ export default function BrowseTeas() {
 
   useEffect(() => {
     setSort(urlSort);
-    setCustomOnly(urlCustomOnly);
+    setSource(urlSource);
     setSelectedTypes(urlTypes);
     setPage(1);
     setMobilePage(1);
     setMobileTeas([]);
     setMobileHasMore(true);
-  }, [urlSort, urlCustomOnly, location]);
+  }, [urlSort, urlSource, location]);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -360,17 +366,19 @@ export default function BrowseTeas() {
   queryParams.set("sort", sort);
   queryParams.set("page", isMobile ? mobilePage.toString() : page.toString());
   queryParams.set("limit", isMobile ? MOBILE_LIMIT.toString() : DESKTOP_LIMIT.toString());
-  if (customOnly) queryParams.set("customOnly", "true");
+  if (source === "custom") queryParams.set("custom", "true");
+  if (source === "official") queryParams.set("custom", "false");
   if (selectedTypes.length > 0) queryParams.set("types", selectedTypes.join(","));
 
   const desktopQuery = useQuery<BrowseResponse>({
-    queryKey: ["/api/browse-teas", sort, page, selectedTypes.join(","), customOnly, "desktop"],
+    queryKey: ["/api/browse-teas", sort, page, selectedTypes.join(","), source, "desktop"],
     queryFn: async () => {
       const params = new URLSearchParams();
       params.set("sort", sort);
       params.set("page", page.toString());
       params.set("limit", DESKTOP_LIMIT.toString());
-      if (customOnly) params.set("customOnly", "true");
+      if (source === "custom") params.set("customOnly", "true");
+      if (source === "official") params.set("officialOnly", "true");
       if (selectedTypes.length > 0) params.set("types", selectedTypes.join(","));
       const res = await fetch(`/api/browse-teas?${params}`);
       if (!res.ok) throw new Error("Failed to browse teas");
@@ -380,13 +388,14 @@ export default function BrowseTeas() {
   });
 
   const mobileQuery = useQuery<BrowseResponse>({
-    queryKey: ["/api/browse-teas", sort, mobilePage, selectedTypes.join(","), customOnly, "mobile"],
+    queryKey: ["/api/browse-teas", sort, mobilePage, selectedTypes.join(","), source, "mobile"],
     queryFn: async () => {
       const params = new URLSearchParams();
       params.set("sort", sort);
       params.set("page", mobilePage.toString());
       params.set("limit", MOBILE_LIMIT.toString());
-      if (customOnly) params.set("customOnly", "true");
+      if (source === "custom") params.set("customOnly", "true");
+      if (source === "official") params.set("officialOnly", "true");
       if (selectedTypes.length > 0) params.set("types", selectedTypes.join(","));
       const res = await fetch(`/api/browse-teas?${params}`);
       if (!res.ok) throw new Error("Failed to browse teas");
@@ -412,7 +421,7 @@ export default function BrowseTeas() {
     setMobilePage(1);
     setMobileTeas([]);
     setMobileHasMore(true);
-  }, [sort, selectedTypes.length, customOnly]);
+  }, [sort, selectedTypes.length, source]);
 
   const toggleType = useCallback((name: string) => {
     setSelectedTypes((prev) =>
@@ -447,9 +456,9 @@ export default function BrowseTeas() {
       selectedTypes={selectedTypes}
       onToggleType={toggleType}
       onClearTypes={clearTypes}
-      customOnly={customOnly}
-      onCustomOnlyChange={setCustomOnly}
-      showCustomToggle={!!user}
+      source={source}
+      onSourceChange={setSource}
+      showSourceSelector={!!user}
     />
   );
 
@@ -530,7 +539,7 @@ export default function BrowseTeas() {
               <p className="text-sm text-muted-foreground mt-1">
                 {selectedTypes.length > 0
                   ? "Try clearing your filters"
-                  : customOnly
+                  : source === "custom"
                   ? "You haven't added any custom teas yet"
                   : "No teas available"}
               </p>

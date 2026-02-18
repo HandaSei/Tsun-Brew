@@ -58,12 +58,14 @@ export async function registerRoutes(
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 36;
       const customOnly = req.query.customOnly === 'true';
+      const officialOnly = req.query.officialOnly === 'true';
       const typesParam = req.query.types as string;
       const types = typesParam ? typesParam.split(',').filter(Boolean) : undefined;
 
       const result = await storage.browseTeas({
         userId: user?.id,
         customOnly,
+        officialOnly,
         sort,
         types,
         page,
