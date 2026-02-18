@@ -51,6 +51,11 @@ export function TypewriterPhrase({
   }, [tick, isDeleting, isPaused, typingSpeed, deletingSpeed, phrases.length]);
 
   useEffect(() => {
+    // Only reset if the actual string content of phrases has changed
+    const currentPhrasesStr = JSON.stringify(phrases);
+    if ((window as any).__lastPhrasesStr === currentPhrasesStr) return;
+    (window as any).__lastPhrasesStr = currentPhrasesStr;
+
     setDisplayText("");
     setIsDeleting(false);
     setIsPaused(false);

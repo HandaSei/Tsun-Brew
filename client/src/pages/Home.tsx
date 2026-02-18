@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Loader2, Edit2, Trash2, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CreateTeaForm } from "@/components/CreateTeaForm";
 import { useAuth } from "@/hooks/use-auth";
@@ -92,7 +92,7 @@ export default function Home() {
     return matchesName || matchesType;
   });
 
-  const phraseTexts = heroPhrases?.map(p => p.text) || [];
+  const phraseTexts = useMemo(() => heroPhrases?.map(p => p.text) || [], [heroPhrases]);
 
   useEffect(() => {
     if (search.trim().length >= 2) {
