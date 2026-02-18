@@ -97,7 +97,7 @@ export default function Home() {
   const phraseTexts = heroPhrases?.map(p => p.text) || [];
 
   useEffect(() => {
-    if (search.length > 0) {
+    if (search.trim().length >= 2) {
       setIsSearchOpen(true);
     } else {
       setIsSearchOpen(false);
