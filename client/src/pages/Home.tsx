@@ -70,10 +70,21 @@ export default function Home() {
     },
   });
 
-  const filteredTeas = teas?.filter(tea => 
-    tea.name.toLowerCase().includes(search.toLowerCase()) ||
-    tea.type.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredTeas = teas?.filter(tea => {
+    const searchTerm = search.toLowerCase();
+    if (searchTerm.length === 1) return false;
+    
+    const name = tea.name.toLowerCase();
+    const type = tea.type.toLowerCase();
+    
+    const nameWords = name.split(/\s+/);
+    const typeWords = type.split(/\s+/);
+    
+    const matchesName = nameWords.some(word => word.startsWith(searchTerm));
+    const matchesType = typeWords.some(word => word.startsWith(searchTerm));
+    
+    return matchesName || matchesType;
+  });
 
   const phraseTexts = heroPhrases?.map(p => p.text) || [];
 
@@ -227,12 +238,24 @@ export default function Home() {
                           <Link key={tea.id} href={`/tea/${tea.slug}`}>
                             <div className="flex items-center gap-3 p-2 hover:bg-accent rounded-md cursor-pointer group transition-colors">
                               <div 
-                                className="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm"
-                                style={{ 
-                                  backgroundColor: `hsl(${tea.typeColorHue ?? 0}, ${tea.typeColorSaturation ?? 70}%, ${tea.typeColorLightness ?? 45}%)` 
-                                }}
+                                className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden shrink-0 shadow-sm bg-muted"
                               >
-                                {tea.name[0]}
+                                {tea.photoUrl ? (
+                                  <img 
+                                    src={tea.photoUrl} 
+                                    alt={tea.name} 
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div 
+                                    className="w-full h-full flex items-center justify-center text-white text-xs font-bold"
+                                    style={{ 
+                                      backgroundColor: `hsl(${tea.typeColorHue ?? 0}, ${tea.typeColorSaturation ?? 70}%, ${tea.typeColorLightness ?? 45}%)` 
+                                    }}
+                                  >
+                                    {tea.name[0]}
+                                  </div>
+                                )}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm truncate">{tea.name}</p>
