@@ -31,32 +31,31 @@ export async function sendVerificationEmail(to: string, code: string): Promise<b
   }
 }
 
-export async function sendPasswordRecoveryEmail(to: string, username: string, newPassword: string): Promise<boolean> {
+export async function sendPasswordResetEmail(to: string, resetLink: string): Promise<boolean> {
   try {
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
       to,
-      subject: "Tsun Brew - Account Recovery",
+      subject: "Tsun Brew - Reset Your Password",
       html: `
         <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-          <h2 style="color: #2d5016; margin-bottom: 16px;">Account Recovery</h2>
-          <p style="color: #333; font-size: 16px;">Here are your account details:</p>
-          <div style="background: #f4f0e8; border-radius: 8px; padding: 20px; margin: 24px 0;">
-            <p style="margin: 8px 0; font-size: 15px;"><strong>Username:</strong> ${username}</p>
-            <p style="margin: 8px 0; font-size: 15px;"><strong>Temporary Password:</strong> ${newPassword}</p>
+          <h2 style="color: #2d5016; margin-bottom: 16px;">Reset Your Password</h2>
+          <p style="color: #333; font-size: 16px;">We received a request to reset your password. Click the button below to choose a new one:</p>
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${resetLink}" style="display: inline-block; background: #2d5016; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-size: 16px; font-weight: bold;">Reset Password</a>
           </div>
-          <p style="color: #666; font-size: 14px;">Please log in and change your password as soon as possible.</p>
-          <p style="color: #666; font-size: 14px;">If you didn't request this, please contact an administrator immediately.</p>
+          <p style="color: #666; font-size: 14px;">This link expires in 15 minutes. If you didn't request this, you can safely ignore this email.</p>
+          <p style="color: #999; font-size: 12px; margin-top: 24px;">If the button doesn't work, copy and paste this link into your browser:<br/><a href="${resetLink}" style="color: #2d5016; word-break: break-all;">${resetLink}</a></p>
         </div>
       `,
     });
     if (error) {
-      console.error("Failed to send recovery email:", error);
+      console.error("Failed to send reset email:", error);
       return false;
     }
     return true;
   } catch (err) {
-    console.error("Error sending recovery email:", err);
+    console.error("Error sending reset email:", err);
     return false;
   }
 }

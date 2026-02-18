@@ -436,7 +436,7 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
         <div>
           <p className="font-medium">Check your email</p>
           <p className="text-sm text-muted-foreground mt-1">
-            If an account exists with that email, we've sent your username and a temporary password.
+            If an account exists with that email, we've sent a password reset link.
           </p>
         </div>
         <Button variant="outline" onClick={onBack} className="w-full" data-testid="button-back-to-login">
@@ -456,7 +456,7 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
       </div>
       <div className="text-center mb-2">
         <p className="text-sm text-muted-foreground">
-          Enter your email and we'll send your username and a temporary password.
+          Enter your email and we'll send you a link to reset your password.
         </p>
       </div>
       <Form {...form}>

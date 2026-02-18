@@ -7,7 +7,7 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User } from "@shared/schema";
 import { pool } from "./db";
-import { sendVerificationEmail, sendPasswordRecoveryEmail } from "./email";
+import { sendVerificationEmail, sendPasswordResetEmail } from "./email";
 import connectPgSimple from "connect-pg-simple";
 
 const PgStore = connectPgSimple(session);
@@ -29,10 +29,6 @@ async function comparePasswords(supplied: string, stored: string) {
 
 function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-function generateTempPassword(): string {
-  return randomBytes(8).toString("hex");
 }
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -222,21 +218,70 @@ export function setupAuth(app: Express) {
 
       const user = await storage.getUserByEmail(email);
       if (!user) {
-        return res.json({ message: "If an account with that email exists, we've sent recovery details." });
+        return res.json({ message: "If an account with that email exists, we've sent a reset link." });
       }
 
-      const tempPassword = generateTempPassword();
-      const hashedPassword = await hashPassword(tempPassword);
-      await storage.updateUserPassword(user.id, hashedPassword, true);
+      await storage.deleteVerificationCodesForEmail(email, "password_reset");
 
-      const sent = await sendPasswordRecoveryEmail(email, user.username, tempPassword);
+      const token = randomBytes(32).toString("hex");
+      await storage.createVerificationCode({
+        email,
+        code: token,
+        type: "password_reset",
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      });
+
+      const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+      const host = req.headers["x-forwarded-host"] || req.headers.host;
+      const resetLink = `${protocol}://${host}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+
+      const sent = await sendPasswordResetEmail(email, resetLink);
       if (!sent) {
-        return res.status(500).json({ message: "Failed to send recovery email. Please try again." });
+        return res.status(500).json({ message: "Failed to send reset email. Please try again." });
       }
 
-      res.json({ message: "If an account with that email exists, we've sent recovery details." });
+      res.json({ message: "If an account with that email exists, we've sent a reset link." });
     } catch (err) {
       console.error("Error in forgot-password:", err);
+      res.status(500).json({ message: "Something went wrong. Please try again." });
+    }
+  });
+
+  app.post("/api/reset-password", async (req, res) => {
+    try {
+      const { email, token, password } = req.body;
+
+      if (!email || !token || !password) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+
+      if (!rateLimit(`reset:${email}`, 5, 60 * 1000)) {
+        return res.status(429).json({ message: "Too many attempts. Please wait a minute." });
+      }
+
+      const validCode = await storage.getValidVerificationCode(email, token, "password_reset");
+      if (!validCode) {
+        return res.status(400).json({ message: "Invalid or expired reset link. Please request a new one." });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(400).json({ message: "Invalid or expired reset link." });
+      }
+
+      await storage.markVerificationCodeUsed(validCode.id);
+      await storage.deleteVerificationCodesForEmail(email, "password_reset");
+
+      const hashedPassword = await hashPassword(password);
+      await storage.updateUserPassword(user.id, hashedPassword, false);
+
+      res.json({ message: "Password has been reset successfully. You can now log in with your new password." });
+    } catch (err) {
+      console.error("Error in reset-password:", err);
       res.status(500).json({ message: "Something went wrong. Please try again." });
     }
   });

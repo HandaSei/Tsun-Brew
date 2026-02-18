@@ -11,6 +11,7 @@ import MyList from "@/pages/MyList";
 import AdminPage from "@/pages/Admin";
 import DynamicPage from "@/pages/DynamicPage";
 import UserSettings from "@/pages/UserSettings";
+import ResetPassword from "@/pages/ResetPassword";
 import { useEffect } from "react";
 import type { SiteSettings } from "@shared/schema";
 
@@ -26,6 +27,7 @@ function Router() {
       </Route>
       <Route path="/admin" component={AdminPage} />
       <Route path="/settings" component={UserSettings} />
+      <Route path="/reset-password" component={ResetPassword} />
       <Route path="/page/:slug" component={DynamicPage} />
       <Route component={NotFound} />
     </Switch>
