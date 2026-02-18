@@ -71,8 +71,8 @@ export default function Home() {
   });
 
   const filteredTeas = teas?.filter(tea => {
-    const searchTerm = search.toLowerCase();
-    if (searchTerm.length === 1) return false;
+    const searchTerm = search.trim().toLowerCase();
+    if (searchTerm.length < 2) return false;
     
     const name = tea.name.toLowerCase();
     const type = tea.type.toLowerCase();
@@ -237,6 +237,10 @@ export default function Home() {
                       if (val.trim().length < 2) {
                         setIsSearchOpen(false);
                       }
+                    }}
+                    onBlur={() => {
+                      // Small delay to allow clicking on results
+                      setTimeout(() => setIsSearchOpen(false), 200);
                     }}
                     onFocus={() => search.trim().length >= 2 && setIsSearchOpen(true)}
                     data-testid="input-search"
