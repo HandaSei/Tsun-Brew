@@ -213,12 +213,16 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   const handleComplete = () => {
     triggerAlarm();
     if (user) {
-      updateLog.mutate({
-        teaId: tea.id,
-        incrementBrew: true,
-        currentInfusion: infusion + 1,
-        status: 'drinking'
-      });
+      // Use a longer delay for the mutation to allow the user to see the zero
+      // and prevent immediate unmount/re-render while the alarm starts
+      setTimeout(() => {
+        updateLog.mutate({
+          teaId: tea.id,
+          incrementBrew: true,
+          currentInfusion: infusion + 1,
+          status: 'drinking'
+        });
+      }, 2000);
     }
     setInfusion(i => i + 1);
     if (onComplete) onComplete();
