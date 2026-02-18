@@ -233,7 +233,13 @@ export default function Home() {
                     placeholder="Search teas by name or type..." 
                     className="pl-10 h-12 text-lg rounded-full shadow-sm border-primary/20 focus-visible:ring-primary/30"
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSearch(val);
+                      if (val.trim().length < 2) {
+                        setIsSearchOpen(false);
+                      }
+                    }}
                     onFocus={() => search.trim().length >= 2 && setIsSearchOpen(true)}
                     data-testid="input-search"
                   />
