@@ -266,16 +266,22 @@ export function setupAuth(app: Express) {
 }
 
 export async function seedAdmin() {
-  const adminUsername = "FanEcchyy";
-  const adminPassword = "Pl3acacanutiozic54321";
-  
+  const adminUsername = process.env.ADMIN_USERNAME;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@tsunbrew.local";
+
+  if (!adminUsername || !adminPassword) {
+    console.log("Skipping admin seed: ADMIN_USERNAME and ADMIN_PASSWORD environment variables are required.");
+    return;
+  }
+
   const existing = await storage.getUserByUsername(adminUsername);
   if (!existing) {
     console.log("Seeding admin account...");
     const hashedPassword = await hashPassword(adminPassword);
     await storage.createUser({
       username: adminUsername,
-      email: "admin@tsunbrew.local",
+      email: adminEmail,
       password: hashedPassword,
       role: "admin",
     });
