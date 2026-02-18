@@ -24,11 +24,13 @@ Tsun Brew is a full-stack web application for tea enthusiasts to discover, track
 - Default "About" page and footer link seeded in production data
 - Favicon URL field in branding settings with dynamic favicon updates
 - Logo and top bar sizing: logo 12x12, top bar 4.5rem, footer logo 1.5x (4.5rem)
-- Reworked auth: persistent PostgreSQL sessions (connect-pg-simple), email verification OTP during registration, forgot password/username recovery via email
+- Security: Admin credentials moved from hardcoded values to environment variables (ADMIN_USERNAME, ADMIN_PASSWORD)
+- Security: Password recovery changed from sending plaintext temp password + username via email to secure time-limited reset token links (/reset-password page)
+- Reworked auth: persistent PostgreSQL sessions (connect-pg-simple), email verification OTP during registration, password reset via secure token link
 - Users table now has `email` (unique) and `emailVerified` fields; `verificationCodes` table for OTP codes
 - Registration is two-step: enter details → receive 6-digit OTP via email → verify to create account
 - One account per email enforced at DB level (unique constraint) and checked during registration
-- Forgot password sends username + temporary password to the user's email via Resend API
+- Forgot password sends a secure time-limited reset link to the user's email via Resend API
 - Email sending via Resend SDK (RESEND_API_KEY secret); email utility in server/email.ts
 - Sessions stored in PostgreSQL `user_sessions` table with 30-day cookie expiry (connect-pg-simple)
 - Build output changed from CJS to ESM (dist/index.mjs) with CJS wrapper for deployment compatibility
