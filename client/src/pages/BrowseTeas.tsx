@@ -100,6 +100,7 @@ function SortSelect({ value, onChange }: { value: string; onChange: (v: string) 
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="latest" data-testid="sort-latest">Last Added</SelectItem>
+          <SelectItem value="trending" data-testid="sort-trending">Trending Now</SelectItem>
           <SelectItem value="most_brewed" data-testid="sort-most-brewed">Most Brewed</SelectItem>
         </SelectContent>
       </Select>

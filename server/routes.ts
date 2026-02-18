@@ -62,6 +62,21 @@ export async function registerRoutes(
       const typesParam = req.query.types as string;
       const types = typesParam ? typesParam.split(',').filter(Boolean) : undefined;
 
+      if (sort === 'trending') {
+        const trending = await storage.getTrendingTeas();
+        const teaTypes = await storage.getTeaTypes();
+        const result = trending.map(tea => {
+          const tt = findTeaType(teaTypes, tea.type);
+          return {
+            ...tea,
+            typeColorHue: tt?.colorHue ?? null,
+            typeColorSaturation: tt?.colorSaturation ?? null,
+            typeColorLightness: tt?.colorLightness ?? null,
+          };
+        });
+        return res.json({ teas: result, total: result.length, page: 1, limit: 36 });
+      }
+
       const result = await storage.browseTeas({
         userId: user?.id,
         customOnly,

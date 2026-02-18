@@ -6,7 +6,8 @@ Tsun Brew is a full-stack web application for tea enthusiasts to discover, track
 
 ## Recent Changes
 - Trending teas system: trendingTeasCache table, trendingWindowHours/trendingRefreshHours in siteSettings (defaults 48h/24h)
-- Trending section on Home page (between Custom Additions and Latest Additions) with TrendingUp icon, shows top 10 most-brewed teas
+- Trending section on Home page (between Custom Additions and Latest Additions) with TrendingUp icon, shows top 10 most-brewed teas; clickable heading redirects to Browse page with "Trending Now" sort
+- Browse page: added "Trending Now" option to Sort by panel (limited to top 36 teas)
 - Trending falls back to all-time most brewed teas if recent activity < 5 teas; auto-refresh hourly, recompute based on refresh interval
 - Admin Trending controls in Branding tab: window hours, refresh interval, manual "Refresh Trending Now" button
 - Server-side validation enforces trendingWindowHours/trendingRefreshHours >= 1

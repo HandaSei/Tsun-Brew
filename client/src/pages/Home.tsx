@@ -42,9 +42,13 @@ function TrendingSection() {
 
   return (
     <section data-testid="section-trending">
-      <div className="flex items-center gap-3 mb-8">
-        <TrendingUp className="w-6 h-6 text-primary" />
-        <h2 className="text-3xl font-display font-bold" data-testid="text-trending">Trending</h2>
+      <div className="flex items-center justify-between gap-4 flex-wrap mb-8">
+        <Link href="/browse?sort=trending">
+          <div className="flex items-center gap-3 hover:text-primary transition-colors cursor-pointer group">
+            <TrendingUp className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
+            <h2 className="text-3xl font-display font-bold" data-testid="text-trending">Trending</h2>
+          </div>
+        </Link>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         {trendingTeas.map((tea: any) => (
