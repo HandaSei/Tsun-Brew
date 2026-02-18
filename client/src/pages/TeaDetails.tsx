@@ -429,87 +429,71 @@ export default function TeaDetails() {
                   )}
                   {user && (
                     teaLog ? (
-                      <div className="flex items-center gap-2">
-                        <Dialog open={listSelectOpen} onOpenChange={setListSelectOpen}>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="default" className="gap-2" data-testid="button-change-status">
-                              <Edit2 className="w-4 h-4" />
-                              {teaLog.status === "drinking" ? "Drinking" : teaLog.status === "want_to_try" ? "Want to Try" : "Not Rebuying"}
+                      <Dialog open={listSelectOpen} onOpenChange={setListSelectOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="default" className="gap-2" data-testid="button-change-status">
+                            <Edit2 className="w-4 h-4" />
+                            {teaLog.status === "drinking" ? "Drinking" : teaLog.status === "want_to_try" ? "Want to Try" : "Not Rebuying"}
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-sm">
+                          <DialogHeader>
+                            <DialogTitle>Change status</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex flex-col gap-3 pt-2">
+                            <Button
+                              variant="outline"
+                              className="justify-start gap-3 h-auto py-3 px-4"
+                              onClick={() => handleAddToList("drinking")}
+                              disabled={updateLog.isPending}
+                              data-testid="button-list-drinking"
+                            >
+                              <Leaf className="w-5 h-5 text-primary" />
+                              <div className="text-left">
+                                <div className="font-medium">Drinking</div>
+                                <div className="text-xs text-muted-foreground">Currently brewing this tea</div>
+                              </div>
                             </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-sm">
-                            <DialogHeader>
-                              <DialogTitle>Change status</DialogTitle>
-                            </DialogHeader>
-                            <div className="flex flex-col gap-3 pt-2">
-                              <Button
-                                variant="outline"
-                                className="justify-start gap-3 h-auto py-3 px-4"
-                                onClick={() => handleAddToList("drinking")}
-                                disabled={updateLog.isPending}
-                                data-testid="button-list-drinking"
-                              >
-                                <Leaf className="w-5 h-5 text-primary" />
-                                <div className="text-left">
-                                  <div className="font-medium">Drinking</div>
-                                  <div className="text-xs text-muted-foreground">Currently brewing this tea</div>
-                                </div>
-                              </Button>
-                              <Button
-                                variant="outline"
-                                className="justify-start gap-3 h-auto py-3 px-4"
-                                onClick={() => handleAddToList("want_to_try")}
-                                disabled={updateLog.isPending}
-                                data-testid="button-list-want-to-try"
-                              >
-                                <Star className="w-5 h-5 text-accent" />
-                                <div className="text-left">
-                                  <div className="font-medium">Want to Try</div>
-                                  <div className="text-xs text-muted-foreground">On my wishlist</div>
-                                </div>
-                              </Button>
-                              <Button
-                                variant="outline"
-                                className="justify-start gap-3 h-auto py-3 px-4"
-                                onClick={() => handleAddToList("not_rebuying")}
-                                disabled={updateLog.isPending}
-                                data-testid="button-list-not-rebuying"
-                              >
-                                <X className="w-5 h-5 text-destructive" />
-                                <div className="text-left">
-                                  <div className="font-medium">Not Rebuying</div>
-                                  <div className="text-xs text-muted-foreground">Tried it, not for me</div>
-                                </div>
-                              </Button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-
-                        <Dialog open={timerSettingsOpen} onOpenChange={setTimerSettingsOpen}>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="icon" className="rounded-full h-10 w-10 border-primary/20 hover:bg-primary/5 shadow-sm transition-all active:scale-95" data-testid="button-timer-open">
-                              <Timer className="w-5 h-5 text-primary" />
+                            <Button
+                              variant="outline"
+                              className="justify-start gap-3 h-auto py-3 px-4"
+                              onClick={() => handleAddToList("want_to_try")}
+                              disabled={updateLog.isPending}
+                              data-testid="button-list-want-to-try"
+                            >
+                              <Star className="w-5 h-5 text-accent" />
+                              <div className="text-left">
+                                <div className="font-medium">Want to Try</div>
+                                <div className="text-xs text-muted-foreground">On my wishlist</div>
+                              </div>
                             </Button>
-                          </DialogTrigger>
-                          <DialogContent 
-                            className="max-w-[340px] p-0 overflow-hidden mx-auto"
-                            onPointerDownOutside={(e) => e.preventDefault()}
-                            onEscapeKeyDown={(e) => e.preventDefault()}
-                            onInteractOutside={(e) => e.preventDefault()}
-                          >
-                            <div className="p-1 sm:p-2" onClick={(e) => e.stopPropagation()}>
-                              <h3 className="text-center font-display text-2xl mb-0.5">{tea.name}</h3>
-                              <BrewTimer tea={tea} teaLog={teaLog} showControls={true} />
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
+                            <Button
+                              variant="outline"
+                              className="justify-start gap-3 h-auto py-3 px-4"
+                              onClick={() => handleAddToList("not_rebuying")}
+                              disabled={updateLog.isPending}
+                              data-testid="button-list-not-rebuying"
+                            >
+                              <X className="w-5 h-5 text-destructive" />
+                              <div className="text-left">
+                                <div className="font-medium">Not Rebuying</div>
+                                <div className="text-xs text-muted-foreground">Tried it, not for me</div>
+                              </div>
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     ) : (
                       <Dialog open={listSelectOpen} onOpenChange={setListSelectOpen}>
                         <DialogTrigger asChild>
-                          <Button className="rounded-full gap-2 shadow-lg shadow-primary/20 h-10 px-6 animate-in fade-in slide-in-from-right-4 duration-500" data-testid="button-add-to-list">
-                            <Plus className="w-5 h-5" />
-                            Add to My List
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="gap-2"
+                            disabled={updateLog.isPending}
+                            data-testid="button-add-to-list"
+                          >
+                            <Plus className="w-4 h-4" /> Add to List
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-sm">
