@@ -148,6 +148,16 @@ export const siteSettings = pgTable("site_settings", {
   displayFont: text("display_font"),
   faviconUrl: text("favicon_url"),
   minCommunityVotes: integer("min_community_votes").notNull().default(15),
+  trendingWindowHours: integer("trending_window_hours").notNull().default(48),
+  trendingRefreshHours: integer("trending_refresh_hours").notNull().default(24),
+});
+
+export const trendingTeasCache = pgTable("trending_teas_cache", {
+  id: serial("id").primaryKey(),
+  teaId: integer("tea_id").notNull().references(() => teas.id),
+  brewCount: integer("brew_count").notNull().default(0),
+  sortOrder: integer("sort_order").notNull().default(0),
+  computedAt: timestamp("computed_at").notNull().defaultNow(),
 });
 
 export const scoringSystems = pgTable("scoring_systems", {

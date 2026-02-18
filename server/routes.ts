@@ -90,6 +90,61 @@ export async function registerRoutes(
     }
   });
 
+  // === Trending Teas ===
+  async function refreshTrendingIfNeeded() {
+    try {
+      const settings = await storage.getSiteSettings();
+      const windowHours = settings?.trendingWindowHours ?? 48;
+      const refreshHours = settings?.trendingRefreshHours ?? 24;
+      const cacheAge = await storage.getTrendingCacheAge();
+
+      if (!cacheAge || (Date.now() - cacheAge.getTime()) > refreshHours * 60 * 60 * 1000) {
+        await storage.computeTrendingTeas(windowHours);
+      }
+    } catch (err) {
+      console.error("Failed to refresh trending:", err);
+    }
+  }
+
+  refreshTrendingIfNeeded();
+  setInterval(() => refreshTrendingIfNeeded(), 60 * 60 * 1000);
+
+  app.get('/api/trending-teas', async (_req, res) => {
+    try {
+      await refreshTrendingIfNeeded();
+      const trending = await storage.getTrendingTeas();
+      const types = await storage.getTeaTypes();
+      const result = trending.map(tea => {
+        const tt = findTeaType(types, tea.type);
+        return {
+          ...tea,
+          typeColorHue: tt?.colorHue ?? null,
+          typeColorSaturation: tt?.colorSaturation ?? null,
+          typeColorLightness: tt?.colorLightness ?? null,
+        };
+      });
+      res.json(result);
+    } catch (err) {
+      console.error("Trending teas error:", err);
+      res.status(500).json({ message: "Failed to get trending teas" });
+    }
+  });
+
+  app.post('/api/trending-teas/refresh', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    try {
+      const settings = await storage.getSiteSettings();
+      const windowHours = settings?.trendingWindowHours ?? 48;
+      await storage.computeTrendingTeas(windowHours);
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Trending refresh error:", err);
+      res.status(500).json({ message: "Failed to refresh trending" });
+    }
+  });
+
   // === Teas ===
   app.get(api.teas.list.path, async (req, res) => {
     const user = req.isAuthenticated() ? req.user as User : undefined;

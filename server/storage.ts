@@ -1,6 +1,6 @@
 import { 
   users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases, teaTypes, siteSettings, verificationCodes, footerLinks, pages, collectionPhrases,
-  scoringSystems, teaScores, userPreferences, scoreDefinitions,
+  scoringSystems, teaScores, userPreferences, scoreDefinitions, trendingTeasCache,
   type User, type InsertUser, type Tea, type InsertTea, type TeaLog, type InsertTeaLog,
   type Guide, type InsertGuide, type Review, type InsertReview,
   type HeroPhrase, type InsertHeroPhrase,
@@ -731,6 +731,82 @@ export class DatabaseStorage implements IStorage {
     }
     const [created] = await db.insert(userPreferences).values({ ...data, userId } as any).returning();
     return created;
+  }
+
+  async computeTrendingTeas(windowHours: number): Promise<void> {
+    const cutoff = new Date(Date.now() - windowHours * 60 * 60 * 1000);
+
+    const recentBrews = await db
+      .select({
+        teaId: teaLogs.teaId,
+        brewCount: sql<number>`COALESCE(SUM(${teaLogs.totalBrews}), 0)`.as("brew_count"),
+      })
+      .from(teaLogs)
+      .where(and(gt(teaLogs.lastBrewedAt, cutoff), gt(teaLogs.totalBrews, 0)))
+      .groupBy(teaLogs.teaId)
+      .orderBy(sql`brew_count DESC`)
+      .limit(20);
+
+    let allTrending: { teaId: number; brewCount: number }[] = recentBrews.map(r => ({
+      teaId: r.teaId,
+      brewCount: r.brewCount,
+    }));
+
+    if (allTrending.length < 5) {
+      const recentTeaIds = allTrending.map(t => t.teaId);
+      const fallback = await db
+        .select({
+          teaId: teaLogs.teaId,
+          brewCount: sql<number>`COALESCE(SUM(${teaLogs.totalBrews}), 0)`.as("brew_count"),
+        })
+        .from(teaLogs)
+        .where(gt(teaLogs.totalBrews, 0))
+        .groupBy(teaLogs.teaId)
+        .orderBy(sql`brew_count DESC`)
+        .limit(20);
+
+      for (const fb of fallback) {
+        if (!recentTeaIds.includes(fb.teaId) && allTrending.length < 20) {
+          allTrending.push({ teaId: fb.teaId, brewCount: fb.brewCount });
+        }
+      }
+    }
+
+    await db.delete(trendingTeasCache);
+
+    if (allTrending.length > 0) {
+      await db.insert(trendingTeasCache).values(
+        allTrending.map((t, idx) => ({
+          teaId: t.teaId,
+          brewCount: t.brewCount,
+          sortOrder: idx,
+          computedAt: new Date(),
+        }))
+      );
+    }
+  }
+
+  async getTrendingTeas(): Promise<(Tea & { brewCount: number })[]> {
+    const cached = await db
+      .select({
+        tea: teas,
+        brewCount: trendingTeasCache.brewCount,
+        sortOrder: trendingTeasCache.sortOrder,
+      })
+      .from(trendingTeasCache)
+      .innerJoin(teas, eq(trendingTeasCache.teaId, teas.id))
+      .orderBy(trendingTeasCache.sortOrder)
+      .limit(10);
+
+    return cached.map(r => ({ ...r.tea, brewCount: r.brewCount }));
+  }
+
+  async getTrendingCacheAge(): Promise<Date | null> {
+    const [row] = await db
+      .select({ computedAt: trendingTeasCache.computedAt })
+      .from(trendingTeasCache)
+      .limit(1);
+    return row?.computedAt ?? null;
   }
 }
 
