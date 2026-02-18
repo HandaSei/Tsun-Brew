@@ -123,9 +123,24 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         toast({
           title: "Timer Done!",
           description: "Click here to stop the alarm.",
-          action: <Button variant="outline" size="sm" onClick={() => audioRef.current?.play()}>Start Audio</Button>
+          action: <Button variant="outline" size="sm" onClick={() => {
+            if (audioRef.current) {
+              audioRef.current.play().catch(e => console.error("Manual play failed:", e));
+              setAlarmActive(true);
+            }
+          }}>Start Audio</Button>
         });
       });
+    }
+
+    // Keep the tab active by playing a silent sound if possible, or just focus
+    try {
+      if (audioRef.current) {
+        audioRef.current.play().catch(() => {});
+      }
+      window.focus();
+    } catch (e) {
+      console.error("Focus failed:", e);
     }
 
     toast({
@@ -250,10 +265,11 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       requestNotificationPermission();
       // Resume audio context or play silent sound to unlock audio
       if (audioRef.current) {
+        // Playing and immediately pausing to "unlock" the audio element for later
         audioRef.current.play().then(() => {
           audioRef.current?.pause();
           audioRef.current!.currentTime = 0;
-        }).catch(() => {});
+        }).catch((e) => console.log("Audio unlock failed:", e));
       }
     }
     setIsActive(!isActive);
