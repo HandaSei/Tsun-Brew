@@ -9,7 +9,10 @@ import {
   Menu,
   Sun,
   Moon,
-  Sunset
+  Sunset,
+  ChevronDown,
+  Library,
+  BookOpen
 } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -17,6 +20,11 @@ import { useTheme } from "@/components/ThemeProvider";
 import { AuthModal } from "@/components/AuthModal";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { SiteSettings } from "@shared/schema";
 
 export function Navigation() {
@@ -24,6 +32,7 @@ export function Navigation() {
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [browseOpen, setBrowseOpen] = useState(false);
   const { resolvedTheme, cycleTheme } = useTheme();
 
   // Force AuthModal if user has temporary password
@@ -85,6 +94,50 @@ export function Navigation() {
         <nav className="hidden md:flex items-center gap-6">
           <NavLink href="/">Discovery</NavLink>
           {user && <NavLink href={`/${user.username}/Collection`}>My Tea List</NavLink>}
+          <Popover open={browseOpen} onOpenChange={setBrowseOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className={`relative flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors ${
+                  location.startsWith("/browse") ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                }`}
+                data-testid="nav-browse-trigger"
+              >
+                Browse
+                <ChevronDown className="w-3.5 h-3.5" />
+                {location.startsWith("/browse") && (
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full" />
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-2" align="start">
+              <Link
+                href="/browse"
+                onClick={() => setBrowseOpen(false)}
+                className="flex items-center gap-3 p-2.5 rounded-md hover-elevate cursor-pointer transition-colors"
+                data-testid="nav-browse-all"
+              >
+                <Library className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">All Teas</p>
+                  <p className="text-[11px] text-muted-foreground">Browse the full library</p>
+                </div>
+              </Link>
+              {user && (
+                <Link
+                  href="/browse?custom=true"
+                  onClick={() => setBrowseOpen(false)}
+                  className="flex items-center gap-3 p-2.5 rounded-md hover-elevate cursor-pointer transition-colors"
+                  data-testid="nav-browse-custom"
+                >
+                  <BookOpen className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">Your Custom Teas</p>
+                    <p className="text-[11px] text-muted-foreground">Your personal collection</p>
+                  </div>
+                </Link>
+              )}
+            </PopoverContent>
+          </Popover>
           {user?.role === 'admin' && <NavLink href="/admin">Admin</NavLink>}
         </nav>
 
@@ -156,6 +209,10 @@ export function Navigation() {
                 <Link href="/" onClick={() => setIsOpen(false)} className="text-lg font-medium">Discovery</Link>
                 {user && (
                   <Link href={`/${user.username}/Collection`} onClick={() => setIsOpen(false)} className="text-lg font-medium">My Tea List</Link>
+                )}
+                <Link href="/browse" onClick={() => setIsOpen(false)} className="text-lg font-medium">All Teas</Link>
+                {user && (
+                  <Link href="/browse?custom=true" onClick={() => setIsOpen(false)} className="text-lg font-medium">Your Custom Teas</Link>
                 )}
                 {user?.role === 'admin' && (
                   <Link href="/admin" onClick={() => setIsOpen(false)} className="text-lg font-medium text-primary">Admin Panel</Link>

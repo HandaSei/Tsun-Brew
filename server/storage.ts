@@ -36,6 +36,7 @@ export interface IStorage {
   deleteVerificationCodesForEmail(email: string, type: string): Promise<void>;
 
   // Teas
+  browseTeas(options: { userId?: number; customOnly?: boolean; sort?: string; types?: string[]; page?: number; limit?: number }): Promise<{ teas: Tea[]; total: number }>;
   getTeas(userId?: number): Promise<Tea[]>;
   getTea(id: number): Promise<(Tea & { attributes: any[] }) | undefined>;
   getTeaBySlug(slug: string): Promise<(Tea & { attributes: any[] }) | undefined>;
@@ -177,6 +178,74 @@ export class DatabaseStorage implements IStorage {
     await db.delete(verificationCodes).where(
       and(eq(verificationCodes.email, email), eq(verificationCodes.type, type))
     );
+  }
+
+  async browseTeas(options: { userId?: number; customOnly?: boolean; sort?: string; types?: string[]; page?: number; limit?: number }): Promise<{ teas: Tea[]; total: number }> {
+    const { userId, customOnly = false, sort = "latest", types, page = 1, limit = 36 } = options;
+    const offset = (page - 1) * limit;
+
+    const conditions: any[] = [];
+
+    if (customOnly && !userId) {
+      return { teas: [], total: 0 };
+    }
+
+    if (customOnly && userId) {
+      conditions.push(eq(teas.isCustom, true));
+      conditions.push(eq(teas.createdById, userId));
+    } else if (userId) {
+      conditions.push(
+        or(
+          eq(teas.isCustom, false),
+          and(eq(teas.isCustom, true), eq(teas.createdById, userId))
+        )!
+      );
+    } else {
+      conditions.push(eq(teas.isCustom, false));
+    }
+
+    if (types && types.length > 0) {
+      const lowerTypes = types.map(t => t.toLowerCase());
+      conditions.push(sql`LOWER(${teas.type}) IN (${sql.join(lowerTypes.map(t => sql`${t}`), sql`, `)})`);
+    }
+
+    const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
+
+    const [countResult] = await db.select({ count: sql<number>`count(*)::int` }).from(teas).where(whereClause);
+    const total = countResult?.count ?? 0;
+
+    let query;
+    if (sort === "most_brewed") {
+      const brewCounts = db
+        .select({
+          teaId: teaLogs.teaId,
+          totalBrewCount: sql<number>`COALESCE(SUM(${teaLogs.totalBrews}), 0)`.as("total_brew_count"),
+        })
+        .from(teaLogs)
+        .groupBy(teaLogs.teaId)
+        .as("brew_counts");
+
+      const results = await db
+        .select({ tea: teas })
+        .from(teas)
+        .leftJoin(brewCounts, eq(teas.id, brewCounts.teaId))
+        .where(whereClause)
+        .orderBy(sql`COALESCE(${brewCounts.totalBrewCount}, 0) DESC`, desc(teas.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      return { teas: results.map(r => r.tea), total };
+    } else {
+      const results = await db
+        .select()
+        .from(teas)
+        .where(whereClause)
+        .orderBy(desc(teas.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      return { teas: results, total };
+    }
   }
 
   async getTeas(userId?: number): Promise<Tea[]> {

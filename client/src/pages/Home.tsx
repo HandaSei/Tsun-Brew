@@ -337,7 +337,9 @@ export default function Home() {
           return (
             <section data-testid="section-your-additions">
               <div className="flex items-center justify-between gap-4 flex-wrap mb-8">
-                <h2 className="text-3xl font-display font-bold" data-testid="text-your-additions">Your Custom Additions</h2>
+                <Link href="/browse?custom=true">
+                  <h2 className="text-3xl font-display font-bold hover:text-primary transition-colors cursor-pointer" data-testid="text-your-additions">Your Custom Additions</h2>
+                </Link>
                   <Button
                     className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl"
                     onClick={() => setCreateCustomOpen(true)}
@@ -358,7 +360,9 @@ export default function Home() {
 
         <section data-testid="section-latest-additions">
           <div className="flex items-center justify-between gap-4 flex-wrap mb-8">
-            <h2 className="text-3xl font-display font-bold" data-testid="text-latest-additions">Latest Additions</h2>
+            <Link href="/browse?sort=latest">
+              <h2 className="text-3xl font-display font-bold hover:text-primary transition-colors cursor-pointer" data-testid="text-latest-additions">Latest Additions</h2>
+            </Link>
             
             {user && (
               <div className="flex items-center gap-2 flex-wrap">

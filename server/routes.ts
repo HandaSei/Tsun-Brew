@@ -50,6 +50,44 @@ export async function registerRoutes(
     console.error("Failed to seed default scoring system:", err);
   }
 
+  // === Browse Teas ===
+  app.get('/api/browse-teas', async (req, res) => {
+    try {
+      const user = req.isAuthenticated() ? req.user as User : undefined;
+      const sort = (req.query.sort as string) || 'latest';
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 36;
+      const customOnly = req.query.customOnly === 'true';
+      const typesParam = req.query.types as string;
+      const types = typesParam ? typesParam.split(',').filter(Boolean) : undefined;
+
+      const result = await storage.browseTeas({
+        userId: user?.id,
+        customOnly,
+        sort,
+        types,
+        page,
+        limit,
+      });
+
+      const teaTypes = await storage.getTeaTypes();
+      const teasWithColors = result.teas.map(tea => {
+        const tt = findTeaType(teaTypes, tea.type);
+        return {
+          ...tea,
+          typeColorHue: tt?.colorHue ?? null,
+          typeColorSaturation: tt?.colorSaturation ?? null,
+          typeColorLightness: tt?.colorLightness ?? null,
+        };
+      });
+
+      res.json({ teas: teasWithColors, total: result.total, page, limit });
+    } catch (err) {
+      console.error("Browse teas error:", err);
+      res.status(500).json({ message: "Failed to browse teas" });
+    }
+  });
+
   // === Teas ===
   app.get(api.teas.list.path, async (req, res) => {
     const user = req.isAuthenticated() ? req.user as User : undefined;
