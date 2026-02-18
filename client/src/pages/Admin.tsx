@@ -628,6 +628,9 @@ function BrandingTab() {
   const [faviconUrl, setFaviconUrl] = useState("");
   const [trendingWindowHours, setTrendingWindowHours] = useState(48);
   const [trendingRefreshHours, setTrendingRefreshHours] = useState(24);
+  const [announcementText, setAnnouncementText] = useState("");
+  const [announcementColor, setAnnouncementColor] = useState("primary");
+  const [showAnnouncement, setShowAnnouncement] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -638,6 +641,9 @@ function BrandingTab() {
       setFaviconUrl(settings.faviconUrl || "");
       setTrendingWindowHours((settings as any).trendingWindowHours ?? 48);
       setTrendingRefreshHours((settings as any).trendingRefreshHours ?? 24);
+      setAnnouncementText(settings.announcementText || "");
+      setAnnouncementColor(settings.announcementColor || "primary");
+      setShowAnnouncement(settings.showAnnouncement || false);
     }
   }, [settings]);
 
@@ -664,7 +670,18 @@ function BrandingTab() {
   });
 
   const handleSave = () => {
-    updateMutation.mutate({ siteName, statusTag, logoUrl, displayFont, faviconUrl, trendingWindowHours, trendingRefreshHours } as any);
+    updateMutation.mutate({ 
+      siteName, 
+      statusTag, 
+      logoUrl, 
+      displayFont, 
+      faviconUrl, 
+      trendingWindowHours, 
+      trendingRefreshHours,
+      showAnnouncement,
+      announcementText,
+      announcementColor
+    } as any);
   };
 
   if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>;
@@ -673,6 +690,53 @@ function BrandingTab() {
     <div className="space-y-6">
       <p className="text-muted-foreground text-sm">Customize the look and feel of the site. Changes apply globally.</p>
       
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Announcement</h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Show Announcement</Label>
+              <p className="text-xs text-muted-foreground">Display an important message on the home page.</p>
+            </div>
+            <Switch
+              checked={showAnnouncement}
+              onCheckedChange={setShowAnnouncement}
+              data-testid="switch-show-announcement"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Announcement Text</Label>
+            <Input
+              value={announcementText}
+              onChange={(e) => setAnnouncementText(e.target.value)}
+              placeholder="e.g. We're launching new teas this weekend!"
+              data-testid="input-announcement-text"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Box Color</Label>
+            <Select value={announcementColor} onValueChange={setAnnouncementColor}>
+              <SelectTrigger data-testid="select-announcement-color">
+                <SelectValue placeholder="Select color" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="primary">Primary (Green)</SelectItem>
+                <SelectItem value="destructive">Destructive (Red)</SelectItem>
+                <SelectItem value="orange-500">Orange</SelectItem>
+                <SelectItem value="blue-500">Blue</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button
+            onClick={handleSave}
+            disabled={updateMutation.isPending}
+            data-testid="button-save-announcement"
+          >
+            {updateMutation.isPending ? "Saving..." : "Save Announcement"}
+          </Button>
+        </div>
+      </Card>
+
       <Card className="p-6 space-y-5">
         <div className="space-y-2">
           <Label>Site Name</Label>

@@ -13,7 +13,7 @@ import { TypewriterPhrase } from "@/components/TypewriterPhrase";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { type HeroPhrase } from "@shared/schema";
+import { type HeroPhrase, type SiteSettings } from "@shared/schema";
 import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
 import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
@@ -79,6 +79,10 @@ export default function Home() {
 
   const { data: heroPhrases } = useQuery<HeroPhrase[]>({
     queryKey: ['/api/hero-phrases'],
+  });
+
+  const { data: siteSettings } = useQuery<SiteSettings>({
+    queryKey: ['/api/site-settings'],
   });
 
   const createPhrase = useMutation({
@@ -164,7 +168,7 @@ export default function Home() {
               </DialogTrigger>
                 <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Manage Hero Phrases</DialogTitle>
+                    <DialogTitle>Manage Phrases</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 pt-2">
                     <div className="space-y-2">
@@ -254,6 +258,22 @@ export default function Home() {
               <span className="text-muted-foreground/50">...</span>
             )}
           </h1>
+
+          {siteSettings?.showAnnouncement && siteSettings?.announcementText && (
+            <div 
+              className="max-w-2xl mx-auto p-4 rounded-lg border shadow-sm animate-in fade-in slide-in-from-top-4 duration-500 mb-8"
+              style={{ 
+                backgroundColor: `hsl(var(--${siteSettings.announcementColor || 'primary'}) / 0.1)`,
+                borderColor: `hsl(var(--${siteSettings.announcementColor || 'primary'}) / 0.2)`,
+                color: `hsl(var(--${siteSettings.announcementColor || 'primary'}))`
+              }}
+              data-testid="announcement-box"
+            >
+              <p className="text-sm font-medium leading-relaxed">
+                {siteSettings.announcementText}
+              </p>
+            </div>
+          )}
           
           <div className="max-w-md mx-auto relative mt-8">
             <Popover 
@@ -372,6 +392,7 @@ export default function Home() {
       </Dialog>
 
       <main className="container mx-auto px-4 pb-20 flex-1 space-y-16">
+        <hr className="border-t border-border/40" />
         {user && (() => {
           const myCustomTeas = teas
             ?.filter(tea => (tea as any).isCustom && (tea as any).createdById === user.id)

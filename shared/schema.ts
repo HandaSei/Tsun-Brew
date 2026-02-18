@@ -150,6 +150,9 @@ export const siteSettings = pgTable("site_settings", {
   minCommunityVotes: integer("min_community_votes").notNull().default(15),
   trendingWindowHours: integer("trending_window_hours").notNull().default(48),
   trendingRefreshHours: integer("trending_refresh_hours").notNull().default(24),
+  announcementText: text("announcement_text"),
+  announcementColor: text("announcement_color").notNull().default("primary"),
+  showAnnouncement: boolean("show_announcement").notNull().default(false),
 });
 
 export const trendingTeasCache = pgTable("trending_teas_cache", {

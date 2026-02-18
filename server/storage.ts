@@ -463,7 +463,8 @@ export class DatabaseStorage implements IStorage {
 
   async updateSiteSettings(settings: Partial<InsertSiteSettings>): Promise<SiteSettings> {
     const existing = await this.getSiteSettings();
-    const [updated] = await db.update(siteSettings).set(settings as any).where(eq(siteSettings.id, existing.id)).returning();
+    const updateData: any = { ...settings };
+    const [updated] = await db.update(siteSettings).set(updateData).where(eq(siteSettings.id, existing.id)).returning();
     return updated;
   }
 

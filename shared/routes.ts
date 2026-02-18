@@ -295,7 +295,11 @@ export const api = {
     update: {
       method: 'PATCH' as const,
       path: '/api/site-settings',
-      input: insertSiteSettingsSchema.partial(),
+      input: insertSiteSettingsSchema.partial().extend({
+        announcementText: z.string().nullable().optional(),
+        announcementColor: z.string().optional(),
+        showAnnouncement: z.boolean().optional(),
+      }),
       responses: {
         200: z.custom<typeof siteSettings.$inferSelect>(),
         403: errorSchemas.forbidden,

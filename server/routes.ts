@@ -426,11 +426,29 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const user = req.user as User;
     if (user.role !== 'admin') return res.sendStatus(403);
-    const input = api.siteSettings.update.input.parse(req.body);
-    if (input.trendingWindowHours !== undefined && input.trendingWindowHours < 1) input.trendingWindowHours = 1;
-    if (input.trendingRefreshHours !== undefined && input.trendingRefreshHours < 1) input.trendingRefreshHours = 1;
-    const settings = await storage.updateSiteSettings(input);
-    res.json(settings);
+    
+    try {
+      const input = api.siteSettings.update.input.parse(req.body);
+      
+      const updateData = {
+        ...input,
+        announcementText: req.body.announcementText,
+        announcementColor: req.body.announcementColor,
+        showAnnouncement: req.body.showAnnouncement,
+      };
+
+      if (updateData.trendingWindowHours !== undefined && (updateData.trendingWindowHours as number) < 1) updateData.trendingWindowHours = 1;
+      if (updateData.trendingRefreshHours !== undefined && (updateData.trendingRefreshHours as number) < 1) updateData.trendingRefreshHours = 1;
+      
+      const settings = await storage.updateSiteSettings(updateData);
+      res.json(settings);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors[0].message });
+      } else {
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
   });
 
   // === Footer Links ===
