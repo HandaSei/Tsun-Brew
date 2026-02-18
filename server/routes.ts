@@ -65,7 +65,7 @@ export async function registerRoutes(
       if (sort === 'trending') {
         const trending = await storage.getTrendingTeas();
         const teaTypes = await storage.getTeaTypes();
-        const result = trending.map(tea => {
+        let result = trending.map(tea => {
           const tt = findTeaType(teaTypes, tea.type);
           return {
             ...tea,
@@ -74,6 +74,12 @@ export async function registerRoutes(
             typeColorLightness: tt?.colorLightness ?? null,
           };
         });
+
+        if (types && types.length > 0) {
+          const typeSet = new Set(types.map(t => t.toLowerCase()));
+          result = result.filter(tea => typeSet.has(tea.type.toLowerCase()));
+        }
+
         return res.json({ teas: result, total: result.length, page: 1, limit: 36 });
       }
 

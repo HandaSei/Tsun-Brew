@@ -284,6 +284,7 @@ function FilterSidebar({
             if (sort === "trending") {
               onSortChange("latest");
             } else {
+              setSelectedTypes([]);
               onSortChange("trending");
             }
           }}
@@ -324,21 +325,27 @@ function FilterSidebar({
               { id: "official", label: "Official Database", description: "Standard teas only" },
               { id: "custom", label: "Your Additions", description: "Personal teas only" },
               { id: "all", label: "Everything", description: "Official & personal" },
-            ].map((opt) => (
-              <button
-                key={opt.id}
-                onClick={() => onSourceChange(opt.id as any)}
-                className={`flex flex-col items-start p-2 rounded-md border text-left transition-all ${
-                  source === opt.id
-                    ? "border-primary bg-primary/5 ring-1 ring-primary"
-                    : "border-border/40 hover:border-border hover:bg-muted/30"
-                }`}
-                data-testid={`source-opt-${opt.id}`}
-              >
-                <span className="text-sm font-medium leading-none">{opt.label}</span>
-                <span className="text-[10px] text-muted-foreground mt-1">{opt.description}</span>
-              </button>
-            ))}
+            ].map((opt) => {
+              const isDisabled = sort === "trending" && opt.id !== "official";
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => !isDisabled && onSourceChange(opt.id as any)}
+                  className={`flex flex-col items-start p-2 rounded-md border text-left transition-all ${
+                    source === opt.id
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : isDisabled
+                      ? "border-destructive/20 bg-destructive/5 text-destructive cursor-not-allowed opacity-60"
+                      : "border-border/40 hover:border-border hover:bg-muted/30"
+                  }`}
+                  data-testid={`source-opt-${opt.id}`}
+                  disabled={isDisabled}
+                >
+                  <span className="text-sm font-medium leading-none">{opt.label}</span>
+                  <span className={`text-[10px] mt-1 ${isDisabled ? "text-destructive/70" : "text-muted-foreground"}`}>{opt.description}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -457,7 +464,7 @@ export default function BrowseTeas() {
 
   const toggleType = useCallback((name: string) => {
     setSelectedTypes((prev) =>
-      prev.includes(name) ? prev.filter((t) => t !== name) : [...prev, name]
+      prev.includes(name) ? [] : [name]
     );
   }, []);
 
