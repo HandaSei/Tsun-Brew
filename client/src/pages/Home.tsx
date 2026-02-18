@@ -3,9 +3,9 @@ import { TeaCard } from "@/components/TeaCard";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Loader2, Edit2, Trash2 } from "lucide-react";
+import { Plus, Search, Loader2, Edit2, Trash2, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CreateTeaForm } from "@/components/CreateTeaForm";
 import { useAuth } from "@/hooks/use-auth";
@@ -15,11 +15,16 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { type HeroPhrase } from "@shared/schema";
 import { Textarea } from "@/components/ui/textarea";
+import { Link } from "wouter";
+import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Home() {
   const { data: teas, isLoading } = useTeas();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [createCustomOpen, setCreateCustomOpen] = useState(false);
   const [createGlobalOpen, setCreateGlobalOpen] = useState(false);
   const [phrasesOpen, setPhrasesOpen] = useState(false);
@@ -71,6 +76,14 @@ export default function Home() {
   );
 
   const phraseTexts = heroPhrases?.map(p => p.text) || [];
+
+  useEffect(() => {
+    if (search.length > 0) {
+      setIsSearchOpen(true);
+    } else {
+      setIsSearchOpen(false);
+    }
+  }, [search]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -185,15 +198,65 @@ export default function Home() {
             )}
           </h1>
           
-          <div className="flex items-center max-w-md mx-auto relative mt-8">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
-            <Input 
-              placeholder="Search teas by name or type..." 
-              className="pl-10 h-12 text-lg rounded-full shadow-sm border-primary/20 focus-visible:ring-primary/30"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              data-testid="input-search"
-            />
+          <div className="max-w-md mx-auto relative mt-8">
+            <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+              <PopoverAnchor asChild>
+                <div className="flex items-center relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                  <Input 
+                    ref={searchInputRef}
+                    placeholder="Search teas by name or type..." 
+                    className="pl-10 h-12 text-lg rounded-full shadow-sm border-primary/20 focus-visible:ring-primary/30"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    onFocus={() => search.length > 0 && setIsSearchOpen(true)}
+                    data-testid="input-search"
+                  />
+                </div>
+              </PopoverAnchor>
+              <PopoverContent 
+                className="w-[var(--radix-popover-trigger-width)] p-0" 
+                align="start"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+              >
+                <ScrollArea className="max-h-[400px]">
+                  <div className="p-2 space-y-1">
+                    {filteredTeas && filteredTeas.length > 0 ? (
+                      <>
+                        {filteredTeas.slice(0, 10).map((tea) => (
+                          <Link key={tea.id} href={`/tea/${tea.slug}`}>
+                            <div className="flex items-center gap-3 p-2 hover:bg-accent rounded-md cursor-pointer group transition-colors">
+                              <div 
+                                className="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm"
+                                style={{ 
+                                  backgroundColor: `hsl(${tea.typeColorHue ?? 0}, ${tea.typeColorSaturation ?? 70}%, ${tea.typeColorLightness ?? 45}%)` 
+                                }}
+                              >
+                                {tea.name[0]}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">{tea.name}</p>
+                                <p className="text-xs text-muted-foreground truncate">{tea.type}</p>
+                              </div>
+                              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </Link>
+                        ))}
+                        {filteredTeas.length > 10 && (
+                          <p className="text-[10px] text-center text-muted-foreground pt-2 pb-1 uppercase tracking-wider font-semibold">
+                            + {filteredTeas.length - 10} more results
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <div className="p-4 text-center">
+                        <p className="text-sm text-muted-foreground">No teas found matching "{search}"</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </section>
@@ -218,7 +281,7 @@ export default function Home() {
 
       <main className="container mx-auto px-4 pb-20 flex-1 space-y-16">
         {user && (() => {
-          const myCustomTeas = filteredTeas
+          const myCustomTeas = teas
             ?.filter(tea => (tea as any).isCustom && (tea as any).createdById === user.id)
             .slice(0, 5);
           if (!myCustomTeas || myCustomTeas.length === 0) return null;
@@ -281,12 +344,12 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-              {filteredTeas?.filter(tea => !(tea as any).isCustom).slice(0, 5).map((tea) => (
+              {teas?.filter(tea => !(tea as any).isCustom).slice(0, 5).map((tea) => (
                 <TeaCard key={tea.id} tea={tea} />
               ))}
-              {filteredTeas?.filter(tea => !(tea as any).isCustom).length === 0 && (
+              {(!teas || teas.filter(tea => !(tea as any).isCustom).length === 0) && (
                 <div className="col-span-full py-20 text-center">
-                  <p className="text-muted-foreground text-lg">No teas found matching your search.</p>
+                  <p className="text-muted-foreground text-lg">No teas found.</p>
                 </div>
               )}
             </div>
