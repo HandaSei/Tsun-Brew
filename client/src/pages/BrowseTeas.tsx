@@ -16,6 +16,7 @@ import {
   ChevronsRight,
   SlidersHorizontal,
   X,
+  TrendingUp,
 } from "lucide-react";
 import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
 import { useAuth } from "@/hooks/use-auth";
@@ -100,7 +101,6 @@ function SortSelect({ value, onChange }: { value: string; onChange: (v: string) 
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="latest" data-testid="sort-latest">Last Added</SelectItem>
-          <SelectItem value="trending" data-testid="sort-trending">Trending Now</SelectItem>
           <SelectItem value="most_brewed" data-testid="sort-most-brewed">Most Brewed</SelectItem>
         </SelectContent>
       </Select>
@@ -274,7 +274,19 @@ function FilterSidebar({
         </p>
       </div>
 
-      <SortSelect value={sort} onChange={onSortChange} />
+      <div className="space-y-4">
+        <SortSelect value={sort} onChange={onSortChange} />
+        
+        <Button
+          variant={sort === "trending" ? "default" : "outline"}
+          className="w-full justify-start gap-2 h-9"
+          onClick={() => onSortChange("trending")}
+          data-testid="button-filter-trending"
+        >
+          <TrendingUp className="w-4 h-4" />
+          <span className="text-sm font-medium">Trending Now</span>
+        </Button>
+      </div>
 
       {teaTypes.length > 0 && (
         <TypeFilter
