@@ -22,6 +22,12 @@ interface BrewTimerProps {
   showControls?: boolean;
 }
 
+function sendSWMessage(msg: any) {
+  if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage(msg);
+  }
+}
+
 export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function BrewTimer({ 
   tea,
   teaLog,
@@ -45,7 +51,6 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   const [infusion, setInfusion] = useState(initialInfusion);
   const [isActive, setIsActive] = useState(false);
   
-  // Editable fields for personal use
   const [oDuration, setODuration] = useState(personalSettings?.orientalDuration ?? tea.orientalDuration ?? 20);
   const [oIncrement, setOIncrement] = useState(personalSettings?.orientalIncrement ?? tea.orientalInfusionIncrement ?? 10);
   const [occInfusions, setOccInfusions] = useState<number[]>(personalSettings?.occidentalInfusions ?? (tea.occidentalInfusions as number[]) ?? [tea.occidentalDuration ?? 180]);
@@ -68,7 +73,11 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   const [totalSeconds, setTotalSeconds] = useState(getInitialSeconds());
   const [alarmActive, setAlarmActive] = useState(false);
 
+  const endTimeRef = useRef<number | null>(null);
+  const pausedRemainingRef = useRef<number | null>(null);
+  const wakeLockRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const completedRef = useRef(false);
   
   const updateLog = useUpdateLog();
   const { toast } = useToast();
@@ -85,6 +94,14 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
     };
   }, []);
 
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch((err) => {
+        console.log("SW registration failed:", err);
+      });
+    }
+  }, []);
+
   const requestNotificationPermission = useCallback(() => {
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission().then((perm) => {
@@ -99,27 +116,45 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
+    sendSWMessage({ type: "CANCEL_TIMER" });
   }, []);
 
-  useEffect(() => {
-    const handler = (event: MessageEvent) => {
-      if (event.data && event.data.type === "STOP_ALARM") {
-        stopAlarm();
+  const acquireWakeLock = useCallback(async () => {
+    try {
+      if ("wakeLock" in navigator && !wakeLockRef.current) {
+        wakeLockRef.current = await (navigator as any).wakeLock.request("screen");
+        wakeLockRef.current.addEventListener("release", () => {
+          wakeLockRef.current = null;
+        });
       }
-    };
-    navigator.serviceWorker?.addEventListener("message", handler);
-    return () => {
-      navigator.serviceWorker?.removeEventListener("message", handler);
-    };
-  }, [stopAlarm]);
+    } catch (e) {
+      console.log("Wake lock not available:", e);
+    }
+  }, []);
 
-  const triggerAlarm = useCallback(() => {
+  const releaseWakeLock = useCallback(() => {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release().catch(() => {});
+      wakeLockRef.current = null;
+    }
+  }, []);
+
+  const handleTimerComplete = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+
+    setIsActive(false);
+    setSeconds(0);
+    endTimeRef.current = null;
+    pausedRemainingRef.current = null;
+    sendSWMessage({ type: "CANCEL_TIMER" });
+    releaseWakeLock();
+
     setAlarmActive(true);
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
       audioRef.current.play().catch((err) => {
         console.error("Audio play failed:", err);
-        // Fallback for browsers that require interaction
         toast({
           title: "Timer Done!",
           description: "Click here to stop the alarm.",
@@ -133,12 +168,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       });
     }
 
-    // Keep the tab active
-    try {
-      window.focus();
-    } catch (e) {
-      console.error("Focus failed:", e);
-    }
+    try { window.focus(); } catch (e) {}
 
     if ("Notification" in window && Notification.permission === "granted") {
       try {
@@ -155,7 +185,6 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
           notif.close();
         };
       } catch (directErr) {
-        console.log("Direct notification failed, trying service worker:", directErr);
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.ready.then((reg) => {
             reg.showNotification("Tsun Brew - Timer Done", {
@@ -165,15 +194,57 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
               requireInteraction: true,
               tag: "brew-timer",
             });
-          }).catch((swErr) => console.log("SW notification failed:", swErr));
+          }).catch(() => {});
         }
       }
-    } else {
-      console.log("Notification status:", "Notification" in window ? Notification.permission : "not supported");
     }
-  }, [tea.name, toast]);
 
-  // Update initial settings when teaLog changes (on load/refresh)
+    if (user) {
+      setTimeout(() => {
+        updateLog.mutate({
+          teaId: tea.id,
+          incrementBrew: true,
+          currentInfusion: infusion + 1,
+          status: 'drinking'
+        });
+      }, 2000);
+    }
+    setInfusion(i => i + 1);
+    if (onComplete) onComplete();
+  }, [tea.name, tea.id, stopAlarm, releaseWakeLock, user, infusion, onComplete, updateLog, toast]);
+
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (!event.data) return;
+      if (event.data.type === "STOP_ALARM") {
+        stopAlarm();
+      }
+      if (event.data.type === "TIMER_COMPLETE") {
+        handleTimerComplete();
+      }
+    };
+    navigator.serviceWorker?.addEventListener("message", handler);
+    return () => {
+      navigator.serviceWorker?.removeEventListener("message", handler);
+    };
+  }, [stopAlarm, handleTimerComplete]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && isActive && endTimeRef.current) {
+        const remaining = Math.ceil((endTimeRef.current - Date.now()) / 1000);
+        if (remaining <= 0) {
+          handleTimerComplete();
+        } else {
+          setSeconds(remaining);
+        }
+        acquireWakeLock();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [isActive, acquireWakeLock, handleTimerComplete]);
+
   useEffect(() => {
     if (personalSettings) {
       setTemp(personalSettings.temp ?? temp);
@@ -190,43 +261,31 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   }, [teaLog?.timerSettings]);
 
   useEffect(() => {
-    const s = getInitialSeconds();
-    setSeconds(s);
-    setTotalSeconds(s);
+    if (!isActive) {
+      const s = getInitialSeconds();
+      setSeconds(s);
+      setTotalSeconds(s);
+      pausedRemainingRef.current = null;
+    }
   }, [method, infusion, tea, oDuration, oIncrement, occInfusions]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    if (isActive && seconds > 0) {
+    let interval: ReturnType<typeof setInterval> | null = null;
+    if (isActive && endTimeRef.current) {
       interval = setInterval(() => {
-        setSeconds((s: number) => s - 1);
-      }, 1000);
-    } else if (seconds === 0 && isActive) {
-      setIsActive(false);
-      handleComplete();
+        const remaining = Math.ceil((endTimeRef.current! - Date.now()) / 1000);
+        if (remaining <= 0) {
+          if (interval) clearInterval(interval);
+          handleTimerComplete();
+        } else {
+          setSeconds(remaining);
+        }
+      }, 250);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, seconds]);
-
-  const handleComplete = () => {
-    triggerAlarm();
-    if (user) {
-      // Use a longer delay for the mutation to allow the user to see the zero
-      // and prevent immediate unmount/re-render while the alarm starts
-      setTimeout(() => {
-        updateLog.mutate({
-          teaId: tea.id,
-          incrementBrew: true,
-          currentInfusion: infusion + 1,
-          status: 'drinking'
-        });
-      }, 2000);
-    }
-    setInfusion(i => i + 1);
-    if (onComplete) onComplete();
-  };
+  }, [isActive, handleTimerComplete]);
 
   const handleSaveSettings = () => {
     updateLog.mutate({
@@ -259,24 +318,43 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
     if (alarmActive) stopAlarm();
     if (!isActive) {
       requestNotificationPermission();
-      // Resume audio context or play silent sound to unlock audio
+      completedRef.current = false;
       if (audioRef.current) {
-        // Playing and immediately pausing to "unlock" the audio element for later
         audioRef.current.play().then(() => {
           audioRef.current?.pause();
           audioRef.current!.currentTime = 0;
         }).catch((e) => console.log("Audio unlock failed:", e));
       }
+      const resumeSeconds = pausedRemainingRef.current ?? seconds;
+      const durationMs = resumeSeconds * 1000;
+      endTimeRef.current = Date.now() + durationMs;
+      pausedRemainingRef.current = null;
+      setSeconds(resumeSeconds);
+      sendSWMessage({ type: "START_TIMER", durationMs, teaName: tea.name });
+      acquireWakeLock();
+      setIsActive(true);
+    } else {
+      const remaining = endTimeRef.current ? Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000)) : seconds;
+      pausedRemainingRef.current = remaining;
+      setSeconds(remaining);
+      endTimeRef.current = null;
+      sendSWMessage({ type: "CANCEL_TIMER" });
+      releaseWakeLock();
+      setIsActive(false);
     }
-    setIsActive(!isActive);
   };
   
   const resetTimer = () => {
     if (alarmActive) stopAlarm();
     setIsActive(false);
+    endTimeRef.current = null;
+    pausedRemainingRef.current = null;
+    completedRef.current = false;
     const s = getInitialSeconds();
     setSeconds(s);
     setTotalSeconds(s);
+    sendSWMessage({ type: "CANCEL_TIMER" });
+    releaseWakeLock();
   };
 
   const resetToRecommended = useCallback(() => {
@@ -294,19 +372,30 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
     setOccidentalWaterAmount(tea.occidentalWaterAmount ?? "");
     setInfusion(1);
     setIsActive(false);
+    endTimeRef.current = null;
+    pausedRemainingRef.current = null;
+    completedRef.current = false;
+    sendSWMessage({ type: "CANCEL_TIMER" });
+    releaseWakeLock();
     const newSeconds = method === 'oriental'
       ? newODuration
       : (newOccInfusions[0] || 180);
     setSeconds(newSeconds);
     setTotalSeconds(newSeconds);
     toast({ title: "Reset", description: "Timer settings restored to recommended values." });
-  }, [tea, method, toast]);
+  }, [tea, method, toast, releaseWakeLock]);
 
   useImperativeHandle(ref, () => ({
     resetToRecommended,
   }), [resetToRecommended]);
 
-  const progress = (seconds / totalSeconds) * 100;
+  useEffect(() => {
+    return () => {
+      releaseWakeLock();
+    };
+  }, [releaseWakeLock]);
+
+  const progress = totalSeconds > 0 ? (seconds / totalSeconds) * 100 : 0;
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
@@ -353,7 +442,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       {showControls && (
         <div className="grid grid-cols-2 gap-2 w-full max-w-[325px] p-2 bg-secondary/20 rounded-xl border border-border/50 animate-in fade-in slide-in-from-top-2">
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-muted-foreground">Temperature (°C)</label>
+            <label className="text-[10px] font-bold uppercase text-muted-foreground">Temperature ({"\u00B0"}C)</label>
             <Input type="number" value={temp} onChange={e => setTemp(parseInt(e.target.value) || 0)} className="h-8 text-xs" data-testid="input-timer-temp" />
           </div>
           <div className="space-y-1 flex flex-col items-center justify-center">
@@ -549,19 +638,16 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
             {currentLeaf && currentWater
               ? <span>{currentLeaf} of leaves for {currentWater} of water</span>
               : currentLeaf
-                ? <span>{currentLeaf}</span>
-                : <span>{currentWater}</span>
+                ? <span>{currentLeaf} of leaves</span>
+                : <span>{currentWater} of water</span>
             }
           </div>
         ) : null;
       })()}
 
-      <p className="text-sm text-muted-foreground text-center max-w-xs italic empty:hidden">
-        {alarmActive
-          ? "Your brew is ready! Tap stop to silence the alarm."
-          : isActive 
-            ? "The essence of the leaves is coming alive..." 
-            : ""}
+      <p className="text-sm text-muted-foreground text-center">
+        {temp ? `${temp}°C` : ""}
+        {temp && method === 'oriental' && tea.orientalMaxInfusions ? ` · Up to ${tea.orientalMaxInfusions} infusions` : ""}
       </p>
     </div>
   );

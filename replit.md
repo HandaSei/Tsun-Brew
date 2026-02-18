@@ -5,6 +5,11 @@
 Tsun Brew is a full-stack web application for tea enthusiasts to discover, track, and brew teas. Users can browse a tea library, log their tastings with personal scores, track brewing sessions with a timer, and share brewing guides and reviews. The app features role-based access control with admin, moderator, and user roles.
 
 ## Recent Changes
+- Mobile background timer fix: Rewrote BrewTimer to use timestamp-based countdown (endTimeRef + Date.now()) instead of interval-based, preventing timer pause when browser is backgrounded on Android/iOS
+- Service worker (sw.js) handles background timer notifications with START_TIMER/CANCEL_TIMER messages and scheduled setTimeout
+- Wake Lock API prevents screen sleep during active brewing sessions
+- Consolidated timer completion into single handleTimerComplete function with completedRef guard to prevent double-completion
+- pausedRemainingRef for accurate pause/resume behavior; progress bar uses remaining/totalSeconds ratio
 - Trending teas system: trendingTeasCache table, trendingWindowHours/trendingRefreshHours in siteSettings (defaults 48h/24h)
 - Trending section on Home page (between Custom Additions and Latest Additions) with TrendingUp icon, shows top 10 most-brewed teas; clickable heading redirects to Browse page with "Trending Now" sort
 - Browse page: added "Trending Now" option to Sort by panel (limited to top 36 teas)
