@@ -27,6 +27,11 @@ self.addEventListener("message", function(event) {
     var teaName = data.teaName || "Your tea";
     var teaPhoto = data.teaPhoto;
 
+    // Use absolute URL for the photo if it's relative
+    if (teaPhoto && !teaPhoto.startsWith('http') && !teaPhoto.startsWith('/')) {
+        teaPhoto = '/' + teaPhoto;
+    }
+
     timerTimeout = setTimeout(function() {
       timerTimeout = null;
       timerEndTime = null;
@@ -48,7 +53,7 @@ self.addEventListener("message", function(event) {
     }, ms);
   }
 
-  if (data.type === "CANCEL_TIMER") {
+  if (data.type === "CANCEL_TIMER" || data.type === "STOP_ALARM") {
     if (timerTimeout) {
       clearTimeout(timerTimeout);
       timerTimeout = null;
