@@ -250,7 +250,7 @@ export default function Home() {
                                   <div 
                                     className="w-full h-full flex items-center justify-center text-white text-xs font-bold"
                                     style={{ 
-                                      backgroundColor: `hsl(${tea.typeColorHue ?? 0}, ${tea.typeColorSaturation ?? 70}%, ${tea.typeColorLightness ?? 45}%)` 
+                                      backgroundColor: `hsl(${(tea as any).typeColorHue ?? 0}, ${(tea as any).typeColorSaturation ?? 70}%, ${(tea as any).typeColorLightness ?? 45}%)` 
                                     }}
                                   >
                                     {tea.name[0]}
