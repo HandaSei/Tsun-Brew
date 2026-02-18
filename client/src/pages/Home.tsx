@@ -80,8 +80,6 @@ export default function Home() {
     const nameWords = name.split(/\s+/);
     const typeWords = type.split(/\s+/);
     
-    // For 2 characters, only match full words (e.g., "Da" matches "Da Hong Pao" but not "Dan")
-    // For 3+ characters, match the start of any word (e.g., "Dan" matches "Dan Cong")
     const isStrict = searchTerm.length === 2;
     
     const matchesName = nameWords.some(word => 
@@ -207,8 +205,8 @@ export default function Home() {
                     </div>
                   </div>
                 </DialogContent>
-              </Dialog>
-            )}
+            </Dialog>
+          )}
           <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground min-h-[3.5rem] md:min-h-[4.5rem] flex items-center justify-center" data-testid="text-hero-heading">
             {phraseTexts.length > 0 ? (
               <TypewriterPhrase phrases={phraseTexts} intervalSeconds={30} />
@@ -261,7 +259,7 @@ export default function Home() {
                       <>
                         {filteredTeas.slice(0, 10).map((tea) => (
                           <Link key={tea.id} href={`/tea/${tea.slug}`}>
-                            <div className="flex items-center gap-3 p-2 hover:bg-accent rounded-md cursor-pointer group transition-colors">
+                            <div className="flex items-center gap-3 p-2 hover:bg-accent rounded-md cursor-pointer group transition-all duration-300 ease-in-out animate-in fade-in slide-in-from-top-1">
                               <div 
                                 className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden shrink-0 shadow-sm bg-muted"
                               >
@@ -291,14 +289,14 @@ export default function Home() {
                           </Link>
                         ))}
                         {filteredTeas.length > 10 && (
-                          <p className="text-[10px] text-center text-muted-foreground pt-2 pb-1 uppercase tracking-wider font-semibold">
+                          <p className="text-[10px] text-center text-muted-foreground pt-2 pb-1 uppercase tracking-wider font-semibold animate-in fade-in duration-500">
                             + {filteredTeas.length - 10} more results
                           </p>
                         )}
                       </>
                     ) : (
                       search.trim().length >= 3 && (
-                        <div className="p-4 text-center">
+                        <div className="p-4 text-center animate-in fade-in duration-300">
                           <p className="text-sm text-muted-foreground">No teas found matching "{search}"</p>
                         </div>
                       )
