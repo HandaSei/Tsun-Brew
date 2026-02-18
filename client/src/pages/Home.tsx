@@ -80,8 +80,16 @@ export default function Home() {
     const nameWords = name.split(/\s+/);
     const typeWords = type.split(/\s+/);
     
-    const matchesName = nameWords.some(word => word.startsWith(searchTerm));
-    const matchesType = typeWords.some(word => word.startsWith(searchTerm));
+    // For 2 characters, only match full words (e.g., "Da" matches "Da Hong Pao" but not "Dan")
+    // For 3+ characters, match the start of any word (e.g., "Dan" matches "Dan Cong")
+    const isStrict = searchTerm.length === 2;
+    
+    const matchesName = nameWords.some(word => 
+      isStrict ? word === searchTerm : word.startsWith(searchTerm)
+    );
+    const matchesType = typeWords.some(word => 
+      isStrict ? word === searchTerm : word.startsWith(searchTerm)
+    );
     
     return matchesName || matchesType;
   });
