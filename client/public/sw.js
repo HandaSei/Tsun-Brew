@@ -95,13 +95,12 @@ self.addEventListener("notificationclick", function(event) {
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function(clientList) {
       for (var i = 0; i < clientList.length; i++) {
+        clientList[i].postMessage({ type: "STOP_ALARM" });
         if (clientList[i].url && "focus" in clientList[i]) {
           clientList[i].focus();
-          clientList[i].postMessage({ type: "STOP_ALARM" });
-          return;
         }
       }
-      if (self.clients.openWindow) {
+      if (clientList.length === 0 && self.clients.openWindow) {
         return self.clients.openWindow("/");
       }
     })

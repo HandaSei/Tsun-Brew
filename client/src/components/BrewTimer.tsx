@@ -112,11 +112,14 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
 
   const stopAlarm = useCallback(() => {
     setAlarmActive(false);
+    setIsActive(false);
+    endTimeRef.current = null;
+    pausedRemainingRef.current = null;
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
-    sendSWMessage({ type: "CANCEL_TIMER" });
+    sendSWMessage({ type: "STOP_ALARM" });
   }, []);
 
   const acquireWakeLock = useCallback(async () => {
@@ -220,6 +223,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         stopAlarm();
       }
       if (event.data.type === "TIMER_COMPLETE") {
+        stopAlarm();
         handleTimerComplete();
       }
     };
@@ -228,6 +232,30 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       navigator.serviceWorker?.removeEventListener("message", handler);
     };
   }, [stopAlarm, handleTimerComplete]);
+
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      const handleFocus = () => {
+        if (isActive) {
+          sendSWMessage({ type: "GET_TIMER_STATUS" });
+        }
+      };
+      window.addEventListener("focus", handleFocus);
+      return () => window.removeEventListener("focus", handleFocus);
+    }
+  }, [isActive]);
+
+  useEffect(() => {
+    const statusHandler = (event: MessageEvent) => {
+      if (event.data?.type === "TIMER_STATUS") {
+        if (!event.data.isActive && isActive) {
+          stopAlarm();
+        }
+      }
+    };
+    navigator.serviceWorker?.addEventListener("message", statusHandler);
+    return () => navigator.serviceWorker?.removeEventListener("message", statusHandler);
+  }, [isActive, stopAlarm]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
