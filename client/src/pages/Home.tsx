@@ -244,7 +244,7 @@ export default function Home() {
                 </div>
               </PopoverAnchor>
               <PopoverContent 
-                className="w-[var(--radix-popover-trigger-width)] p-0" 
+                className="w-[var(--radix-popover-trigger-width)] p-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-top-2 duration-300" 
                 align="start"
                 onOpenAutoFocus={(e) => e.preventDefault()}
                 onInteractOutside={(e) => {
