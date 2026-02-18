@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { type Tea, type TeaLog } from "@shared/schema";
 import { Input } from "@/components/ui/input";
+import { apiRequest } from "@/lib/queryClient";
 
 const ALARM_SOUND_URL = "https://res.cloudinary.com/dq9nrlsb9/video/upload/v1771025474/zapsplat_multimedia_ui_processing_or_timer_tone_musical_warm_mallets_85166_an2opt.mp3";
 
@@ -78,6 +79,9 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
     const audio = new Audio(ALARM_SOUND_URL);
     audio.loop = true;
     audio.preload = "auto";
+    // Important: set volume and muted state explicitly to help with some browser policies
+    audio.volume = 1.0;
+    audio.muted = false;
     audioRef.current = audio;
     return () => {
       audio.pause();
@@ -115,14 +119,18 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
 
   const triggerAlarm = useCallback(() => {
     setAlarmActive(true);
+    console.log("Triggering alarm for", tea.name);
+    
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch((err) => {
+      audioRef.current.play().then(() => {
+        console.log("Audio playing successfully");
+      }).catch((err) => {
         console.error("Audio play failed:", err);
         // Fallback for browsers that require interaction
         toast({
           title: "Timer Done!",
-          description: "Click here to stop the alarm.",
+          description: "Click here to hear the alarm.",
           action: <Button variant="outline" size="sm" onClick={() => {
             if (audioRef.current) {
               audioRef.current.play().catch(e => console.error("Manual play failed:", e));
@@ -135,9 +143,6 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
 
     // Keep the tab active by playing a silent sound if possible, or just focus
     try {
-      if (audioRef.current) {
-        audioRef.current.play().catch(() => {});
-      }
       window.focus();
     } catch (e) {
       console.error("Focus failed:", e);
@@ -220,16 +225,22 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
 
   const handleComplete = () => {
     triggerAlarm();
+    // No state updates or parent notifications here to avoid Dialog closure
     if (user) {
-      updateLog.mutate({
-        teaId: tea.id,
-        incrementBrew: true,
-        currentInfusion: infusion + 1,
-        status: 'drinking'
-      });
+      // Background update using raw fetch to avoid any React Query state sync that might close dialogs
+      // We also use a small delay to ensure the UI has time to process the alarm trigger
+      setTimeout(() => {
+        fetch(`/api/logs/${tea.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            incrementBrew: true,
+            currentInfusion: infusion + 1,
+            status: 'drinking'
+          })
+        }).catch(e => console.error("Auto log update failed:", e));
+      }, 1000);
     }
-    setInfusion(i => i + 1);
-    if (onComplete) onComplete();
   };
 
   const handleSaveSettings = () => {
