@@ -282,7 +282,7 @@ function FilterSidebar({
           className="w-full justify-between gap-2 h-9 group/trending"
           onClick={() => {
             if (sort === "trending") {
-              setSort("latest");
+              onSortChange("latest");
             } else {
               onSortChange("trending");
             }
@@ -294,13 +294,15 @@ function FilterSidebar({
             <span className="text-sm font-medium">Trending Now</span>
           </div>
           {sort === "trending" && (
-            <X 
-              className="w-3.5 h-3.5 opacity-60 hover:opacity-100 transition-opacity" 
+            <div 
+              className="p-1 -mr-1 rounded-sm hover:bg-primary-foreground/20 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 onSortChange("latest");
               }}
-            />
+            >
+              <X className="w-3.5 h-3.5" />
+            </div>
           )}
         </Button>
       </div>
@@ -538,12 +540,12 @@ export default function BrowseTeas() {
               {sort === "trending" && (
                 <button
                   onClick={() => setSort("latest")}
-                  className="inline-flex items-center gap-1 rounded-md border border-primary bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-semibold cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-md border border-primary bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-semibold cursor-pointer group/tag"
                   data-testid="active-filter-trending"
                 >
                   <TrendingUp className="w-3 h-3" />
                   Trending
-                  <X className="w-3 h-3" />
+                  <X className="w-3 h-3 opacity-60 group-hover/tag:opacity-100 transition-opacity" />
                 </button>
               )}
               {selectedTypes.map((t) => {
