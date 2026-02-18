@@ -249,6 +249,8 @@ function FilterSidebar({
   onToggleType,
   onClearTypes,
   customOnly,
+  onCustomOnlyChange,
+  showCustomToggle,
 }: {
   sort: string;
   onSortChange: (v: string) => void;
@@ -257,18 +259,44 @@ function FilterSidebar({
   onToggleType: (name: string) => void;
   onClearTypes: () => void;
   customOnly: boolean;
+  onCustomOnlyChange: (v: boolean) => void;
+  showCustomToggle: boolean;
 }) {
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-display font-bold text-foreground mb-1">
-          {customOnly ? "Your Custom Teas" : "All Teas"}
+          Browse Teas
         </h2>
         <p className="text-xs text-muted-foreground">
-          {customOnly ? "Browse your personal tea collection" : "Explore the full tea library"}
+          Explore the tea library
         </p>
       </div>
+
       <SortSelect value={sort} onChange={onSortChange} />
+
+      {showCustomToggle && (
+        <div className="flex items-center justify-between gap-2 p-2 rounded-md border border-border/40 bg-muted/30">
+          <div className="space-y-0.5">
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Custom Teas
+            </label>
+            <p className="text-[11px] text-muted-foreground">
+              Only show your additions
+            </p>
+          </div>
+          <Button
+            variant={customOnly ? "default" : "outline"}
+            size="sm"
+            className="h-7 px-3 text-[11px] rounded-full"
+            onClick={() => onCustomOnlyChange(!customOnly)}
+            data-testid="toggle-custom-only"
+          >
+            {customOnly ? "On" : "Off"}
+          </Button>
+        </div>
+      )}
+
       {teaTypes.length > 0 && (
         <TypeFilter
           teaTypes={teaTypes}
@@ -420,6 +448,8 @@ export default function BrowseTeas() {
       onToggleType={toggleType}
       onClearTypes={clearTypes}
       customOnly={customOnly}
+      onCustomOnlyChange={setCustomOnly}
+      showCustomToggle={!!user}
     />
   );
 
@@ -436,7 +466,7 @@ export default function BrowseTeas() {
           <div className="md:hidden mb-4 flex items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-display font-bold text-foreground">
-                {customOnly ? "Your Custom Teas" : "All Teas"}
+                Browse Teas
               </h2>
               <p className="text-xs text-muted-foreground">{total} teas found</p>
             </div>

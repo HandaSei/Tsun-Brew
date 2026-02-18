@@ -122,20 +122,6 @@ export function Navigation() {
                   <p className="text-[11px] text-muted-foreground">Browse the full library</p>
                 </div>
               </Link>
-              {user && (
-                <Link
-                  href="/browse?custom=true"
-                  onClick={() => setBrowseOpen(false)}
-                  className="flex items-center gap-3 p-2.5 rounded-md hover-elevate cursor-pointer transition-colors"
-                  data-testid="nav-browse-custom"
-                >
-                  <BookOpen className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Your Custom Teas</p>
-                    <p className="text-[11px] text-muted-foreground">Your personal collection</p>
-                  </div>
-                </Link>
-              )}
             </PopoverContent>
           </Popover>
           {user?.role === 'admin' && <NavLink href="/admin">Admin</NavLink>}
@@ -211,9 +197,6 @@ export function Navigation() {
                   <Link href={`/${user.username}/Collection`} onClick={() => setIsOpen(false)} className="text-lg font-medium">My Tea List</Link>
                 )}
                 <Link href="/browse" onClick={() => setIsOpen(false)} className="text-lg font-medium">All Teas</Link>
-                {user && (
-                  <Link href="/browse?custom=true" onClick={() => setIsOpen(false)} className="text-lg font-medium">Your Custom Teas</Link>
-                )}
                 {user?.role === 'admin' && (
                   <Link href="/admin" onClick={() => setIsOpen(false)} className="text-lg font-medium text-primary">Admin Panel</Link>
                 )}
