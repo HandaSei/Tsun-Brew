@@ -219,7 +219,7 @@ export default function Home() {
           
           <div className="max-w-md mx-auto relative mt-8">
             <Popover 
-              open={isSearchOpen && search.trim().length >= 2} 
+              open={isSearchOpen && search.trim().length >= 2 && filteredTeas && filteredTeas.length > 0} 
               onOpenChange={(open) => {
                 if (!open) setIsSearchOpen(false);
                 else if (search.trim().length >= 2) setIsSearchOpen(true);
@@ -249,10 +249,15 @@ export default function Home() {
                 className="w-[var(--radix-popover-trigger-width)] p-0" 
                 align="start"
                 onOpenAutoFocus={(e) => e.preventDefault()}
+                onInteractOutside={(e) => {
+                  if (e.target !== searchInputRef.current) {
+                    setIsSearchOpen(false);
+                  }
+                }}
               >
                 <ScrollArea className="max-h-[400px]">
                   <div className="p-2 space-y-1">
-                    {filteredTeas && filteredTeas.length > 0 ? (
+                    {filteredTeas && filteredTeas.length > 0 && (
                       <>
                         {filteredTeas.slice(0, 10).map((tea) => (
                           <Link key={tea.id} href={`/tea/${tea.slug}`}>
@@ -291,10 +296,6 @@ export default function Home() {
                           </p>
                         )}
                       </>
-                    ) : (
-                      <div className="p-4 text-center">
-                        <p className="text-sm text-muted-foreground">No teas found matching "{search}"</p>
-                      </div>
                     )}
                   </div>
                 </ScrollArea>
