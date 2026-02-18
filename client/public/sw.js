@@ -25,14 +25,16 @@ self.addEventListener("message", function(event) {
     var ms = data.durationMs;
     timerEndTime = Date.now() + ms;
     var teaName = data.teaName || "Your tea";
+    var teaPhoto = data.teaPhoto;
 
     timerTimeout = setTimeout(function() {
       timerTimeout = null;
       timerEndTime = null;
       self.registration.showNotification("Tsun Brew - Timer Done", {
         body: teaName + " brew is ready!",
-        icon: "/icon-192.png",
+        icon: teaPhoto || "/icon-192.png",
         badge: "/icon-192.png",
+        image: teaPhoto,
         requireInteraction: true,
         tag: "brew-timer",
         vibrate: [200, 100, 200, 100, 200],

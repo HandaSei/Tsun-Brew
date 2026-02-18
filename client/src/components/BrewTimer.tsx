@@ -330,7 +330,12 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       endTimeRef.current = Date.now() + durationMs;
       pausedRemainingRef.current = null;
       setSeconds(resumeSeconds);
-      sendSWMessage({ type: "START_TIMER", durationMs, teaName: tea.name });
+      sendSWMessage({ 
+        type: "START_TIMER", 
+        durationMs, 
+        teaName: tea.name,
+        teaPhoto: tea.photoUrl 
+      });
       acquireWakeLock();
       setIsActive(true);
     } else {
