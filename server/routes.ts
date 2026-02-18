@@ -406,6 +406,8 @@ export async function registerRoutes(
     const user = req.user as User;
     if (user.role !== 'admin') return res.sendStatus(403);
     const input = api.siteSettings.update.input.parse(req.body);
+    if (input.trendingWindowHours !== undefined && input.trendingWindowHours < 1) input.trendingWindowHours = 1;
+    if (input.trendingRefreshHours !== undefined && input.trendingRefreshHours < 1) input.trendingRefreshHours = 1;
     const settings = await storage.updateSiteSettings(input);
     res.json(settings);
   });

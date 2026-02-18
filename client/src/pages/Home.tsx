@@ -3,7 +3,7 @@ import { TeaCard } from "@/components/TeaCard";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Loader2, Edit2, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Search, Loader2, Edit2, Trash2, ExternalLink, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -18,6 +18,42 @@ import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
 import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
+function TrendingSection() {
+  const { data: trendingTeas, isLoading } = useQuery<any[]>({
+    queryKey: ['/api/trending-teas'],
+  });
+
+  if (isLoading) {
+    return (
+      <section data-testid="section-trending">
+        <div className="flex items-center gap-3 mb-8">
+          <TrendingUp className="w-6 h-6 text-primary" />
+          <h2 className="text-3xl font-display font-bold" data-testid="text-trending">Trending</h2>
+        </div>
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-primary/30" />
+        </div>
+      </section>
+    );
+  }
+
+  if (!trendingTeas || trendingTeas.length === 0) return null;
+
+  return (
+    <section data-testid="section-trending">
+      <div className="flex items-center gap-3 mb-8">
+        <TrendingUp className="w-6 h-6 text-primary" />
+        <h2 className="text-3xl font-display font-bold" data-testid="text-trending">Trending</h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        {trendingTeas.map((tea: any) => (
+          <TeaCard key={tea.id} tea={tea} />
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function Home() {
   const { data: teas, isLoading } = useTeas();
@@ -357,6 +393,8 @@ export default function Home() {
             </section>
           );
         })()}
+
+        <TrendingSection />
 
         <section data-testid="section-latest-additions">
           <div className="flex items-center justify-between gap-4 flex-wrap mb-8">

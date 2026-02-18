@@ -626,6 +626,8 @@ function BrandingTab() {
   const [logoUrl, setLogoUrl] = useState("");
   const [displayFont, setDisplayFont] = useState("");
   const [faviconUrl, setFaviconUrl] = useState("");
+  const [trendingWindowHours, setTrendingWindowHours] = useState(48);
+  const [trendingRefreshHours, setTrendingRefreshHours] = useState(24);
 
   useEffect(() => {
     if (settings) {
@@ -634,6 +636,8 @@ function BrandingTab() {
       setLogoUrl(settings.logoUrl || "");
       setDisplayFont(settings.displayFont || "");
       setFaviconUrl(settings.faviconUrl || "");
+      setTrendingWindowHours((settings as any).trendingWindowHours ?? 48);
+      setTrendingRefreshHours((settings as any).trendingRefreshHours ?? 24);
     }
   }, [settings]);
 
@@ -648,8 +652,19 @@ function BrandingTab() {
     onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
   });
 
+  const refreshTrendingMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("POST", "/api/trending-teas/refresh");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/trending-teas"] });
+      toast({ title: "Trending Refreshed", description: "Trending teas have been recalculated." });
+    },
+    onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
   const handleSave = () => {
-    updateMutation.mutate({ siteName, statusTag, logoUrl, displayFont, faviconUrl });
+    updateMutation.mutate({ siteName, statusTag, logoUrl, displayFont, faviconUrl, trendingWindowHours, trendingRefreshHours } as any);
   };
 
   if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>;
@@ -692,6 +707,49 @@ function BrandingTab() {
         <div className="flex justify-end pt-2">
           <Button onClick={handleSave} disabled={updateMutation.isPending} data-testid="button-save-branding">
             {updateMutation.isPending ? "Saving..." : "Save Branding"}
+          </Button>
+        </div>
+      </Card>
+
+      <Card className="p-6 space-y-5">
+        <h3 className="text-lg font-semibold">Trending Settings</h3>
+        <p className="text-xs text-muted-foreground">Configure how the trending teas section works on the home page.</p>
+
+        <div className="space-y-2">
+          <Label>Trending Window (hours)</Label>
+          <Input
+            type="number"
+            min={1}
+            value={trendingWindowHours}
+            onChange={(e) => setTrendingWindowHours(parseInt(e.target.value) || 48)}
+            data-testid="input-trending-window"
+          />
+          <p className="text-xs text-muted-foreground">How far back to look for brew activity (default: 48 hours).</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Auto-Refresh Interval (hours)</Label>
+          <Input
+            type="number"
+            min={1}
+            value={trendingRefreshHours}
+            onChange={(e) => setTrendingRefreshHours(parseInt(e.target.value) || 24)}
+            data-testid="input-trending-refresh"
+          />
+          <p className="text-xs text-muted-foreground">How often trending data is automatically recalculated (default: 24 hours).</p>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 pt-2 flex-wrap">
+          <Button
+            variant="outline"
+            onClick={() => refreshTrendingMutation.mutate()}
+            disabled={refreshTrendingMutation.isPending}
+            data-testid="button-refresh-trending"
+          >
+            {refreshTrendingMutation.isPending ? "Refreshing..." : "Refresh Trending Now"}
+          </Button>
+          <Button onClick={handleSave} disabled={updateMutation.isPending} data-testid="button-save-trending">
+            {updateMutation.isPending ? "Saving..." : "Save Trending Settings"}
           </Button>
         </div>
       </Card>
