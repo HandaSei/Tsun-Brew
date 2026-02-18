@@ -47,11 +47,10 @@ export function useUpdateLog() {
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: [api.logs.list.path] });
-      // Invalidate single tea view as well if user is viewing it
-      // queryClient.invalidateQueries({ queryKey: [api.teas.get.path, variables.teaId] }); 
       
-      const msg = variables.incrementBrew ? "Brew logged!" : "Tea list updated";
-      toast({ title: "Success", description: msg });
+      if (!variables.incrementBrew) {
+        toast({ title: "Success", description: "Tea list updated" });
+      }
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });

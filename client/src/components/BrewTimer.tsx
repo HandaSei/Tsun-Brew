@@ -133,20 +133,12 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       });
     }
 
-    // Keep the tab active by playing a silent sound if possible, or just focus
+    // Keep the tab active
     try {
-      if (audioRef.current) {
-        audioRef.current.play().catch(() => {});
-      }
       window.focus();
     } catch (e) {
       console.error("Focus failed:", e);
     }
-
-    toast({
-      title: "Brew Complete!",
-      description: `Your ${tea.name} is ready to enjoy.`,
-    });
 
     if ("Notification" in window && Notification.permission === "granted") {
       try {

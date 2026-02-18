@@ -101,6 +101,7 @@ export default function MyList() {
   const notRebuying = logs?.filter(log => log.status === 'not_rebuying') || [];
 
   const TeaListItem = ({ log }: { log: any }) => {
+    const [timerOpen, setTimerOpen] = useState(false);
     const myLogForTea = myLogs?.find(ml => ml.teaId === log.tea.id);
     const isInMyList = !!myLogForTea;
 
@@ -196,13 +197,13 @@ export default function MyList() {
 
         {/* CENTER: Timer button — truly centered in the row */}
         <div className="flex justify-center px-1">
-          <Dialog>
+          <Dialog open={timerOpen} onOpenChange={setTimerOpen}>
             <DialogTrigger asChild>
               <Button size="icon" variant="outline" className="h-8 w-8 rounded-full border-primary/20 sm:h-9 sm:w-9" data-testid={`button-timer-${log.tea.id}`}>
                 <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-[340px] p-0 overflow-hidden mx-auto">
+            <DialogContent className="max-w-[340px] p-0 overflow-hidden mx-auto" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
               <div className="p-1 sm:p-2">
                 <h3 className="text-center font-display text-2xl mb-0.5">{log.tea.name}</h3>
                 <BrewTimer tea={log.tea} teaLog={log} showControls={!!isOwner} />
