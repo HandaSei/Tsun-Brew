@@ -46,7 +46,7 @@ import { DialogDescription } from "@/components/ui/dialog";
 
 const MAX_VISIBLE_CULTIVARS = 5;
 
-function CultivarTags({ cultivars, isInsideInfoBox = false }: { cultivars: string[] | null, isInsideInfoBox?: boolean }) {
+function CultivarTags({ cultivars }: { cultivars: string[] | null }) {
   const [showAll, setShowAll] = useState(false);
 
   if (!cultivars || cultivars.length === 0) return null;
@@ -55,8 +55,8 @@ function CultivarTags({ cultivars, isInsideInfoBox = false }: { cultivars: strin
   const hidden = cultivars.slice(MAX_VISIBLE_CULTIVARS);
 
   return (
-    <div className={isInsideInfoBox ? "inline-flex items-center gap-2 flex-wrap" : "container mx-auto px-4 pt-4"}>
-      <div className={isInsideInfoBox ? "" : "max-w-2xl mx-auto"}>
+    <div className="container mx-auto px-4 pt-4">
+      <div className="max-w-2xl mx-auto">
         <div className="flex items-center gap-2 flex-wrap" data-testid="cultivar-tags">
           <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           {visible.map((name) => (
@@ -67,7 +67,7 @@ function CultivarTags({ cultivars, isInsideInfoBox = false }: { cultivars: strin
             >
               <Badge
                 variant="secondary"
-                className="cursor-pointer text-[10px] h-5 px-1.5"
+                className="cursor-pointer text-xs"
               >
                 {name}
               </Badge>
@@ -76,7 +76,7 @@ function CultivarTags({ cultivars, isInsideInfoBox = false }: { cultivars: strin
           {hidden.length > 0 && (
             <button
               onClick={() => setShowAll(true)}
-              className="text-[10px] text-primary font-medium hover:underline"
+              className="text-xs text-primary font-medium hover:underline"
               data-testid="button-show-all-cultivars"
             >
               +{hidden.length} more
@@ -634,11 +634,10 @@ export default function TeaDetails() {
                       <span>{tea.origin}</span>
                     </div>
                   )}
-                  {tea.origin && tea.cultivar && tea.cultivar.length > 0 && <span className="opacity-20">•</span>}
-                  <CultivarTags cultivars={tea.cultivar} isInsideInfoBox={true} />
                 </div>
-                <ScoreWidget teaId={tea.id} />
               </div>
+
+              <ScoreWidget teaId={tea.id} />
             </div>
           </div>
         </div>
@@ -650,6 +649,8 @@ export default function TeaDetails() {
           </div>
         </div>
       )}
+
+      <CultivarTags cultivars={tea.cultivar} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
