@@ -55,61 +55,59 @@ function CultivarTags({ cultivars }: { cultivars: string[] | null }) {
   const hidden = cultivars.slice(MAX_VISIBLE_CULTIVARS);
 
   return (
-    <div className="container mx-auto px-4 pt-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center gap-2 flex-wrap" data-testid="cultivar-tags">
-          <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-          {visible.map((name) => (
-            <Link
-              key={name}
-              href={`/browse?cultivars=${encodeURIComponent(name.toLowerCase())}`}
-              data-testid={`cultivar-tag-${name}`}
+    <div className="mt-4">
+      <div className="flex items-center gap-2 flex-wrap" data-testid="cultivar-tags">
+        <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+        {visible.map((name) => (
+          <Link
+            key={name}
+            href={`/browse?cultivars=${encodeURIComponent(name.toLowerCase())}`}
+            data-testid={`cultivar-tag-${name}`}
+          >
+            <Badge
+              variant="secondary"
+              className="cursor-pointer text-xs"
             >
-              <Badge
-                variant="secondary"
-                className="cursor-pointer text-xs"
-              >
-                {name}
-              </Badge>
-            </Link>
-          ))}
-          {hidden.length > 0 && (
-            <button
-              onClick={() => setShowAll(true)}
-              className="text-xs text-primary font-medium hover:underline"
-              data-testid="button-show-all-cultivars"
-            >
-              +{hidden.length} more
-            </button>
-          )}
-        </div>
-
-        <Dialog open={showAll} onOpenChange={setShowAll}>
-          <DialogContent className="sm:max-w-sm">
-            <DialogHeader>
-              <DialogTitle>All Cultivars</DialogTitle>
-              <DialogDescription className="sr-only">Full list of cultivars for this tea</DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-wrap gap-2">
-              {cultivars.map((name) => (
-                <Link
-                  key={name}
-                  href={`/browse?cultivars=${encodeURIComponent(name.toLowerCase())}`}
-                  onClick={() => setShowAll(false)}
-                  data-testid={`cultivar-dialog-tag-${name}`}
-                >
-                  <Badge
-                    variant="secondary"
-                    className="cursor-pointer text-sm"
-                  >
-                    {name}
-                  </Badge>
-                </Link>
-              ))}
-            </div>
-          </DialogContent>
-        </Dialog>
+              {name}
+            </Badge>
+          </Link>
+        ))}
+        {hidden.length > 0 && (
+          <button
+            onClick={() => setShowAll(true)}
+            className="text-xs text-primary font-medium hover:underline"
+            data-testid="button-show-all-cultivars"
+          >
+            +{hidden.length} more
+          </button>
+        )}
       </div>
+
+      <Dialog open={showAll} onOpenChange={setShowAll}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>All Cultivars</DialogTitle>
+            <DialogDescription className="sr-only">Full list of cultivars for this tea</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-wrap gap-2">
+            {cultivars.map((name) => (
+              <Link
+                key={name}
+                href={`/browse?cultivars=${encodeURIComponent(name.toLowerCase())}`}
+                onClick={() => setShowAll(false)}
+                data-testid={`cultivar-dialog-tag-${name}`}
+              >
+                <Badge
+                  variant="secondary"
+                  className="cursor-pointer text-sm"
+                >
+                  {name}
+                </Badge>
+              </Link>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -640,6 +638,7 @@ export default function TeaDetails() {
               <ScoreWidget teaId={tea.id} />
             </div>
           </div>
+          <CultivarTags cultivars={tea.cultivar} />
         </div>
       </div>
       {tea.description && (
@@ -649,8 +648,6 @@ export default function TeaDetails() {
           </div>
         </div>
       )}
-
-      <CultivarTags cultivars={tea.cultivar} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
