@@ -474,10 +474,6 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
 
       {showControls && (
         <div className="grid grid-cols-2 gap-2 w-full max-w-[325px] p-2 bg-secondary/20 rounded-xl border border-border/50 animate-in fade-in slide-in-from-top-2">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-muted-foreground">Temperature ({"\u00B0"}C)</label>
-            <Input type="number" value={temp} onChange={e => setTemp(parseInt(e.target.value) || 0)} className="h-8 text-xs" data-testid="input-timer-temp" />
-          </div>
           <div className="space-y-1 flex flex-col items-center justify-center">
             <label className="text-[10px] font-bold uppercase text-muted-foreground">Infusion</label>
             <div className="flex items-center gap-1.5 h-10">
@@ -679,8 +675,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       })()}
 
       <p className="text-sm text-muted-foreground text-center">
-        {temp ? `${temp}°C` : ""}
-        {temp && method === 'oriental' && tea.orientalMaxInfusions ? ` · Up to ${tea.orientalMaxInfusions} infusions` : ""}
+        {method === 'oriental' && tea.orientalMaxInfusions ? `Up to ${tea.orientalMaxInfusions} infusions` : ""}
       </p>
     </div>
   );
