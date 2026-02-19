@@ -219,7 +219,8 @@ export class DatabaseStorage implements IStorage {
 
     if (cultivarFilter && cultivarFilter.length > 0) {
       const lowerCultivars = cultivarFilter.map(c => c.toLowerCase());
-      conditions.push(sql`LOWER(${teas.cultivar}) IN (${sql.join(lowerCultivars.map(c => sql`${c}`), sql`, `)})`);
+      const cultivarConditions = lowerCultivars.map(c => sql`${c} = ANY(SELECT LOWER(unnest(${teas.cultivar})))`);
+      conditions.push(sql`(${sql.join(cultivarConditions, sql` OR `)})`);
     }
 
     const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];

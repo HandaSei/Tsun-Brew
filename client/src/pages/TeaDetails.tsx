@@ -1,4 +1,4 @@
-import { useRoute } from "wouter";
+import { useRoute, Link } from "wouter";
 import { useTea, useTeaBySlug, useUpdateTea } from "@/hooks/use-teas";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
@@ -42,7 +42,77 @@ import { insertTeaSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
 import { ScoreWidget } from "@/components/ScoreWidget";
+import { DialogDescription } from "@/components/ui/dialog";
 
+const MAX_VISIBLE_CULTIVARS = 5;
+
+function CultivarTags({ cultivars }: { cultivars: string[] | null }) {
+  const [showAll, setShowAll] = useState(false);
+
+  if (!cultivars || cultivars.length === 0) return null;
+
+  const visible = cultivars.slice(0, MAX_VISIBLE_CULTIVARS);
+  const hidden = cultivars.slice(MAX_VISIBLE_CULTIVARS);
+
+  return (
+    <div className="container mx-auto px-4 pt-4">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center gap-2 flex-wrap" data-testid="cultivar-tags">
+          <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          {visible.map((name) => (
+            <Link
+              key={name}
+              href={`/browse?cultivars=${encodeURIComponent(name.toLowerCase())}`}
+              data-testid={`cultivar-tag-${name}`}
+            >
+              <Badge
+                variant="secondary"
+                className="cursor-pointer text-xs"
+              >
+                {name}
+              </Badge>
+            </Link>
+          ))}
+          {hidden.length > 0 && (
+            <button
+              onClick={() => setShowAll(true)}
+              className="text-xs text-primary font-medium hover:underline"
+              data-testid="button-show-all-cultivars"
+            >
+              +{hidden.length} more
+            </button>
+          )}
+        </div>
+
+        <Dialog open={showAll} onOpenChange={setShowAll}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>All Cultivars</DialogTitle>
+              <DialogDescription className="sr-only">Full list of cultivars for this tea</DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-wrap gap-2">
+              {cultivars.map((name) => (
+                <Link
+                  key={name}
+                  href={`/browse?cultivars=${encodeURIComponent(name.toLowerCase())}`}
+                  onClick={() => setShowAll(false)}
+                  data-testid={`cultivar-dialog-tag-${name}`}
+                >
+                  <Badge
+                    variant="secondary"
+                    className="cursor-pointer text-sm"
+                  >
+                    {name}
+                  </Badge>
+                </Link>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
+  );
+}
 
 export default function TeaDetails() {
   const [, teaParams] = useRoute("/tea/:slug");
@@ -88,7 +158,7 @@ export default function TeaDetails() {
       type: "",
       description: "",
       origin: "",
-      cultivar: "",
+      cultivar: [],
       photoUrl: "",
       recommendedTemp: undefined,
       recommendedDuration: undefined,
@@ -121,7 +191,7 @@ export default function TeaDetails() {
         type: tea.type,
         description: tea.description,
         origin: tea.origin || "",
-        cultivar: tea.cultivar || "",
+        cultivar: tea.cultivar || [],
         photoUrl: tea.photoUrl || "",
         recommendedTemp: tea.recommendedTemp ?? undefined,
         recommendedDuration: tea.recommendedDuration ?? undefined,
@@ -301,9 +371,9 @@ export default function TeaDetails() {
                                         <FormLabel>Cultivar</FormLabel>
                                         <FormControl>
                                           <CultivarSelect
-                                            value={field.value || ""}
+                                            value={field.value || []}
                                             onChange={field.onChange}
-                                            placeholder="Select cultivar..."
+                                            placeholder="Select cultivars..."
                                           />
                                         </FormControl>
                                       </FormItem>
@@ -564,13 +634,6 @@ export default function TeaDetails() {
                       <span>{tea.origin}</span>
                     </div>
                   )}
-                  {tea.origin && tea.cultivar && <span className="opacity-20">•</span>}
-                  {tea.cultivar && (
-                    <div className="flex items-center gap-1.5" data-testid="text-cultivar">
-                      <Tag className="w-3.5 h-3.5" />
-                      <span>{tea.cultivar}</span>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -586,6 +649,8 @@ export default function TeaDetails() {
           </div>
         </div>
       )}
+
+      <CultivarTags cultivars={tea.cultivar} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">

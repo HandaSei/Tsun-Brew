@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation, Link } from "wouter";
+import { useLocation, useSearch, Link } from "wouter";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Card } from "@/components/ui/card";
@@ -609,12 +609,13 @@ function FilterSidebar({
 
 export default function BrowseTeas() {
   const [location] = useLocation();
+  const searchString = useSearch();
   const { user } = useAuth();
   const { data: teaTypes } = useTeaTypes();
   const { data: cultivarsList } = useCultivars();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const params = new URLSearchParams(location.split("?")[1] || "");
+  const params = new URLSearchParams(searchString);
   const urlSort = params.get("sort") || "latest";
   const urlCustom = params.get("custom");
   const urlSource: "official" | "custom" | "all" = urlCustom === "true" ? "custom" : urlCustom === "false" ? "official" : "official";
@@ -643,7 +644,7 @@ export default function BrowseTeas() {
     setMobilePage(1);
     setMobileTeas([]);
     setMobileHasMore(true);
-  }, [urlSort, urlSource, location]);
+  }, [urlSort, urlSource, location, searchString]);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);

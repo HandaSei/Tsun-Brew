@@ -84,7 +84,10 @@ export async function registerRoutes(
 
         if (cultivarsFilter && cultivarsFilter.length > 0) {
           const cultivarSet = new Set(cultivarsFilter.map(c => c.toLowerCase()));
-          result = result.filter(tea => tea.cultivar && cultivarSet.has(tea.cultivar.toLowerCase()));
+          result = result.filter(tea => {
+            if (!tea.cultivar || !Array.isArray(tea.cultivar)) return false;
+            return tea.cultivar.some(c => cultivarSet.has(c.toLowerCase()));
+          });
         }
 
         return res.json({ teas: result, total: result.length, page: 1, limit: 36 });

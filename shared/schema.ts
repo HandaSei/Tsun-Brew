@@ -34,7 +34,7 @@ export const teas = pgTable("teas", {
   photoUrl: text("photo_url"),
   type: text("type").notNull(), // 'Green', 'Black', 'Oolong', 'White', 'Yellow', 'Dark'
   origin: text("origin"),
-  cultivar: text("cultivar"),
+  cultivar: text("cultivar").array(),
   averageScore: integer("average_score").default(0),
   
   // Brewing Parameters

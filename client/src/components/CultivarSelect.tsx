@@ -2,19 +2,20 @@ import { useState, useMemo } from "react";
 import { useCultivars } from "@/hooks/use-cultivars";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Search, X, Leaf, ChevronLeft, ChevronRight } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface CultivarSelectProps {
-  value: string;
-  onChange: (value: string) => void;
+  value: string[];
+  onChange: (value: string[]) => void;
   placeholder?: string;
 }
 
 const PAGE_SIZE = 6;
 
-export function CultivarSelect({ value, onChange, placeholder = "Select cultivar" }: CultivarSelectProps) {
+export function CultivarSelect({ value, onChange, placeholder = "Select cultivars" }: CultivarSelectProps) {
   const { data: cultivars } = useCultivars();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -30,16 +31,17 @@ export function CultivarSelect({ value, onChange, placeholder = "Select cultivar
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const handleSelect = (name: string) => {
-    onChange(name);
-    setOpen(false);
-    setSearch("");
-    setPage(1);
+  const handleToggle = (name: string) => {
+    if (value.includes(name)) {
+      onChange(value.filter(v => v !== name));
+    } else {
+      onChange([...value, name]);
+    }
   };
 
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange("");
+  const handleRemove = (name: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    onChange(value.filter(v => v !== name));
   };
 
   const handleOpen = () => {
@@ -53,25 +55,42 @@ export function CultivarSelect({ value, onChange, placeholder = "Select cultivar
       <Button
         type="button"
         variant="outline"
-        className="w-full justify-between font-normal"
+        className="w-full justify-between font-normal min-h-9 h-auto"
         onClick={handleOpen}
         data-testid="button-cultivar-select"
       >
-        <span className={value ? "text-foreground" : "text-muted-foreground"}>
-          {value || placeholder}
-        </span>
-        {value ? (
-          <X className="w-4 h-4 shrink-0 opacity-50 hover:opacity-100" onClick={handleClear} />
+        {value.length > 0 ? (
+          <div className="flex items-center gap-1 flex-wrap py-0.5">
+            {value.map(v => (
+              <Badge key={v} variant="secondary" className="text-xs gap-1">
+                {v}
+                <X className="w-3 h-3 cursor-pointer" onClick={(e) => handleRemove(v, e)} />
+              </Badge>
+            ))}
+          </div>
         ) : (
-          <Leaf className="w-4 h-4 shrink-0 opacity-50" />
+          <span className="text-muted-foreground">{placeholder}</span>
         )}
+        <Leaf className="w-4 h-4 shrink-0 opacity-50 ml-2" />
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Select Cultivar</DialogTitle>
+            <DialogTitle>Select Cultivars</DialogTitle>
+            <DialogDescription className="sr-only">Choose one or more cultivars for this tea</DialogDescription>
           </DialogHeader>
+
+          {value.length > 0 && (
+            <div className="flex items-center gap-1 flex-wrap">
+              {value.map(v => (
+                <Badge key={v} variant="secondary" className="text-xs gap-1">
+                  {v}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => handleRemove(v)} />
+                </Badge>
+              ))}
+            </div>
+          )}
 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -92,21 +111,24 @@ export function CultivarSelect({ value, onChange, placeholder = "Select cultivar
                   No cultivars found
                 </p>
               ) : (
-                pageItems.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => handleSelect(c.name)}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover-elevate ${
-                      value === c.name
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-foreground"
-                    }`}
-                    data-testid={`cultivar-option-${c.id}`}
-                  >
-                    {c.name}
-                  </button>
-                ))
+                pageItems.map((c) => {
+                  const isSelected = value.includes(c.name);
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => handleToggle(c.name)}
+                      className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover-elevate ${
+                        isSelected
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-foreground"
+                      }`}
+                      data-testid={`cultivar-option-${c.id}`}
+                    >
+                      {c.name}
+                    </button>
+                  );
+                })
               )}
             </div>
           </ScrollArea>
@@ -143,10 +165,10 @@ export function CultivarSelect({ value, onChange, placeholder = "Select cultivar
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => { onChange(""); setOpen(false); }}
+              onClick={() => { onChange([]); }}
               data-testid="button-cultivar-clear"
             >
-              Clear Selection
+              Clear All
             </Button>
             <Button
               variant="outline"
@@ -154,7 +176,7 @@ export function CultivarSelect({ value, onChange, placeholder = "Select cultivar
               onClick={() => setOpen(false)}
               data-testid="button-cultivar-close"
             >
-              Cancel
+              Done
             </Button>
           </div>
         </DialogContent>

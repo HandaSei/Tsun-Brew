@@ -28,7 +28,7 @@ export function CreateTeaForm({ onSuccess, isCustom = false }: { onSuccess: () =
       description: "",
       type: "Green",
       origin: "",
-      cultivar: "",
+      cultivar: [],
       photoUrl: "",
     },
   });
@@ -170,9 +170,9 @@ export function CreateTeaForm({ onSuccess, isCustom = false }: { onSuccess: () =
               <FormLabel>Cultivar (Optional)</FormLabel>
               <FormControl>
                 <CultivarSelect
-                  value={field.value || ""}
+                  value={field.value || []}
                   onChange={field.onChange}
-                  placeholder="Select cultivar..."
+                  placeholder="Select cultivars..."
                 />
               </FormControl>
               <FormMessage />
