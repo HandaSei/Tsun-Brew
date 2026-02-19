@@ -22,7 +22,12 @@ Tsun Brew is a full-stack web application for tea enthusiasts to discover, track
 - Admin "Scoring" tab for managing scoring systems (create, edit, delete, toggle active, set logo/position)
 - User Settings page (/settings) with preferred scoring system selector, accessible via clickable username in navigation
 - ScoreWidget integrated into TeaDetails page (full mode) and MyList page (compact mode)
-- Admin Dashboard now has 5 tabs: Users, Tea Types, Branding, Bottom Bar, Scoring
+- Cultivar management system: cultivars table (id, name, sortOrder), CRUD API at /api/cultivars (admin-gated writes, public reads), seeded with 101 varieties
+- CultivarSelect popup component (6 items/page with search) replaces text input in CreateTeaForm and TeaDetails edit form
+- Admin Dashboard "Tea" tab (renamed from "Tea Types") includes CultivarsSection with add/edit/delete/reorder
+- Browse page cultivar filter: CultivarFilterDialog with 30 items/page, A-Z letter selection, search, pagination; filter chips with proper casing
+- Backend browseTeas accepts cultivars[] parameter for case-insensitive filtering, including trending sort
+- Admin Dashboard now has 6 tabs: Users, Tea, Branding, Bottom Bar, Scoring, Collection Phrases
 - Collection Phrases system: dynamic badges when visiting another user's collection, based on owner/visitor status combinations (e.g. "I had it first!", "Eyeing mine?", etc.)
 - Admin "Collection Phrases" tab to customize phrase text, icon, and color for all 9 status combinations
 - collectionPhrases table with ownerStatus, visitorStatus, phrase, color HSL, icon name; seeded with default phrases
