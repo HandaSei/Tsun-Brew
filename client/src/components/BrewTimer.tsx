@@ -678,10 +678,11 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         ) : null;
       })()}
 
-      <p className="text-sm text-muted-foreground text-center">
-        {temp ? `${temp}°C` : ""}
-        {temp && method === 'oriental' && tea.orientalMaxInfusions ? ` · Up to ${tea.orientalMaxInfusions} infusions` : ""}
-      </p>
+      {temp && method === 'oriental' && tea.orientalMaxInfusions && (
+        <p className="text-sm text-muted-foreground text-center">
+          Up to {tea.orientalMaxInfusions} infusions
+        </p>
+      )}
     </div>
   );
 });
