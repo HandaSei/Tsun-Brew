@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
 import { Navigation } from "@/components/Navigation";
@@ -17,10 +17,16 @@ import {
   SlidersHorizontal,
   X,
   TrendingUp,
+  Search,
+  Tag,
 } from "lucide-react";
 import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
+import { useCultivars } from "@/hooks/use-cultivars";
 import { useAuth } from "@/hooks/use-auth";
-import type { Tea, TeaType } from "@shared/schema";
+import type { Tea, TeaType, Cultivar } from "@shared/schema";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -156,6 +162,242 @@ function TypeFilter({
   );
 }
 
+const CULTIVAR_PAGE_SIZE = 30;
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+function CultivarFilterDialog({
+  open,
+  onOpenChange,
+  cultivars,
+  selectedCultivars,
+  onToggle,
+  onClearAll,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  cultivars: Cultivar[];
+  selectedCultivars: string[];
+  onToggle: (name: string) => void;
+  onClearAll: () => void;
+}) {
+  const [search, setSearch] = useState("");
+  const [activeLetter, setActiveLetter] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+
+  const sorted = useMemo(() => {
+    return [...cultivars].sort((a, b) => a.name.localeCompare(b.name));
+  }, [cultivars]);
+
+  const filtered = useMemo(() => {
+    let list = sorted;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(c => c.name.toLowerCase().includes(q));
+    }
+    if (activeLetter) {
+      list = list.filter(c => c.name.toUpperCase().startsWith(activeLetter));
+    }
+    return list;
+  }, [sorted, search, activeLetter]);
+
+  const totalPages = Math.ceil(filtered.length / CULTIVAR_PAGE_SIZE);
+  const pageItems = filtered.slice((page - 1) * CULTIVAR_PAGE_SIZE, page * CULTIVAR_PAGE_SIZE);
+
+  const availableLetters = useMemo(() => {
+    const letters = new Set<string>();
+    sorted.forEach(c => {
+      const first = c.name.charAt(0).toUpperCase();
+      if (/[A-Z]/.test(first)) letters.add(first);
+    });
+    return letters;
+  }, [sorted]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, activeLetter]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Filter by Cultivar</DialogTitle>
+          <DialogDescription className="sr-only">Select cultivars to filter the tea list</DialogDescription>
+        </DialogHeader>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search cultivars..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+            data-testid="input-cultivar-filter-search"
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-0.5">
+          <button
+            onClick={() => setActiveLetter(null)}
+            className={`px-1.5 py-0.5 text-[10px] font-medium rounded transition-colors ${
+              activeLetter === null
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            data-testid="cultivar-letter-all"
+          >
+            All
+          </button>
+          {ALPHABET.map(letter => (
+            <button
+              key={letter}
+              onClick={() => setActiveLetter(activeLetter === letter ? null : letter)}
+              disabled={!availableLetters.has(letter)}
+              className={`px-1.5 py-0.5 text-[10px] font-medium rounded transition-colors ${
+                activeLetter === letter
+                  ? "bg-primary text-primary-foreground"
+                  : availableLetters.has(letter)
+                  ? "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground/30 cursor-not-allowed"
+              }`}
+              data-testid={`cultivar-letter-${letter}`}
+            >
+              {letter}
+            </button>
+          ))}
+        </div>
+
+        <ScrollArea className="flex-1 min-h-0 max-h-[50vh]">
+          <div className="space-y-0.5">
+            {pageItems.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No cultivars found</p>
+            ) : (
+              pageItems.map((c) => {
+                const isSelected = selectedCultivars.includes(c.name.toLowerCase());
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => onToggle(c.name.toLowerCase())}
+                    className={`w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors ${
+                      isSelected
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-foreground hover-elevate"
+                    }`}
+                    data-testid={`cultivar-filter-option-${c.id}`}
+                  >
+                    {c.name}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </ScrollArea>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between pt-2 border-t border-border">
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage(p => p - 1)}
+              data-testid="cultivar-filter-prev"
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Prev
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              Page {page} of {totalPages} ({filtered.length} cultivars)
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage(p => p + 1)}
+              data-testid="cultivar-filter-next"
+            >
+              Next
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        )}
+
+        <div className="flex justify-between pt-2 border-t border-border">
+          {selectedCultivars.length > 0 && (
+            <Button variant="ghost" size="sm" onClick={onClearAll} data-testid="cultivar-filter-clear">
+              Clear all ({selectedCultivars.length})
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={() => onOpenChange(false)}
+            data-testid="cultivar-filter-done"
+          >
+            Done
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CultivarFilter({
+  selectedCultivars,
+  onToggle,
+  onClearAll,
+}: {
+  selectedCultivars: string[];
+  onToggle: (name: string) => void;
+  onClearAll: () => void;
+}) {
+  const { data: cultivars } = useCultivars();
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  if (!cultivars || cultivars.length === 0) return null;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <label className="text-sm font-medium text-foreground">Cultivar</label>
+        {selectedCultivars.length > 0 && (
+          <button
+            onClick={onClearAll}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            data-testid="button-clear-cultivars"
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+      <Button
+        variant="outline"
+        className="w-full justify-between"
+        onClick={() => setDialogOpen(true)}
+        data-testid="button-open-cultivar-filter"
+      >
+        <div className="flex items-center gap-2">
+          <Tag className="w-4 h-4" />
+          <span className="text-sm">
+            {selectedCultivars.length > 0
+              ? `${selectedCultivars.length} selected`
+              : "Filter by cultivar"}
+          </span>
+        </div>
+      </Button>
+
+      <CultivarFilterDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        cultivars={cultivars}
+        selectedCultivars={selectedCultivars}
+        onToggle={onToggle}
+        onClearAll={onClearAll}
+      />
+    </div>
+  );
+}
+
 function Pagination({
   page,
   totalPages,
@@ -249,6 +491,9 @@ function FilterSidebar({
   selectedTypes,
   onToggleType,
   onClearTypes,
+  selectedCultivars,
+  onToggleCultivar,
+  onClearCultivars,
   source,
   onSourceChange,
   showSourceSelector,
@@ -259,6 +504,9 @@ function FilterSidebar({
   selectedTypes: string[];
   onToggleType: (name: string) => void;
   onClearTypes: () => void;
+  selectedCultivars: string[];
+  onToggleCultivar: (name: string) => void;
+  onClearCultivars: () => void;
   source: "official" | "custom" | "all";
   onSourceChange: (v: "official" | "custom" | "all") => void;
   showSourceSelector: boolean;
@@ -317,6 +565,12 @@ function FilterSidebar({
         />
       )}
 
+      <CultivarFilter
+        selectedCultivars={selectedCultivars}
+        onToggle={onToggleCultivar}
+        onClearAll={onClearCultivars}
+      />
+
       {showSourceSelector && (
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Tea Source</label>
@@ -357,6 +611,7 @@ export default function BrowseTeas() {
   const [location] = useLocation();
   const { user } = useAuth();
   const { data: teaTypes } = useTeaTypes();
+  const { data: cultivarsList } = useCultivars();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const params = new URLSearchParams(location.split("?")[1] || "");
@@ -365,8 +620,11 @@ export default function BrowseTeas() {
   const urlSource: "official" | "custom" | "all" = urlCustom === "true" ? "custom" : urlCustom === "false" ? "official" : "official";
   const urlTypes = params.get("types")?.split(",").filter(Boolean) || [];
 
+  const urlCultivars = params.get("cultivars")?.split(",").filter(Boolean) || [];
+
   const [sort, setSort] = useState(urlSort);
   const [selectedTypes, setSelectedTypes] = useState<string[]>(urlTypes);
+  const [selectedCultivars, setSelectedCultivars] = useState<string[]>(urlCultivars);
   const [source, setSource] = useState<"official" | "custom" | "all">(urlSource);
   const [page, setPage] = useState(1);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -380,6 +638,7 @@ export default function BrowseTeas() {
     setSort(urlSort);
     setSource(urlSource);
     setSelectedTypes(urlTypes);
+    setSelectedCultivars(urlCultivars);
     setPage(1);
     setMobilePage(1);
     setMobileTeas([]);
@@ -410,7 +669,7 @@ export default function BrowseTeas() {
   if (selectedTypes.length > 0) queryParams.set("types", selectedTypes.join(","));
 
   const desktopQuery = useQuery<BrowseResponse>({
-    queryKey: ["/api/browse-teas", sort, page, selectedTypes.join(","), source, "desktop"],
+    queryKey: ["/api/browse-teas", sort, page, selectedTypes.join(","), selectedCultivars.join(","), source, "desktop"],
     queryFn: async () => {
       const params = new URLSearchParams();
       params.set("sort", sort);
@@ -419,6 +678,7 @@ export default function BrowseTeas() {
       if (source === "custom") params.set("customOnly", "true");
       if (source === "official") params.set("officialOnly", "true");
       if (selectedTypes.length > 0) params.set("types", selectedTypes.join(","));
+      if (selectedCultivars.length > 0) params.set("cultivars", selectedCultivars.join(","));
       const res = await fetch(`/api/browse-teas?${params}`);
       if (!res.ok) throw new Error("Failed to browse teas");
       return res.json();
@@ -427,7 +687,7 @@ export default function BrowseTeas() {
   });
 
   const mobileQuery = useQuery<BrowseResponse>({
-    queryKey: ["/api/browse-teas", sort, mobilePage, selectedTypes.join(","), source, "mobile"],
+    queryKey: ["/api/browse-teas", sort, mobilePage, selectedTypes.join(","), selectedCultivars.join(","), source, "mobile"],
     queryFn: async () => {
       const params = new URLSearchParams();
       params.set("sort", sort);
@@ -436,6 +696,7 @@ export default function BrowseTeas() {
       if (source === "custom") params.set("customOnly", "true");
       if (source === "official") params.set("officialOnly", "true");
       if (selectedTypes.length > 0) params.set("types", selectedTypes.join(","));
+      if (selectedCultivars.length > 0) params.set("cultivars", selectedCultivars.join(","));
       const res = await fetch(`/api/browse-teas?${params}`);
       if (!res.ok) throw new Error("Failed to browse teas");
       return res.json();
@@ -472,6 +733,24 @@ export default function BrowseTeas() {
     setSelectedTypes([]);
   }, []);
 
+  const toggleCultivar = useCallback((name: string) => {
+    setSelectedCultivars((prev) =>
+      prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]
+    );
+    setPage(1);
+    setMobilePage(1);
+    setMobileTeas([]);
+    setMobileHasMore(true);
+  }, []);
+
+  const clearCultivars = useCallback(() => {
+    setSelectedCultivars([]);
+    setPage(1);
+    setMobilePage(1);
+    setMobileTeas([]);
+    setMobileHasMore(true);
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -495,6 +774,9 @@ export default function BrowseTeas() {
       selectedTypes={selectedTypes}
       onToggleType={toggleType}
       onClearTypes={clearTypes}
+      selectedCultivars={selectedCultivars}
+      onToggleCultivar={toggleCultivar}
+      onClearCultivars={clearCultivars}
       source={source}
       onSourceChange={setSource}
       showSourceSelector={!!user}
@@ -523,9 +805,9 @@ export default function BrowseTeas() {
                 <Button variant="outline" size="sm" data-testid="button-mobile-filters">
                   <SlidersHorizontal className="w-4 h-4 mr-1.5" />
                   Filters
-                  {(selectedTypes.length > 0 || sort === "trending") && (
+                  {(selectedTypes.length > 0 || selectedCultivars.length > 0 || sort === "trending") && (
                     <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5">
-                      {selectedTypes.length + (sort === "trending" ? 1 : 0)}
+                      {selectedTypes.length + selectedCultivars.length + (sort === "trending" ? 1 : 0)}
                     </Badge>
                   )}
                 </Button>
@@ -541,7 +823,7 @@ export default function BrowseTeas() {
             </Sheet>
           </div>
 
-          {(selectedTypes.length > 0 || sort === "trending") && (
+          {(selectedTypes.length > 0 || selectedCultivars.length > 0 || sort === "trending") && (
             <div className="flex items-center gap-1.5 flex-wrap mb-4">
               <span className="text-xs text-muted-foreground">Filtering:</span>
               {sort === "trending" && (
@@ -571,6 +853,21 @@ export default function BrowseTeas() {
                   </button>
                 );
               })}
+              {selectedCultivars.map((c) => {
+                const displayName = cultivarsList?.find(cv => cv.name.toLowerCase() === c)?.name || c;
+                return (
+                  <button
+                    key={c}
+                    onClick={() => toggleCultivar(c)}
+                    className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/50 text-foreground px-2 py-0.5 text-[10px] font-semibold cursor-pointer group/tag"
+                    data-testid={`active-filter-cultivar-${c}`}
+                  >
+                    <Tag className="w-3 h-3" />
+                    {displayName}
+                    <X className="w-3 h-3 opacity-60 group-hover/tag:opacity-100 transition-opacity" />
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -587,7 +884,7 @@ export default function BrowseTeas() {
               <Leaf className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
               <p className="text-muted-foreground text-lg">No teas found</p>
               <p className="text-sm text-muted-foreground mt-1">
-                {selectedTypes.length > 0
+                {selectedTypes.length > 0 || selectedCultivars.length > 0
                   ? "Try clearing your filters"
                   : source === "custom"
                   ? "You haven't added any custom teas yet"

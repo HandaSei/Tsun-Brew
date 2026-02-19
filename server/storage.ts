@@ -1,9 +1,10 @@
 import { 
-  users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases, teaTypes, siteSettings, verificationCodes, footerLinks, pages, collectionPhrases,
+  users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases, cultivars, teaTypes, siteSettings, verificationCodes, footerLinks, pages, collectionPhrases,
   scoringSystems, teaScores, userPreferences, scoreDefinitions, trendingTeasCache,
   type User, type InsertUser, type Tea, type InsertTea, type TeaLog, type InsertTeaLog,
   type Guide, type InsertGuide, type Review, type InsertReview,
   type HeroPhrase, type InsertHeroPhrase,
+  type Cultivar, type InsertCultivar,
   type TeaType, type InsertTeaType,
   type FooterLink, type InsertFooterLink,
   type Page, type InsertPage,
@@ -36,7 +37,7 @@ export interface IStorage {
   deleteVerificationCodesForEmail(email: string, type: string): Promise<void>;
 
   // Teas
-  browseTeas(options: { userId?: number; customOnly?: boolean; sort?: string; types?: string[]; page?: number; limit?: number }): Promise<{ teas: Tea[]; total: number }>;
+  browseTeas(options: { userId?: number; customOnly?: boolean; sort?: string; types?: string[]; cultivars?: string[]; page?: number; limit?: number }): Promise<{ teas: Tea[]; total: number }>;
   getTeas(userId?: number): Promise<Tea[]>;
   getTea(id: number): Promise<(Tea & { attributes: any[] }) | undefined>;
   getTeaBySlug(slug: string): Promise<(Tea & { attributes: any[] }) | undefined>;
@@ -62,6 +63,12 @@ export interface IStorage {
   createHeroPhrase(phrase: InsertHeroPhrase): Promise<HeroPhrase>;
   updateHeroPhrase(id: number, phrase: Partial<InsertHeroPhrase>): Promise<HeroPhrase>;
   deleteHeroPhrase(id: number): Promise<void>;
+
+  // Cultivars
+  getCultivars(): Promise<Cultivar[]>;
+  createCultivar(cultivar: InsertCultivar): Promise<Cultivar>;
+  updateCultivar(id: number, cultivar: Partial<InsertCultivar>): Promise<Cultivar>;
+  deleteCultivar(id: number): Promise<void>;
 
   // Tea Types
   getTeaTypes(): Promise<TeaType[]>;
@@ -179,8 +186,8 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
-  async browseTeas(options: { userId?: number; customOnly?: boolean; officialOnly?: boolean; sort?: string; types?: string[]; page?: number; limit?: number }): Promise<{ teas: Tea[]; total: number }> {
-    const { userId, customOnly = false, officialOnly = false, sort = "latest", types, page = 1, limit = 36 } = options;
+  async browseTeas(options: { userId?: number; customOnly?: boolean; officialOnly?: boolean; sort?: string; types?: string[]; cultivars?: string[]; page?: number; limit?: number }): Promise<{ teas: Tea[]; total: number }> {
+    const { userId, customOnly = false, officialOnly = false, sort = "latest", types, cultivars: cultivarFilter, page = 1, limit = 36 } = options;
     const offset = (page - 1) * limit;
 
     const conditions: any[] = [];
@@ -208,6 +215,11 @@ export class DatabaseStorage implements IStorage {
     if (types && types.length > 0) {
       const lowerTypes = types.map(t => t.toLowerCase());
       conditions.push(sql`LOWER(${teas.type}) IN (${sql.join(lowerTypes.map(t => sql`${t}`), sql`, `)})`);
+    }
+
+    if (cultivarFilter && cultivarFilter.length > 0) {
+      const lowerCultivars = cultivarFilter.map(c => c.toLowerCase());
+      conditions.push(sql`LOWER(${teas.cultivar}) IN (${sql.join(lowerCultivars.map(c => sql`${c}`), sql`, `)})`);
     }
 
     const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
@@ -427,6 +439,24 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHeroPhrase(id: number): Promise<void> {
     await db.delete(heroPhrases).where(eq(heroPhrases.id, id));
+  }
+
+  async getCultivars(): Promise<Cultivar[]> {
+    return await db.select().from(cultivars).orderBy(cultivars.sortOrder, cultivars.name);
+  }
+
+  async createCultivar(cultivar: InsertCultivar): Promise<Cultivar> {
+    const [newCultivar] = await db.insert(cultivars).values(cultivar as any).returning();
+    return newCultivar;
+  }
+
+  async updateCultivar(id: number, cultivar: Partial<InsertCultivar>): Promise<Cultivar> {
+    const [updated] = await db.update(cultivars).set(cultivar as any).where(eq(cultivars.id, id)).returning();
+    return updated;
+  }
+
+  async deleteCultivar(id: number): Promise<void> {
+    await db.delete(cultivars).where(eq(cultivars.id, id));
   }
 
   async getTeaTypes(): Promise<TeaType[]> {

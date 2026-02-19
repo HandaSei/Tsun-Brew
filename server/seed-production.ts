@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, teas, teaTypes, siteSettings, heroPhrases, teaLogs, pages, footerLinks } from "@shared/schema";
+import { users, teas, teaTypes, cultivars, siteSettings, heroPhrases, teaLogs, pages, footerLinks } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 
 export async function seedProductionData() {
@@ -26,6 +26,39 @@ export async function seedProductionData() {
       { name: "Powdered Tea", colorHue: 100, colorSaturation: 30, colorLightness: 50, sortOrder: 9 },
     ]);
     console.log("  Tea types seeded.");
+  }
+
+  const existingCultivars = await db.select().from(cultivars);
+  if (existingCultivars.length === 0) {
+    const cultivarNames = [
+      "Yabukita", "Okumidori", "Saemidori", "Benifuuki", "Gokou",
+      "Samidori", "Asatsuyu", "Kanayamidori", "Sayamakaori", "Meiryoku",
+      "Sofu", "Yutakamidori", "Tsuyuhikari", "Okuhikari", "Komakage",
+      "Fuushun", "Harumoegi", "Harumidori", "Kiraka", "Koushun",
+      "Tie Guan Yin", "Huang Jin Gui", "Da Hong Pao", "Rou Gui", "Shui Xian",
+      "Fo Shou", "Qi Lan", "Huang Guan Yin", "Jin Guan Yin", "Mei Zhan",
+      "Ben Shan", "Mao Xie", "Qi Dan", "Bei Dou", "Ban Tian Yao",
+      "Bai Ji Guan", "Tie Luo Han", "Shui Jin Gui", "Tong Tian Xiang", "Huang Dan",
+      "Da Bai", "Xiao Bai", "Shui Xian (Fujian)", "Fu Ding Da Bai", "Zheng He Da Bai",
+      "Yun Kang 10", "Menghai Da Ye", "Jing Gu Da Bai", "Feng Qing Da Ye", "Yunkang 14",
+      "Fo Xiang", "Zi Juan", "Bai Ying", "Ge Deng", "Yi Wu",
+      "Lao Cong", "Qing Xin", "Si Ji Chun", "Jin Xuan", "Cui Yu",
+      "Ruby (TTES 18)", "Ying Xiang (TTES 12)", "Fo Shou (Taiwanese)", "Tie Guan Yin (Muzha)",
+      "Qing Xin Oolong", "Qing Xin Da Mao", "Da Ye Oolong",
+      "Assamica", "Sinensis", "Cambod",
+      "Longjing 43", "Wuniu Zao", "Zhongcha 108", "Fuding Da Hao",
+      "Zhuyeqi", "Huangshan Zhong", "Maofeng Zhong", "Taiping Houkui Zhong",
+      "AV2", "P312", "T78", "Ambari", "Tocklai",
+      "TRI 2025", "TRI 2043", "TRI 4049", "TRI 2023", "TRI 777",
+      "TRFK 6/8", "TRFK 31/8", "Purple Hybrid", "Clone BB35",
+      "Keemun Zhong", "Dianhong Zhong", "Zhengshan Xiaozhong",
+      "Dancong (Mi Lan Xiang)", "Dancong (Ya Shi Xiang)", "Dancong (Zhi Lan Xiang)",
+      "Dancong (Rou Gui Xiang)", "Dancong (Xing Ren Xiang)", "Dancong (Gui Hua Xiang)",
+    ];
+    await db.insert(cultivars).values(
+      cultivarNames.map((name, i) => ({ name, sortOrder: i }))
+    );
+    console.log("  Cultivars seeded.");
   }
 
   const existingSettings = await db.select().from(siteSettings);

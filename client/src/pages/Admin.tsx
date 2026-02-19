@@ -16,8 +16,10 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { useTeaTypes } from "@/hooks/use-tea-types";
-import type { TeaType, SiteSettings, FooterLink, CollectionPhrase, ScoringSystem, ScoreDefinition } from "@shared/schema";
+import { useCultivars } from "@/hooks/use-cultivars";
+import type { TeaType, Cultivar, SiteSettings, FooterLink, CollectionPhrase, ScoringSystem, ScoreDefinition } from "@shared/schema";
 import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 import { apiRequest } from "@/lib/queryClient";
 
 const ICON_MAP: Record<string, any> = {
@@ -300,6 +302,146 @@ function TeaTypesTab() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={!formName.trim() || createMutation.isPending || updateMutation.isPending} data-testid="button-save-type">
               {createMutation.isPending || updateMutation.isPending ? "Saving..." : editingType ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function CultivarsSection() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { data: cultivarsList, isLoading } = useCultivars();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingCultivar, setEditingCultivar] = useState<Cultivar | null>(null);
+  const [formName, setFormName] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+
+  const openCreate = () => {
+    setEditingCultivar(null);
+    setFormName("");
+    setDialogOpen(true);
+  };
+
+  const openEdit = (c: Cultivar) => {
+    setEditingCultivar(c);
+    setFormName(c.name);
+    setDialogOpen(true);
+  };
+
+  const createMutation = useMutation({
+    mutationFn: async (data: { name: string }) => {
+      return apiRequest("POST", "/api/cultivars", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cultivars"] });
+      setDialogOpen(false);
+      toast({ title: "Cultivar Created" });
+    },
+    onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: { name: string } }) => {
+      return apiRequest("PATCH", `/api/cultivars/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cultivars"] });
+      setDialogOpen(false);
+      toast({ title: "Cultivar Updated" });
+    },
+    onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest("DELETE", `/api/cultivars/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cultivars"] });
+      setDeleteConfirm(null);
+      toast({ title: "Cultivar Deleted" });
+    },
+    onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  const handleSubmit = () => {
+    const data = { name: formName };
+    if (editingCultivar) {
+      updateMutation.mutate({ id: editingCultivar.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <p className="text-muted-foreground text-sm">Manage cultivar varieties that can be assigned to teas. ({cultivarsList?.length || 0} cultivars)</p>
+        <Button onClick={openCreate} data-testid="button-add-cultivar">
+          <Plus className="w-4 h-4 mr-2" />
+          Add Cultivar
+        </Button>
+      </div>
+
+      <Card className="overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {(cultivarsList || []).map((c) => (
+              <TableRow key={c.id} data-testid={`row-cultivar-${c.id}`}>
+                <TableCell className="font-medium">{c.name}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(c)} data-testid={`button-edit-cultivar-${c.id}`}>
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    {deleteConfirm === c.id ? (
+                      <div className="flex items-center gap-1">
+                        <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate(c.id)} data-testid={`button-confirm-delete-cultivar-${c.id}`}>
+                          Confirm
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setDeleteConfirm(null)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(c.id)} data-testid={`button-delete-cultivar-${c.id}`}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingCultivar ? "Edit Cultivar" : "Add New Cultivar"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="e.g. Yabukita" data-testid="input-cultivar-name" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={!formName.trim() || createMutation.isPending || updateMutation.isPending} data-testid="button-save-cultivar">
+              {createMutation.isPending || updateMutation.isPending ? "Saving..." : editingCultivar ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1273,7 +1415,7 @@ export default function AdminPage() {
         <Tabs defaultValue="users" className="space-y-6">
           <TabsList data-testid="tabs-admin" className="flex-wrap">
             <TabsTrigger value="users" data-testid="tab-users">Users</TabsTrigger>
-            <TabsTrigger value="tea-types" data-testid="tab-tea-types">Tea Types</TabsTrigger>
+            <TabsTrigger value="tea-types" data-testid="tab-tea-types">Tea</TabsTrigger>
             <TabsTrigger value="scoring" data-testid="tab-scoring">Scoring</TabsTrigger>
             <TabsTrigger value="branding" data-testid="tab-branding">Branding</TabsTrigger>
             <TabsTrigger value="phrases" data-testid="tab-phrases">Collection Phrases</TabsTrigger>
@@ -1285,7 +1427,17 @@ export default function AdminPage() {
           </TabsContent>
 
           <TabsContent value="tea-types">
-            <TeaTypesTab />
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Tea Types</h3>
+                <TeaTypesTab />
+              </div>
+              <Separator />
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Cultivars</h3>
+                <CultivarsSection />
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="scoring">

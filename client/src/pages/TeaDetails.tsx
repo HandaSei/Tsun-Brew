@@ -31,6 +31,7 @@ import {
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { CultivarSelect } from "@/components/CultivarSelect";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription } from "@/components/ui/form";
@@ -298,7 +299,13 @@ export default function TeaDetails() {
                                     render={({ field }) => (
                                       <FormItem>
                                         <FormLabel>Cultivar</FormLabel>
-                                        <FormControl><Input {...field} /></FormControl>
+                                        <FormControl>
+                                          <CultivarSelect
+                                            value={field.value || ""}
+                                            onChange={field.onChange}
+                                            placeholder="Select cultivar..."
+                                          />
+                                        </FormControl>
                                       </FormItem>
                                     )}
                                   />

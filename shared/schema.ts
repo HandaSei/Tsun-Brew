@@ -115,6 +115,12 @@ export const heroPhrases = pgTable("hero_phrases", {
   sortOrder: integer("sort_order").default(0),
 });
 
+export const cultivars = pgTable("cultivars", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  sortOrder: integer("sort_order").default(0),
+});
+
 export const teaTypes = pgTable("tea_types", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
@@ -268,6 +274,7 @@ export const insertTeaLogSchema = createInsertSchema(teaLogs).omit({ id: true, l
 export const insertGuideSchema = createInsertSchema(brewingGuides).omit({ id: true, createdAt: true, userId: true });
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true, userId: true });
 export const insertHeroPhraseSchema = createInsertSchema(heroPhrases).omit({ id: true });
+export const insertCultivarSchema = createInsertSchema(cultivars).omit({ id: true });
 export const insertTeaTypeSchema = createInsertSchema(teaTypes).omit({ id: true });
 export const insertFooterLinkSchema = createInsertSchema(footerLinks).omit({ id: true });
 export const insertPageSchema = createInsertSchema(pages).omit({ id: true, updatedAt: true });
@@ -297,6 +304,8 @@ export type HeroPhrase = typeof heroPhrases.$inferSelect;
 export type InsertHeroPhrase = z.infer<typeof insertHeroPhraseSchema>;
 export type Review = typeof reviews.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type Cultivar = typeof cultivars.$inferSelect;
+export type InsertCultivar = z.infer<typeof insertCultivarSchema>;
 export type TeaType = typeof teaTypes.$inferSelect;
 export type InsertTeaType = z.infer<typeof insertTeaTypeSchema>;
 export type FooterLink = typeof footerLinks.$inferSelect;

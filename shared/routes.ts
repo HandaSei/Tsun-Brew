@@ -6,6 +6,7 @@ import {
   insertGuideSchema, 
   insertReviewSchema,
   insertHeroPhraseSchema,
+  insertCultivarSchema,
   insertTeaTypeSchema,
   insertFooterLinkSchema,
   insertPageSchema,
@@ -15,14 +16,14 @@ import {
   insertScoreDefinitionSchema,
   insertTeaScoreSchema,
   insertUserPreferencesSchema,
-  users, teas, teaLogs, brewingGuides, reviews, heroPhrases, teaTypes, footerLinks, pages, siteSettings, collectionPhrases,
+  users, teas, teaLogs, brewingGuides, reviews, heroPhrases, cultivars, teaTypes, footerLinks, pages, siteSettings, collectionPhrases,
   scoringSystems, teaScores, userPreferences
 } from './schema';
 
 export type { 
   User, InsertUser, Tea, InsertTea, TeaLog, InsertTeaLog, 
   Guide, InsertGuide, Review, InsertReview, 
-  HeroPhrase, InsertHeroPhrase, TeaType, InsertTeaType, 
+  HeroPhrase, InsertHeroPhrase, Cultivar, InsertCultivar, TeaType, InsertTeaType, 
   FooterLink, InsertFooterLink, Page, InsertPage,
   SiteSettings, InsertSiteSettings,
   CollectionPhrase, InsertCollectionPhrase,
@@ -243,6 +244,41 @@ export const api = {
     delete: {
       method: 'DELETE' as const,
       path: '/api/hero-phrases/:id',
+      responses: {
+        200: z.void(),
+        403: errorSchemas.forbidden,
+      },
+    },
+  },
+  cultivars: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/cultivars',
+      responses: {
+        200: z.array(z.custom<typeof cultivars.$inferSelect>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/cultivars',
+      input: insertCultivarSchema,
+      responses: {
+        201: z.custom<typeof cultivars.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/cultivars/:id',
+      input: insertCultivarSchema.partial(),
+      responses: {
+        200: z.custom<typeof cultivars.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/cultivars/:id',
       responses: {
         200: z.void(),
         403: errorSchemas.forbidden,

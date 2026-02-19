@@ -61,6 +61,8 @@ export async function registerRoutes(
       const officialOnly = req.query.officialOnly === 'true';
       const typesParam = req.query.types as string;
       const types = typesParam ? typesParam.split(',').filter(Boolean) : undefined;
+      const cultivarsParam = req.query.cultivars as string;
+      const cultivarsFilter = cultivarsParam ? cultivarsParam.split(',').filter(Boolean) : undefined;
 
       if (sort === 'trending') {
         const trending = await storage.getTrendingTeas();
@@ -80,6 +82,11 @@ export async function registerRoutes(
           result = result.filter(tea => typeSet.has(tea.type.toLowerCase()));
         }
 
+        if (cultivarsFilter && cultivarsFilter.length > 0) {
+          const cultivarSet = new Set(cultivarsFilter.map(c => c.toLowerCase()));
+          result = result.filter(tea => tea.cultivar && cultivarSet.has(tea.cultivar.toLowerCase()));
+        }
+
         return res.json({ teas: result, total: result.length, page: 1, limit: 36 });
       }
 
@@ -89,6 +96,7 @@ export async function registerRoutes(
         officialOnly,
         sort,
         types,
+        cultivars: cultivarsFilter,
         page,
         limit,
       });
@@ -381,6 +389,38 @@ export async function registerRoutes(
     const user = req.user as User;
     if (user.role !== 'admin' && user.role !== 'mod') return res.sendStatus(403);
     await storage.deleteHeroPhrase(Number(req.params.id));
+    res.sendStatus(200);
+  });
+
+  // === Cultivars ===
+  app.get(api.cultivars.list.path, async (req, res) => {
+    const list = await storage.getCultivars();
+    res.json(list);
+  });
+
+  app.post(api.cultivars.create.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const input = api.cultivars.create.input.parse(req.body);
+    const cultivar = await storage.createCultivar(input);
+    res.status(201).json(cultivar);
+  });
+
+  app.patch(api.cultivars.update.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const input = api.cultivars.update.input.parse(req.body);
+    const cultivar = await storage.updateCultivar(Number(req.params.id), input);
+    res.json(cultivar);
+  });
+
+  app.delete(api.cultivars.delete.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    await storage.deleteCultivar(Number(req.params.id));
     res.sendStatus(200);
   });
 
