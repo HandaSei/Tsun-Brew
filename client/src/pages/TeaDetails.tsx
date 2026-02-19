@@ -55,7 +55,7 @@ function CultivarTags({ cultivars, isInsideInfoBox = false }: { cultivars: strin
   const hidden = cultivars.slice(MAX_VISIBLE_CULTIVARS);
 
   return (
-    <div className={isInsideInfoBox ? "mt-4" : "container mx-auto px-4 pt-4"}>
+    <div className={isInsideInfoBox ? "inline-flex items-center gap-2 flex-wrap" : "container mx-auto px-4 pt-4"}>
       <div className={isInsideInfoBox ? "" : "max-w-2xl mx-auto"}>
         <div className="flex items-center gap-2 flex-wrap" data-testid="cultivar-tags">
           <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
@@ -634,11 +634,11 @@ export default function TeaDetails() {
                       <span>{tea.origin}</span>
                     </div>
                   )}
+                  {tea.origin && tea.cultivar && tea.cultivar.length > 0 && <span className="opacity-20">•</span>}
+                  <CultivarTags cultivars={tea.cultivar} isInsideInfoBox={true} />
                 </div>
-                <CultivarTags cultivars={tea.cultivar} isInsideInfoBox={true} />
+                <ScoreWidget teaId={tea.id} />
               </div>
-
-              <ScoreWidget teaId={tea.id} />
             </div>
           </div>
         </div>
