@@ -46,7 +46,7 @@ import { DialogDescription } from "@/components/ui/dialog";
 
 const MAX_VISIBLE_CULTIVARS = 5;
 
-function CultivarTags({ cultivars }: { cultivars: string[] | null }) {
+function CultivarTags({ cultivars, isInsideInfoBox = false }: { cultivars: string[] | null, isInsideInfoBox?: boolean }) {
   const [showAll, setShowAll] = useState(false);
 
   if (!cultivars || cultivars.length === 0) return null;
@@ -55,8 +55,8 @@ function CultivarTags({ cultivars }: { cultivars: string[] | null }) {
   const hidden = cultivars.slice(MAX_VISIBLE_CULTIVARS);
 
   return (
-    <div className="container mx-auto px-4 pt-4">
-      <div className="max-w-2xl mx-auto">
+    <div className={isInsideInfoBox ? "mt-4" : "container mx-auto px-4 pt-4"}>
+      <div className={isInsideInfoBox ? "" : "max-w-2xl mx-auto"}>
         <div className="flex items-center gap-2 flex-wrap" data-testid="cultivar-tags">
           <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           {visible.map((name) => (
@@ -67,7 +67,7 @@ function CultivarTags({ cultivars }: { cultivars: string[] | null }) {
             >
               <Badge
                 variant="secondary"
-                className="cursor-pointer text-xs"
+                className="cursor-pointer text-[10px] h-5 px-1.5"
               >
                 {name}
               </Badge>
@@ -76,7 +76,7 @@ function CultivarTags({ cultivars }: { cultivars: string[] | null }) {
           {hidden.length > 0 && (
             <button
               onClick={() => setShowAll(true)}
-              className="text-xs text-primary font-medium hover:underline"
+              className="text-[10px] text-primary font-medium hover:underline"
               data-testid="button-show-all-cultivars"
             >
               +{hidden.length} more
@@ -635,6 +635,7 @@ export default function TeaDetails() {
                     </div>
                   )}
                 </div>
+                <CultivarTags cultivars={tea.cultivar} isInsideInfoBox={true} />
               </div>
 
               <ScoreWidget teaId={tea.id} />
@@ -649,8 +650,6 @@ export default function TeaDetails() {
           </div>
         </div>
       )}
-
-      <CultivarTags cultivars={tea.cultivar} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
