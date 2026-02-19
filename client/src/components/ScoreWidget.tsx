@@ -101,10 +101,7 @@ export function ScoreWidget({ teaId, compact = false }: ScoreWidgetProps) {
       }
     }
     const totalVotes = communityScores.reduce((sum, c) => sum + c.voteCount, 0);
-    if (totalVotes > 0) {
-      return { avg: 0, count: totalVotes, notEnough: true, system: preferredSystem };
-    }
-    return null;
+    return { avg: 0, count: totalVotes, notEnough: true, system: preferredSystem };
   };
 
   const getUserScoreDisplay = () => {

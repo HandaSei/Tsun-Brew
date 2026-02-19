@@ -15,15 +15,11 @@ import {
   Loader2, 
   Leaf, 
   MapPin, 
-  Thermometer, 
-  Clock, 
   BookOpen, 
   Star,
   Plus,
   Settings,
   Edit2,
-  Droplets,
-  Zap,
   X,
   RotateCcw,
   Tag
@@ -638,16 +634,12 @@ export default function TeaDetails() {
               <ScoreWidget teaId={tea.id} />
             </div>
           </div>
+          {tea.description && (
+            <p className="text-base leading-relaxed text-muted-foreground mt-4">{tea.description}</p>
+          )}
           <CultivarTags cultivars={tea.cultivar} />
         </div>
       </div>
-      {tea.description && (
-        <div className="container mx-auto px-4 pt-6">
-          <div className="max-w-2xl mx-auto">
-            <p className="text-base leading-relaxed text-muted-foreground">{tea.description}</p>
-          </div>
-        </div>
-      )}
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
