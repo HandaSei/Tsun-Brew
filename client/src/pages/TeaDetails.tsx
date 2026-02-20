@@ -635,9 +635,9 @@ export default function TeaDetails() {
               {tea.description && (
                 <p className="text-base leading-relaxed text-muted-foreground mt-4">{tea.description}</p>
               )}
-              <CultivarTags cultivars={tea.cultivar} />
             </div>
           </div>
+          <CultivarTags cultivars={tea.cultivar} />
         </div>
       </div>
 
