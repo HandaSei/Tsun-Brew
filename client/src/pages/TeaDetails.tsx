@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Tabs kept for edit dialog only
 import { BrewTimer, type BrewTimerHandle } from "@/components/BrewTimer";
+import { AuthModal } from "@/components/AuthModal";
 import { useUpdateLog, useLogs } from "@/hooks/use-logs";
 import { 
   Loader2, 
@@ -121,6 +122,7 @@ export default function TeaDetails() {
   const { data: teaTypes } = useTeaTypes();
   const [isEditing, setIsEditing] = useState(false);
   const [listSelectOpen, setListSelectOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [timerSettingsOpen, setTimerSettingsOpen] = useState(false);
   const brewTimerRef = useRef<BrewTimerHandle>(null);
 
@@ -617,11 +619,9 @@ export default function TeaDetails() {
                     )
                   )}
                   {!user && (
-                    <Link href="/auth">
-                      <Button variant="outline" size="sm" className="gap-2" data-testid="button-visitor-add-list">
-                        <Plus className="w-4 h-4" /> Sign up to save
-                      </Button>
-                    </Link>
+                    <Button variant="outline" size="sm" className="gap-2" onClick={() => setAuthModalOpen(true)} data-testid="button-visitor-add-list">
+                      <Plus className="w-4 h-4" /> Sign up to save
+                    </Button>
                   )}
                 </div>
               </div>
@@ -795,6 +795,7 @@ export default function TeaDetails() {
           </div>
         </div>
       </div>
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
       <Footer />
     </div>
   );
