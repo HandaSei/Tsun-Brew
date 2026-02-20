@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardR
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff, Clock } from "lucide-react";
+import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff, Clock, AlertTriangle } from "lucide-react";
 import { useUpdateLog } from "@/hooks/use-logs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -316,6 +316,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   }, [isActive, handleTimerComplete]);
 
   const handleSaveSettings = () => {
+    if (!user) return;
     updateLog.mutate({
       teaId: tea.id,
       timerSettings: { 
@@ -494,6 +495,9 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1">
                   {infusion === 1 ? '1st' : infusion === 2 ? '2nd' : infusion === 3 ? '3rd' : `${infusion}th`}
                 </span>
+                {method === 'oriental' && tea.orientalMaxInfusions && infusion >= tea.orientalMaxInfusions && (
+                  <span className="text-[9px] font-semibold text-yellow-600 dark:text-yellow-400 mt-0.5 whitespace-nowrap">max recommended</span>
+                )}
               </div>
               <Button 
                 variant="outline" 
@@ -579,6 +583,13 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         </div>
       )}
 
+      {!user && showControls && (
+        <div className="w-full max-w-[325px] p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg flex items-center gap-2 text-yellow-700 dark:text-yellow-400 text-xs">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          <span>Log in or register to save your brewing preferences</span>
+        </div>
+      )}
+
       {method === 'oriental' && tea.washingStep && infusion === 1 && (
         <div className="mb-0 p-2 bg-[hsl(var(--wash-bg))] border border-[hsl(var(--wash-border))] rounded-md flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 w-full max-w-[325px]">
           <div className="flex items-center gap-2 text-[hsl(var(--wash-text))] text-sm font-medium">
@@ -646,12 +657,12 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
               <RotateCcw className="w-6 h-6 sm:w-7 sm:h-7 text-muted-foreground" />
             </Button>
 
-            {showControls && (
+            {showControls && user && (
               <Button
                 onClick={handleSaveSettings}
-                variant="ghost"
+                variant="default"
                 size="sm"
-                className="text-xs text-primary h-10 px-3"
+                className="rounded-full px-5 font-semibold shadow-md"
                 disabled={updateLog.isPending}
                 data-testid="button-save-timer-settings"
               >
@@ -678,11 +689,6 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         ) : null;
       })()}
 
-      {temp && method === 'oriental' && tea.orientalMaxInfusions && (
-        <p className="text-sm text-muted-foreground text-center">
-          Up to {tea.orientalMaxInfusions} infusions
-        </p>
-      )}
     </div>
   );
 });

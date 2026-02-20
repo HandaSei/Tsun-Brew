@@ -632,12 +632,12 @@ export default function TeaDetails() {
               </div>
 
               <ScoreWidget teaId={tea.id} />
+              {tea.description && (
+                <p className="text-base leading-relaxed text-muted-foreground mt-4">{tea.description}</p>
+              )}
+              <CultivarTags cultivars={tea.cultivar} />
             </div>
           </div>
-          {tea.description && (
-            <p className="text-base leading-relaxed text-muted-foreground mt-4">{tea.description}</p>
-          )}
-          <CultivarTags cultivars={tea.cultivar} />
         </div>
       </div>
 
@@ -783,7 +783,7 @@ export default function TeaDetails() {
                 occidentalTimerEnabled: userHideOccidental ? false : tea.occidentalTimerEnabled,
               }}
               teaLog={teaLog}
-              showControls={!!user}
+              showControls={true}
             />
           </div>
         </div>
