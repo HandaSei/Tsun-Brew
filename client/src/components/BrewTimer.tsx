@@ -624,54 +624,52 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
         />
       </div>
 
-      <div className="flex flex-col items-center gap-3 mt-4 md:mt-0">
-        <div className="flex items-center gap-6 sm:gap-8">
-          {alarmActive ? (
-            <Button
-              onClick={stopAlarm}
-              size="lg"
-              variant="destructive"
-              className="rounded-full px-8 h-16 shadow-xl animate-pulse gap-3 text-lg font-bold"
-              data-testid="button-stop-alarm"
-            >
-              <BellOff className="w-8 h-8" />
-              Stop Alarm
-            </Button>
-          ) : (
-            <>
-              <Button
-                onClick={toggleTimer}
-                size="lg"
-                className="rounded-full w-20 h-20 sm:w-24 sm:h-24 p-0 shadow-xl hover:shadow-2xl transition-all active:scale-95"
-                data-testid="button-toggle-timer"
-              >
-                {isActive ? <Pause className="w-10 h-10 sm:w-12 sm:h-12" /> : <Play className="w-10 h-10 sm:w-12 sm:h-12 ml-1" />}
-              </Button>
-              
-              <Button
-                onClick={resetTimer}
-                variant="outline"
-                size="icon"
-                className="rounded-full w-14 h-14 sm:w-16 sm:h-16 border-2"
-                data-testid="button-reset-timer"
-              >
-                <RotateCcw className="w-6 h-6 sm:w-7 sm:h-7 text-muted-foreground" />
-              </Button>
-            </>
-          )}
-        </div>
-
-        {showControls && user && !alarmActive && (
+      <div className="flex items-center justify-center gap-4 sm:gap-6 mt-4 md:mt-0 flex-wrap">
+        {alarmActive ? (
           <Button
-            onClick={handleSaveSettings}
-            variant="default"
-            size="sm"
-            className="rounded-full px-6 py-2 font-semibold shadow-md"
-            disabled={updateLog.isPending}
-            data-testid="button-save-timer-settings"
+            onClick={stopAlarm}
+            size="lg"
+            variant="destructive"
+            className="rounded-full px-8 h-16 shadow-xl animate-pulse gap-3 text-lg font-bold"
+            data-testid="button-stop-alarm"
           >
-            Save Preference
+            <BellOff className="w-8 h-8" />
+            Stop Alarm
           </Button>
+        ) : (
+          <>
+            <Button
+              onClick={toggleTimer}
+              size="lg"
+              className="rounded-full w-16 h-16 sm:w-20 sm:h-20 p-0 shadow-xl hover:shadow-2xl transition-all active:scale-95"
+              data-testid="button-toggle-timer"
+            >
+              {isActive ? <Pause className="w-8 h-8 sm:w-10 sm:h-10" /> : <Play className="w-8 h-8 sm:w-10 sm:h-10 ml-0.5" />}
+            </Button>
+            
+            <Button
+              onClick={resetTimer}
+              variant="outline"
+              size="icon"
+              className="rounded-full w-12 h-12 sm:w-14 sm:h-14 border-2"
+              data-testid="button-reset-timer"
+            >
+              <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
+            </Button>
+
+            {showControls && user && (
+              <Button
+                onClick={handleSaveSettings}
+                variant="default"
+                size="sm"
+                className="rounded-full px-4 h-10 text-xs font-semibold shadow-md"
+                disabled={updateLog.isPending}
+                data-testid="button-save-timer-settings"
+              >
+                Save Preference
+              </Button>
+            )}
+          </>
         )}
       </div>
 
