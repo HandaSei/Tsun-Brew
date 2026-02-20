@@ -616,6 +616,13 @@ export default function TeaDetails() {
                       </Dialog>
                     )
                   )}
+                  {!user && (
+                    <Link href="/auth">
+                      <Button variant="outline" size="sm" className="gap-2" data-testid="button-visitor-add-list">
+                        <Plus className="w-4 h-4" /> Sign up to save
+                      </Button>
+                    </Link>
+                  )}
                 </div>
               </div>
 
