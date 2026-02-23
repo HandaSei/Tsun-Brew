@@ -35,11 +35,12 @@ export function useUpdateLog() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (data: InsertTeaLog & { incrementBrew?: boolean }) => {
+    mutationFn: async (data: InsertTeaLog & { incrementBrew?: boolean; silent?: boolean }) => {
+      const { silent, ...payload } = data;
       const res = await fetch(api.logs.update.path, {
         method: api.logs.update.method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to update tea log");
@@ -48,7 +49,7 @@ export function useUpdateLog() {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: [api.logs.list.path] });
       
-      if (!variables.incrementBrew) {
+      if (!variables.incrementBrew && !variables.silent) {
         toast({ title: "Success", description: "Tea list updated" });
       }
     },

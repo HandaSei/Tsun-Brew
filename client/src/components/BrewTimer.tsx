@@ -588,7 +588,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
                     setGradePickerOpen(false);
                     if (user && teaLog) {
                       const existing = (teaLog.timerSettings as any) || {};
-                      updateLog.mutate({ teaId: tea.id, timerSettings: { ...existing, selectedGradeId: null }, status: teaLog.status || 'drinking' } as any);
+                      updateLog.mutate({ teaId: tea.id, timerSettings: { ...existing, selectedGradeId: null }, status: teaLog.status || 'drinking', silent: true } as any);
                     }
                   }}
                   data-testid="button-grade-none"
@@ -604,7 +604,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
                       setGradePickerOpen(false);
                       if (user && teaLog) {
                         const existing = (teaLog.timerSettings as any) || {};
-                        updateLog.mutate({ teaId: tea.id, timerSettings: { ...existing, selectedGradeId: grade.id }, status: teaLog.status || 'drinking' } as any);
+                        updateLog.mutate({ teaId: tea.id, timerSettings: { ...existing, selectedGradeId: grade.id }, status: teaLog.status || 'drinking', silent: true } as any);
                       }
                     }}
                     data-testid={`button-grade-select-${grade.id}`}
