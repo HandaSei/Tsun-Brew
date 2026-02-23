@@ -35,7 +35,8 @@ self.addEventListener("message", function(event) {
     timerTimeout = setTimeout(function() {
       timerTimeout = null;
       timerEndTime = null;
-      self.registration.showNotification("Tsun Brew - Timer Done", {
+      
+    var promise = self.registration.showNotification("Tsun Brew - Timer Done", {
         body: teaName + " brew is ready!",
         icon: teaPhoto || "/icon-192.png",
         badge: "/icon-192.png",
@@ -45,6 +46,9 @@ self.addEventListener("message", function(event) {
         vibrate: [200, 100, 200, 100, 200],
         actions: [{ action: "stop", title: "Stop Alarm" }],
       });
+
+      event.waitUntil(promise);
+      
       self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function(clientList) {
         for (var i = 0; i < clientList.length; i++) {
           clientList[i].postMessage({ type: "TIMER_COMPLETE" });

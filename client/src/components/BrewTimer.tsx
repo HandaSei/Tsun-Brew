@@ -301,7 +301,9 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
     let interval: ReturnType<typeof setInterval> | null = null;
     if (isActive && endTimeRef.current) {
       interval = setInterval(() => {
-        const remaining = Math.ceil((endTimeRef.current! - Date.now()) / 1000);
+        const now = Date.now();
+        const remaining = Math.ceil((endTimeRef.current! - now) / 1000);
+        
         if (remaining <= 0) {
           if (interval) clearInterval(interval);
           handleTimerComplete();
