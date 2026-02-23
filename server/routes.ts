@@ -260,6 +260,69 @@ export async function registerRoutes(
     }
   });
 
+  // === Tea Grades ===
+  app.get(api.teaGrades.list.path, async (req, res) => {
+    try {
+      const grades = await storage.getTeaGrades(Number(req.params.teaId));
+      res.json(grades);
+    } catch (err) {
+      console.error("Get tea grades error:", err);
+      res.status(500).json({ message: "Failed to get tea grades" });
+    }
+  });
+
+  app.get('/api/all-tea-grades', async (_req, res) => {
+    try {
+      const grades = await storage.getAllTeaGrades();
+      res.json(grades);
+    } catch (err) {
+      console.error("Get all tea grades error:", err);
+      res.status(500).json({ message: "Failed to get all tea grades" });
+    }
+  });
+
+  app.post(api.teaGrades.create.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin' && user.role !== 'mod') return res.sendStatus(403);
+    try {
+      const grade = await storage.createTeaGrade({
+        ...req.body,
+        teaId: Number(req.params.teaId),
+      });
+      res.status(201).json(grade);
+    } catch (err) {
+      console.error("Create tea grade error:", err);
+      res.status(500).json({ message: "Failed to create tea grade" });
+    }
+  });
+
+  app.patch(api.teaGrades.update.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin' && user.role !== 'mod') return res.sendStatus(403);
+    try {
+      const grade = await storage.updateTeaGrade(Number(req.params.id), req.body);
+      res.json(grade);
+    } catch (err) {
+      console.error("Update tea grade error:", err);
+      res.status(500).json({ message: "Failed to update tea grade" });
+    }
+  });
+
+  app.delete(api.teaGrades.delete.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as User;
+    if (user.role !== 'admin' && user.role !== 'mod') return res.sendStatus(403);
+    try {
+      await storage.deleteTeaGrade(Number(req.params.id));
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Delete tea grade error:", err);
+      res.status(500).json({ message: "Failed to delete tea grade" });
+    }
+  });
+
   // === Logs (My List) ===
   app.get(api.logs.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

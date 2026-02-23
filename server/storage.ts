@@ -1,6 +1,6 @@
 import { 
   users, teas, teaLogs, brewingGuides, reviews, teaAttributes, heroPhrases, cultivars, teaTypes, siteSettings, verificationCodes, footerLinks, pages, collectionPhrases,
-  scoringSystems, teaScores, userPreferences, scoreDefinitions, trendingTeasCache,
+  scoringSystems, teaScores, userPreferences, scoreDefinitions, trendingTeasCache, teaGrades,
   type User, type InsertUser, type Tea, type InsertTea, type TeaLog, type InsertTeaLog,
   type Guide, type InsertGuide, type Review, type InsertReview,
   type HeroPhrase, type InsertHeroPhrase,
@@ -13,6 +13,7 @@ import {
   type CollectionPhrase, type InsertCollectionPhrase,
   type ScoringSystem, type InsertScoringSystem,
   type TeaScore, type InsertTeaScore,
+  type TeaGrade, type InsertTeaGrade,
   type UserPreference, type InsertUserPreference,
   type ScoreDefinition, type InsertScoreDefinition
 } from "@shared/schema";
@@ -113,6 +114,13 @@ export interface IStorage {
   getTeaScoresForUser(userId: number, teaId: number): Promise<TeaScore[]>;
   getTeaScoresForTea(teaId: number): Promise<{ scoringSystemId: number; avgScore: number; voteCount: number }[]>;
   getUserScoresForTeas(userId: number): Promise<TeaScore[]>;
+
+  // Tea Grades
+  getTeaGrades(teaId: number): Promise<TeaGrade[]>;
+  createTeaGrade(grade: InsertTeaGrade): Promise<TeaGrade>;
+  updateTeaGrade(id: number, grade: Partial<InsertTeaGrade>): Promise<TeaGrade>;
+  deleteTeaGrade(id: number): Promise<void>;
+  getAllTeaGrades(): Promise<(TeaGrade & { teaName: string; teaSlug: string })[]>;
 
   // User Preferences
   getUserPreference(userId: number): Promise<UserPreference | undefined>;
@@ -838,6 +846,37 @@ export class DatabaseStorage implements IStorage {
       .from(trendingTeasCache)
       .limit(1);
     return row?.computedAt ?? null;
+  }
+
+  async getTeaGrades(teaId: number): Promise<TeaGrade[]> {
+    return db.select().from(teaGrades).where(eq(teaGrades.teaId, teaId)).orderBy(teaGrades.sortOrder);
+  }
+
+  async createTeaGrade(grade: InsertTeaGrade): Promise<TeaGrade> {
+    const [created] = await db.insert(teaGrades).values(grade).returning();
+    return created;
+  }
+
+  async updateTeaGrade(id: number, grade: Partial<InsertTeaGrade>): Promise<TeaGrade> {
+    const [updated] = await db.update(teaGrades).set(grade).where(eq(teaGrades.id, id)).returning();
+    return updated;
+  }
+
+  async deleteTeaGrade(id: number): Promise<void> {
+    await db.delete(teaGrades).where(eq(teaGrades.id, id));
+  }
+
+  async getAllTeaGrades(): Promise<(TeaGrade & { teaName: string; teaSlug: string })[]> {
+    const rows = await db
+      .select({
+        grade: teaGrades,
+        teaName: teas.name,
+        teaSlug: teas.slug,
+      })
+      .from(teaGrades)
+      .innerJoin(teas, eq(teaGrades.teaId, teas.id))
+      .orderBy(teaGrades.sortOrder);
+    return rows.map(r => ({ ...r.grade, teaName: r.teaName, teaSlug: r.teaSlug }));
   }
 }
 

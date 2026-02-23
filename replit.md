@@ -27,6 +27,13 @@ Tsun Brew is a full-stack web application for tea enthusiasts to discover, track
 - Admin Dashboard "Tea" tab (renamed from "Tea Types") includes CultivarsSection with add/edit/delete/reorder
 - Browse page cultivar filter: CultivarFilterDialog with 30 items/page, A-Z letter selection, search, pagination; filter chips with proper casing
 - Backend browseTeas accepts cultivars[] parameter for case-insensitive filtering, including trending sort
+- Tea Grades system: teaGrades table (id, teaId, name, photoUrl, description, sortOrder) for quality/sub-variant categorization
+- Tea Grades display on TeaDetails page between tea info card and brew timer, showing first 5 grades with "Show all" option and image lightbox
+- Admin "Tea Grades" tab in Edit Tea Details dialog for managing grades with photo URLs and descriptions
+- Search integration: tea grade matches appear as "GradeName (TeaName tea grade)" with grade photos, linking to parent tea page
+- Timer grade integration: grade selector button in BrewTimer alongside Oriental/Occidental, per-grade timer settings stored in timerSettings.gradeSettings[gradeId]
+- "Reset Grade Preferences" button in User Preferences when a grade is selected, separate from "Reset All Tea Preferences"
+- GET /api/teas/:teaId/grades (public), POST (admin/mod), PATCH/DELETE /api/tea-grades/:id (admin/mod), GET /api/all-tea-grades (for search)
 - Admin Dashboard now has 6 tabs: Users, Tea, Branding, Bottom Bar, Scoring, Collection Phrases
 - Collection Phrases system: dynamic badges when visiting another user's collection, based on owner/visitor status combinations (e.g. "I had it first!", "Eyeing mine?", etc.)
 - Admin "Collection Phrases" tab to customize phrase text, icon, and color for all 9 status combinations

@@ -1,4 +1,4 @@
-import { useTeas } from "@/hooks/use-teas";
+import { useTeas, useAllTeaGrades } from "@/hooks/use-teas";
 import { TeaCard } from "@/components/TeaCard";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
@@ -76,6 +76,7 @@ export default function Home() {
   const { toast } = useToast();
 
   const isAdmin = user?.role === 'admin' || user?.role === 'mod';
+  const { data: allTeaGrades } = useAllTeaGrades();
 
   const { data: heroPhrases } = useQuery<HeroPhrase[]>({
     queryKey: ['/api/hero-phrases'],
@@ -122,10 +123,8 @@ export default function Home() {
     if (searchTerm.length < 2) return false;
     
     const name = tea.name.toLowerCase();
-    const type = tea.type.toLowerCase();
     
     const nameWords = name.split(/\s+/);
-    const typeWords = type.split(/\s+/);
     
     const isStrict = searchTerm.length === 2;
     
@@ -135,6 +134,20 @@ export default function Home() {
     
     return matchesName;
   });
+
+  const filteredGrades = useMemo(() => {
+    const searchTerm = search.trim().toLowerCase();
+    if (searchTerm.length < 2 || !allTeaGrades) return [];
+    const isStrict = searchTerm.length === 2;
+    const matchedTeaIds = new Set(filteredTeas?.map(t => t.id) || []);
+    return allTeaGrades.filter(grade => {
+      if (matchedTeaIds.has(grade.teaId)) return false;
+      const gradeWords = grade.name.toLowerCase().split(/\s+/);
+      return gradeWords.some(word =>
+        isStrict ? word === searchTerm : word.startsWith(searchTerm)
+      ) || grade.name.toLowerCase().startsWith(searchTerm);
+    });
+  }, [search, allTeaGrades, filteredTeas]);
 
   const phraseTexts = useMemo(() => heroPhrases?.map(p => p.text) || [], [heroPhrases]);
 
@@ -319,9 +332,9 @@ export default function Home() {
               >
                 <ScrollArea className="max-h-[400px]">
                   <div className="p-2 space-y-1">
-                    {filteredTeas && filteredTeas.length > 0 ? (
+                    {(filteredTeas && filteredTeas.length > 0) || filteredGrades.length > 0 ? (
                       <>
-                        {filteredTeas.slice(0, 10).map((tea) => (
+                        {filteredTeas?.slice(0, 10).map((tea) => (
                           <Link key={tea.id} href={`/tea/${tea.slug}`}>
                             <div className="flex items-center gap-3 p-2 hover:bg-accent rounded-md cursor-pointer group transition-all duration-300 ease-in-out animate-in fade-in slide-in-from-top-1">
                               <div 
@@ -352,9 +365,29 @@ export default function Home() {
                             </div>
                           </Link>
                         ))}
-                        {filteredTeas.length > 10 && (
+                        {filteredGrades.slice(0, 5).map((grade) => (
+                          <Link key={`grade-${grade.id}`} href={`/tea/${grade.teaSlug}`}>
+                            <div className="flex items-center gap-3 p-2 hover:bg-accent rounded-md cursor-pointer group transition-all duration-300 ease-in-out animate-in fade-in slide-in-from-top-1">
+                              <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden shrink-0 shadow-sm bg-muted">
+                                {grade.photoUrl ? (
+                                  <img src={grade.photoUrl} alt={grade.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-primary/20 text-primary text-xs font-bold">
+                                    {grade.name[0]}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">{grade.name}</p>
+                                <p className="text-xs text-muted-foreground truncate">{grade.teaName} tea grade</p>
+                              </div>
+                              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </Link>
+                        ))}
+                        {(filteredTeas?.length || 0) + filteredGrades.length > 10 && (
                           <p className="text-[10px] text-center text-muted-foreground pt-2 pb-1 uppercase tracking-wider font-semibold animate-in fade-in duration-500">
-                            + {filteredTeas.length - 10} more results
+                            + {(filteredTeas?.length || 0) + filteredGrades.length - 10} more results
                           </p>
                         )}
                       </>

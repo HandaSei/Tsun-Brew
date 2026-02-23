@@ -2,17 +2,18 @@ import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardR
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff, Clock, AlertTriangle } from "lucide-react";
+import { Play, Pause, RotateCcw, Droplets, Zap, Leaf, Plus, X, BellOff, Clock, AlertTriangle, Award, ChevronDown } from "lucide-react";
 import { useUpdateLog } from "@/hooks/use-logs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { type Tea, type TeaLog } from "@shared/schema";
+import { type Tea, type TeaLog, type TeaGrade } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 
 const ALARM_SOUND_URL = "https://res.cloudinary.com/dq9nrlsb9/video/upload/v1771025474/zapsplat_multimedia_ui_processing_or_timer_tone_musical_warm_mallets_85166_an2opt.mp3";
 
 export interface BrewTimerHandle {
   resetToRecommended: () => void;
+  resetGradePreferences: () => void;
 }
 
 interface BrewTimerProps {
@@ -20,6 +21,9 @@ interface BrewTimerProps {
   teaLog?: TeaLog;
   onComplete?: () => void;
   showControls?: boolean;
+  grades?: TeaGrade[];
+  selectedGrade?: TeaGrade | null;
+  onSelectGrade?: (grade: TeaGrade | null) => void;
 }
 
 function sendSWMessage(msg: any) {
@@ -32,9 +36,15 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   tea,
   teaLog,
   onComplete,
-  showControls = false
+  showControls = false,
+  grades,
+  selectedGrade,
+  onSelectGrade,
 }, ref) {
-  const personalSettings = teaLog?.timerSettings as any;
+  const [gradePickerOpen, setGradePickerOpen] = useState(false);
+  const allSettings = teaLog?.timerSettings as any;
+  const gradeSettings = selectedGrade && allSettings?.gradeSettings?.[selectedGrade.id];
+  const personalSettings = gradeSettings || allSettings;
   const orientalEnabled = tea.orientalTimerEnabled !== false;
   const occidentalEnabled = tea.occidentalTimerEnabled !== false;
   const savedMethod = personalSettings?.method;
@@ -319,25 +329,45 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
 
   const handleSaveSettings = () => {
     if (!user) return;
+    const currentSettings = {
+      temp, 
+      method, 
+      infusion,
+      orientalDuration: oDuration,
+      orientalIncrement: oIncrement,
+      occidentalInfusions: occInfusions,
+      washingDuration: washingDuration,
+      orientalLeafAmount: orientalLeafAmount || undefined,
+      orientalWaterAmount: orientalWaterAmount || undefined,
+      occidentalLeafAmount: occidentalLeafAmount || undefined,
+      occidentalWaterAmount: occidentalWaterAmount || undefined,
+    };
+    
+    let timerSettings: any;
+    if (selectedGrade) {
+      const existingSettings = (teaLog?.timerSettings as any) || {};
+      timerSettings = {
+        ...existingSettings,
+        gradeSettings: {
+          ...(existingSettings.gradeSettings || {}),
+          [selectedGrade.id]: currentSettings,
+        },
+      };
+    } else {
+      const existingSettings = (teaLog?.timerSettings as any) || {};
+      timerSettings = { 
+        ...existingSettings,
+        ...currentSettings,
+      };
+    }
+    
     updateLog.mutate({
       teaId: tea.id,
-      timerSettings: { 
-        temp, 
-        method, 
-        infusion,
-        orientalDuration: oDuration,
-        orientalIncrement: oIncrement,
-        occidentalInfusions: occInfusions,
-        washingDuration: washingDuration,
-        orientalLeafAmount: orientalLeafAmount || undefined,
-        orientalWaterAmount: orientalWaterAmount || undefined,
-        occidentalLeafAmount: occidentalLeafAmount || undefined,
-        occidentalWaterAmount: occidentalWaterAmount || undefined,
-      },
+      timerSettings,
       status: teaLog?.status || 'want_to_try'
     } as any, {
       onSuccess: () => {
-        toast({ title: "Success", description: "Your custom timer has been saved." });
+        toast({ title: "Success", description: selectedGrade ? `Timer saved for ${selectedGrade.name}.` : "Your custom timer has been saved." });
       },
       onError: (err: any) => {
         toast({ title: "Error", description: err.message || "Failed to save timer", variant: "destructive" });
@@ -421,9 +451,30 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
     toast({ title: "Reset", description: "Timer settings restored to recommended values." });
   }, [tea, method, toast, releaseWakeLock]);
 
+  const resetGradePreferences = useCallback(() => {
+    if (!selectedGrade || !user) return;
+    const existingSettings = (teaLog?.timerSettings as any) || {};
+    const gradeSettingsCopy = { ...(existingSettings.gradeSettings || {}) };
+    delete gradeSettingsCopy[selectedGrade.id];
+    updateLog.mutate({
+      teaId: tea.id,
+      timerSettings: {
+        ...existingSettings,
+        gradeSettings: gradeSettingsCopy,
+      },
+      status: teaLog?.status || 'drinking',
+    } as any, {
+      onSuccess: () => {
+        resetToRecommended();
+        toast({ title: "Reset", description: `Timer preferences reset for ${selectedGrade.name}.` });
+      },
+    });
+  }, [selectedGrade, user, teaLog, tea.id, updateLog, resetToRecommended, toast]);
+
   useImperativeHandle(ref, () => ({
     resetToRecommended,
-  }), [resetToRecommended]);
+    resetGradePreferences,
+  }), [resetToRecommended, resetGradePreferences]);
 
   useEffect(() => {
     return () => {
@@ -472,6 +523,45 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
           >
             <Leaf className="w-4 h-4" /> Occidental
           </Button>
+        )}
+        {grades && grades.length > 0 && (
+          <div className="relative">
+            <Button
+              variant={selectedGrade ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setGradePickerOpen(!gradePickerOpen)}
+              className="rounded-full gap-2"
+              data-testid="button-grade-picker"
+            >
+              <Award className="w-4 h-4" />
+              {selectedGrade ? selectedGrade.name : "Grade"}
+              <ChevronDown className="w-3 h-3" />
+            </Button>
+            {gradePickerOpen && (
+              <div className="absolute top-full mt-1 left-0 z-50 bg-popover border border-border rounded-lg shadow-lg p-1 min-w-[160px] animate-in fade-in slide-in-from-top-2">
+                <button
+                  className={`w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors ${!selectedGrade ? 'bg-accent font-medium' : ''}`}
+                  onClick={() => { onSelectGrade?.(null); setGradePickerOpen(false); }}
+                  data-testid="button-grade-none"
+                >
+                  No grade (default)
+                </button>
+                {grades.map(grade => (
+                  <button
+                    key={grade.id}
+                    className={`w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors flex items-center gap-2 ${selectedGrade?.id === grade.id ? 'bg-accent font-medium' : ''}`}
+                    onClick={() => { onSelectGrade?.(grade); setGradePickerOpen(false); }}
+                    data-testid={`button-grade-select-${grade.id}`}
+                  >
+                    {grade.photoUrl && (
+                      <img src={grade.photoUrl} alt={grade.name} className="w-5 h-5 rounded object-cover" />
+                    )}
+                    {grade.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
 

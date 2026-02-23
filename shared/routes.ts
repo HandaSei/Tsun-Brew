@@ -16,8 +16,9 @@ import {
   insertScoreDefinitionSchema,
   insertTeaScoreSchema,
   insertUserPreferencesSchema,
+  insertTeaGradeSchema,
   users, teas, teaLogs, brewingGuides, reviews, heroPhrases, cultivars, teaTypes, footerLinks, pages, siteSettings, collectionPhrases,
-  scoringSystems, teaScores, userPreferences
+  scoringSystems, teaScores, userPreferences, teaGrades
 } from './schema';
 
 export type { 
@@ -29,6 +30,7 @@ export type {
   CollectionPhrase, InsertCollectionPhrase,
   ScoringSystem, InsertScoringSystem,
   TeaScore, InsertTeaScore,
+  TeaGrade, InsertTeaGrade,
   UserPreference, InsertUserPreference
 } from './schema';
 
@@ -529,6 +531,41 @@ export const api = {
       responses: {
         200: z.custom<typeof userPreferences.$inferSelect>(),
         401: errorSchemas.unauthorized,
+      },
+    },
+  },
+  teaGrades: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/teas/:teaId/grades',
+      responses: {
+        200: z.array(z.custom<typeof teaGrades.$inferSelect>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/teas/:teaId/grades',
+      input: insertTeaGradeSchema.omit({ teaId: true }),
+      responses: {
+        201: z.custom<typeof teaGrades.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/tea-grades/:id',
+      input: insertTeaGradeSchema.partial(),
+      responses: {
+        200: z.custom<typeof teaGrades.$inferSelect>(),
+        403: errorSchemas.forbidden,
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/tea-grades/:id',
+      responses: {
+        200: z.void(),
+        403: errorSchemas.forbidden,
       },
     },
   },

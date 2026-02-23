@@ -212,6 +212,15 @@ export const collectionPhrases = pgTable("collection_phrases", {
   icon: text("icon").notNull().default("CheckCircle"),
 });
 
+export const teaGrades = pgTable("tea_grades", {
+  id: serial("id").primaryKey(),
+  teaId: integer("tea_id").notNull().references(() => teas.id),
+  name: text("name").notNull(),
+  photoUrl: text("photo_url"),
+  description: text("description"),
+  sortOrder: integer("sort_order").default(0),
+});
+
 // === RELATIONS ===
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -230,6 +239,14 @@ export const teasRelations = relations(teas, ({ one, many }) => ({
   logs: many(teaLogs),
   reviews: many(reviews),
   guides: many(brewingGuides),
+  grades: many(teaGrades),
+}));
+
+export const teaGradesRelations = relations(teaGrades, ({ one }) => ({
+  tea: one(teas, {
+    fields: [teaGrades.teaId],
+    references: [teas.id],
+  }),
 }));
 
 export const teaLogsRelations = relations(teaLogs, ({ one }) => ({
@@ -278,6 +295,7 @@ export const insertCultivarSchema = createInsertSchema(cultivars).omit({ id: tru
 export const insertTeaTypeSchema = createInsertSchema(teaTypes).omit({ id: true });
 export const insertFooterLinkSchema = createInsertSchema(footerLinks).omit({ id: true });
 export const insertPageSchema = createInsertSchema(pages).omit({ id: true, updatedAt: true });
+export const insertTeaGradeSchema = createInsertSchema(teaGrades).omit({ id: true });
 export const insertCollectionPhraseSchema = createInsertSchema(collectionPhrases).omit({ id: true });
 export const insertSiteSettingsSchema = createInsertSchema(siteSettings).omit({ id: true });
 export const insertScoringSystemSchema = createInsertSchema(scoringSystems).omit({ id: true });
@@ -320,5 +338,7 @@ export type ScoreDefinition = typeof scoreDefinitions.$inferSelect;
 export type InsertScoreDefinition = z.infer<typeof insertScoreDefinitionSchema>;
 export type TeaScore = typeof teaScores.$inferSelect;
 export type InsertTeaScore = z.infer<typeof insertTeaScoreSchema>;
+export type TeaGrade = typeof teaGrades.$inferSelect;
+export type InsertTeaGrade = z.infer<typeof insertTeaGradeSchema>;
 export type UserPreference = typeof userPreferences.$inferSelect;
 export type InsertUserPreference = z.infer<typeof insertUserPreferencesSchema>;

@@ -1,5 +1,5 @@
 import { useRoute, Link } from "wouter";
-import { useTea, useTeaBySlug, useUpdateTea } from "@/hooks/use-teas";
+import { useTea, useTeaBySlug, useUpdateTea, useTeaGrades, useCreateTeaGrade, useUpdateTeaGrade, useDeleteTeaGrade } from "@/hooks/use-teas";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 
@@ -23,9 +23,14 @@ import {
   Edit2,
   X,
   RotateCcw,
-  Tag
+  Tag,
+  ChevronDown,
+  Award,
+  Trash2,
+  GripVertical
 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import type { TeaGrade } from "@shared/schema";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { CultivarSelect } from "@/components/CultivarSelect";
@@ -124,7 +129,20 @@ export default function TeaDetails() {
   const [listSelectOpen, setListSelectOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [timerSettingsOpen, setTimerSettingsOpen] = useState(false);
+  const [selectedGrade, setSelectedGrade] = useState<TeaGrade | null>(null);
+  const [gradeImageOpen, setGradeImageOpen] = useState<TeaGrade | null>(null);
+  const [showAllGrades, setShowAllGrades] = useState(false);
+  const [editGradeOpen, setEditGradeOpen] = useState(false);
+  const [editingGrade, setEditingGrade] = useState<TeaGrade | null>(null);
+  const [newGradeName, setNewGradeName] = useState("");
+  const [newGradePhoto, setNewGradePhoto] = useState("");
+  const [newGradeDescription, setNewGradeDescription] = useState("");
   const brewTimerRef = useRef<BrewTimerHandle>(null);
+
+  const { data: teaGrades } = useTeaGrades(tea?.id || 0);
+  const createGrade = useCreateTeaGrade();
+  const updateGrade = useUpdateTeaGrade();
+  const deleteGrade = useDeleteTeaGrade();
 
   const teaLog = logs?.find(l => l.teaId === tea?.id);
   const isAdmin = user?.role === 'admin' || user?.role === 'mod';
@@ -298,10 +316,11 @@ export default function TeaDetails() {
                         <Form {...form}>
                           <form onSubmit={form.handleSubmit(onEditSubmit)} className="space-y-6 pt-4">
                             <Tabs defaultValue="general" className="w-full">
-                              <TabsList className="grid w-full grid-cols-3 mb-6">
+                              <TabsList className="grid w-full grid-cols-4 mb-6">
                                 <TabsTrigger value="general">General</TabsTrigger>
-                                <TabsTrigger value="oriental">Oriental (Gongfu)</TabsTrigger>
-                                <TabsTrigger value="occidental">Occidental (Western)</TabsTrigger>
+                                <TabsTrigger value="oriental">Oriental</TabsTrigger>
+                                <TabsTrigger value="occidental">Occidental</TabsTrigger>
+                                <TabsTrigger value="grades">Tea Grades</TabsTrigger>
                               </TabsList>
 
                               <TabsContent value="general" className="space-y-4">
@@ -491,6 +510,139 @@ export default function TeaDetails() {
                                   )}
                                 />
                               </TabsContent>
+
+                              <TabsContent value="grades" className="space-y-4">
+                                <div className="space-y-3">
+                                  {teaGrades?.map((grade) => (
+                                    <div key={grade.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                                      <div className="w-12 h-12 rounded-md overflow-hidden bg-muted shrink-0">
+                                        {grade.photoUrl ? (
+                                          <img src={grade.photoUrl} alt={grade.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                                            <Leaf className="w-5 h-5" />
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-sm truncate">{grade.name}</p>
+                                        {grade.description && <p className="text-xs text-muted-foreground truncate">{grade.description}</p>}
+                                      </div>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="shrink-0"
+                                        onClick={() => {
+                                          setEditingGrade(grade);
+                                          setNewGradeName(grade.name);
+                                          setNewGradePhoto(grade.photoUrl || "");
+                                          setNewGradeDescription(grade.description || "");
+                                          setEditGradeOpen(true);
+                                        }}
+                                        data-testid={`button-edit-grade-${grade.id}`}
+                                      >
+                                        <Edit2 className="w-4 h-4" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="shrink-0 text-destructive"
+                                        onClick={() => {
+                                          if (confirm(`Delete grade "${grade.name}"?`)) {
+                                            deleteGrade.mutate({ id: grade.id, teaId: tea.id });
+                                          }
+                                        }}
+                                        data-testid={`button-delete-grade-${grade.id}`}
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                                <Separator />
+                                <div className="space-y-3">
+                                  <h4 className="text-sm font-semibold">{editingGrade ? "Edit Grade" : "Add New Grade"}</h4>
+                                  <Input
+                                    placeholder="Grade name"
+                                    value={newGradeName}
+                                    onChange={e => setNewGradeName(e.target.value)}
+                                    data-testid="input-grade-name"
+                                  />
+                                  <Input
+                                    placeholder="Photo URL"
+                                    value={newGradePhoto}
+                                    onChange={e => setNewGradePhoto(e.target.value)}
+                                    data-testid="input-grade-photo"
+                                  />
+                                  <Textarea
+                                    placeholder="Description (optional)"
+                                    value={newGradeDescription}
+                                    onChange={e => setNewGradeDescription(e.target.value)}
+                                    className="min-h-[60px]"
+                                    data-testid="input-grade-description"
+                                  />
+                                  <div className="flex gap-2">
+                                    <Button
+                                      type="button"
+                                      className="flex-1"
+                                      disabled={!newGradeName.trim() || createGrade.isPending || updateGrade.isPending}
+                                      onClick={() => {
+                                        if (editingGrade) {
+                                          updateGrade.mutate({
+                                            id: editingGrade.id,
+                                            teaId: tea.id,
+                                            name: newGradeName.trim(),
+                                            photoUrl: newGradePhoto.trim() || undefined,
+                                            description: newGradeDescription.trim() || undefined,
+                                          }, {
+                                            onSuccess: () => {
+                                              setEditingGrade(null);
+                                              setNewGradeName("");
+                                              setNewGradePhoto("");
+                                              setNewGradeDescription("");
+                                              toast({ title: "Updated", description: "Grade updated." });
+                                            }
+                                          });
+                                        } else {
+                                          createGrade.mutate({
+                                            teaId: tea.id,
+                                            name: newGradeName.trim(),
+                                            photoUrl: newGradePhoto.trim() || undefined,
+                                            description: newGradeDescription.trim() || undefined,
+                                            sortOrder: (teaGrades?.length || 0),
+                                          }, {
+                                            onSuccess: () => {
+                                              setNewGradeName("");
+                                              setNewGradePhoto("");
+                                              setNewGradeDescription("");
+                                              toast({ title: "Created", description: "New grade added." });
+                                            }
+                                          });
+                                        }
+                                      }}
+                                      data-testid="button-save-grade"
+                                    >
+                                      {editingGrade ? "Update Grade" : "Add Grade"}
+                                    </Button>
+                                    {editingGrade && (
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => {
+                                          setEditingGrade(null);
+                                          setNewGradeName("");
+                                          setNewGradePhoto("");
+                                          setNewGradeDescription("");
+                                        }}
+                                      >
+                                        Cancel
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              </TabsContent>
                             </Tabs>
                             <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={updateTea.isPending}>
                               {updateTea.isPending ? "Saving..." : "Save Changes"}
@@ -648,6 +800,83 @@ export default function TeaDetails() {
         </div>
       </div>
 
+      {teaGrades && teaGrades.length > 0 && (
+        <div className="container mx-auto px-4 py-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="glass-card p-6 rounded-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-display text-lg flex items-center gap-2" data-testid="text-tea-grades-title">
+                  <Award className="w-5 h-5 text-primary" />
+                  Tea Grades
+                </h3>
+              </div>
+              <div className="flex flex-wrap gap-3" data-testid="tea-grades-list">
+                {(showAllGrades ? teaGrades : teaGrades.slice(0, 5)).map((grade) => (
+                  <div
+                    key={grade.id}
+                    className="flex flex-col items-center gap-1.5 cursor-pointer group"
+                    onClick={() => setGradeImageOpen(grade)}
+                    data-testid={`tea-grade-${grade.id}`}
+                  >
+                    <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-border/50 group-hover:border-primary/50 transition-colors shadow-sm bg-muted">
+                      {grade.photoUrl ? (
+                        <img src={grade.photoUrl} alt={grade.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          <Leaf className="w-6 h-6" />
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-xs font-medium text-center max-w-[72px] truncate">{grade.name}</span>
+                  </div>
+                ))}
+              </div>
+              {teaGrades.length > 5 && !showAllGrades && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mt-3 w-full gap-1 text-muted-foreground"
+                  onClick={() => setShowAllGrades(true)}
+                  data-testid="button-show-all-grades"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                  Show all {teaGrades.length} grades
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Dialog open={!!gradeImageOpen} onOpenChange={(open) => !open && setGradeImageOpen(null)}>
+        <DialogContent className="max-w-[70vw] max-h-[80vh] p-2">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{gradeImageOpen?.name}</DialogTitle>
+          </DialogHeader>
+          {gradeImageOpen && (
+            <div className="flex flex-col items-center gap-3">
+              {gradeImageOpen.photoUrl ? (
+                <img
+                  src={gradeImageOpen.photoUrl}
+                  alt={gradeImageOpen.name}
+                  className="max-w-full max-h-[60vh] object-contain rounded-lg"
+                />
+              ) : (
+                <div className="w-full aspect-square max-w-md flex items-center justify-center bg-muted rounded-lg">
+                  <Leaf className="w-20 h-20 text-muted-foreground" />
+                </div>
+              )}
+              <div className="text-center px-4 pb-2">
+                <h4 className="font-display text-xl font-bold">{gradeImageOpen.name}</h4>
+                {gradeImageOpen.description && (
+                  <p className="text-sm text-muted-foreground mt-1">{gradeImageOpen.description}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="glass-card p-8 rounded-2xl flex flex-col items-center">
@@ -714,6 +943,19 @@ export default function TeaDetails() {
 
                       <Separator />
 
+                      {selectedGrade && (
+                        <Button
+                          variant="outline"
+                          className="w-full gap-2"
+                          onClick={() => {
+                            brewTimerRef.current?.resetGradePreferences();
+                            setTimerSettingsOpen(false);
+                          }}
+                          data-testid="button-reset-grade-preferences"
+                        >
+                          <RotateCcw className="w-4 h-4" /> Reset {selectedGrade.name} Preferences
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         className="w-full gap-2"
@@ -733,7 +975,7 @@ export default function TeaDetails() {
                         }}
                         data-testid="button-reset-preferences"
                       >
-                        <RotateCcw className="w-4 h-4" /> Reset Tea Preferences
+                        <RotateCcw className="w-4 h-4" /> Reset All Tea Preferences
                       </Button>
 
                       <Button
@@ -791,6 +1033,9 @@ export default function TeaDetails() {
               }}
               teaLog={teaLog}
               showControls={true}
+              grades={teaGrades}
+              selectedGrade={selectedGrade}
+              onSelectGrade={setSelectedGrade}
             />
           </div>
         </div>
