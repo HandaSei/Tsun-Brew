@@ -45,6 +45,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   const allSettings = teaLog?.timerSettings as any;
   const gradeSettings = selectedGrade && allSettings?.gradeSettings?.[selectedGrade.id];
   const personalSettings = gradeSettings || allSettings;
+  const selectedGradeIdRef = useRef(selectedGrade?.id ?? null);
   const orientalEnabled = tea.orientalTimerEnabled !== false;
   const occidentalEnabled = tea.occidentalTimerEnabled !== false;
   const savedMethod = personalSettings?.method;
@@ -70,6 +71,45 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
   const [orientalWaterAmount, setOrientalWaterAmount] = useState(personalSettings?.orientalWaterAmount ?? tea.orientalWaterAmount ?? "");
   const [occidentalLeafAmount, setOccidentalLeafAmount] = useState(personalSettings?.occidentalLeafAmount ?? tea.occidentalLeafAmount ?? "");
   const [occidentalWaterAmount, setOccidentalWaterAmount] = useState(personalSettings?.occidentalWaterAmount ?? tea.occidentalWaterAmount ?? "");
+
+  useEffect(() => {
+    if (selectedGradeIdRef.current === (selectedGrade?.id ?? null)) return;
+    selectedGradeIdRef.current = selectedGrade?.id ?? null;
+    const settings = selectedGrade 
+      ? allSettings?.gradeSettings?.[selectedGrade.id] || null 
+      : allSettings;
+    const m = (() => {
+      const sm = settings?.method;
+      if (sm === 'oriental' && orientalEnabled) return 'oriental' as const;
+      if (sm === 'occidental' && occidentalEnabled) return 'occidental' as const;
+      if (orientalEnabled) return 'oriental' as const;
+      if (occidentalEnabled) return 'occidental' as const;
+      return 'oriental' as const;
+    })();
+    setMethod(m);
+    setInfusion(1);
+    setODuration(settings?.orientalDuration ?? tea.orientalDuration ?? 20);
+    setOIncrement(settings?.orientalIncrement ?? tea.orientalInfusionIncrement ?? 10);
+    setOccInfusions(settings?.occidentalInfusions ?? (tea.occidentalInfusions as number[]) ?? [tea.occidentalDuration ?? 180]);
+    setTemp(settings?.temp ?? (m === 'oriental' ? tea.orientalTemp : tea.occidentalTemp) ?? 85);
+    setWashingDuration(settings?.washingDuration ?? tea.washingDuration ?? 10);
+    setOrientalLeafAmount(settings?.orientalLeafAmount ?? tea.orientalLeafAmount ?? "");
+    setOrientalWaterAmount(settings?.orientalWaterAmount ?? tea.orientalWaterAmount ?? "");
+    setOccidentalLeafAmount(settings?.occidentalLeafAmount ?? tea.occidentalLeafAmount ?? "");
+    setOccidentalWaterAmount(settings?.occidentalWaterAmount ?? tea.occidentalWaterAmount ?? "");
+    const dur = m === 'oriental' 
+      ? (settings?.orientalDuration ?? tea.orientalDuration ?? 20)
+      : (settings?.occidentalInfusions ?? (tea.occidentalInfusions as number[]) ?? [tea.occidentalDuration ?? 180])[0] || 180;
+    setSeconds(dur);
+    setTotalSeconds(dur);
+    if (isActive) {
+      setIsActive(false);
+      endTimeRef.current = null;
+      pausedRemainingRef.current = null;
+      releaseWakeLock();
+      sendSWMessage({ type: "CANCEL_TIMER" });
+    }
+  }, [selectedGrade?.id]);
 
   const getInitialSeconds = () => {
     if (method === 'oriental') {
@@ -348,6 +388,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       const existingSettings = (teaLog?.timerSettings as any) || {};
       timerSettings = {
         ...existingSettings,
+        selectedGradeId: selectedGrade.id,
         gradeSettings: {
           ...(existingSettings.gradeSettings || {}),
           [selectedGrade.id]: currentSettings,
@@ -358,6 +399,7 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
       timerSettings = { 
         ...existingSettings,
         ...currentSettings,
+        selectedGradeId: null,
       };
     }
     
@@ -541,7 +583,14 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
               <div className="absolute top-full mt-1 left-0 z-50 bg-popover border border-border rounded-lg shadow-lg p-1 min-w-[160px] animate-in fade-in slide-in-from-top-2">
                 <button
                   className={`w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors ${!selectedGrade ? 'bg-accent font-medium' : ''}`}
-                  onClick={() => { onSelectGrade?.(null); setGradePickerOpen(false); }}
+                  onClick={() => { 
+                    onSelectGrade?.(null); 
+                    setGradePickerOpen(false);
+                    if (user && teaLog) {
+                      const existing = (teaLog.timerSettings as any) || {};
+                      updateLog.mutate({ teaId: tea.id, timerSettings: { ...existing, selectedGradeId: null }, status: teaLog.status || 'drinking' } as any);
+                    }
+                  }}
                   data-testid="button-grade-none"
                 >
                   No grade (default)
@@ -550,7 +599,14 @@ export const BrewTimer = forwardRef<BrewTimerHandle, BrewTimerProps>(function Br
                   <button
                     key={grade.id}
                     className={`w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors flex items-center gap-2 ${selectedGrade?.id === grade.id ? 'bg-accent font-medium' : ''}`}
-                    onClick={() => { onSelectGrade?.(grade); setGradePickerOpen(false); }}
+                    onClick={() => { 
+                      onSelectGrade?.(grade); 
+                      setGradePickerOpen(false);
+                      if (user && teaLog) {
+                        const existing = (teaLog.timerSettings as any) || {};
+                        updateLog.mutate({ teaId: tea.id, timerSettings: { ...existing, selectedGradeId: grade.id }, status: teaLog.status || 'drinking' } as any);
+                      }
+                    }}
                     data-testid={`button-grade-select-${grade.id}`}
                   >
                     {grade.photoUrl && (

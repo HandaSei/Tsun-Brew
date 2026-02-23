@@ -130,6 +130,7 @@ export default function TeaDetails() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [timerSettingsOpen, setTimerSettingsOpen] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState<TeaGrade | null>(null);
+  const [gradeRestored, setGradeRestored] = useState(false);
   const [gradeImageOpen, setGradeImageOpen] = useState<TeaGrade | null>(null);
   const [showAllGrades, setShowAllGrades] = useState(false);
   const [editGradeOpen, setEditGradeOpen] = useState(false);
@@ -164,6 +165,16 @@ export default function TeaDetails() {
       setUserShowNote(!!prefs.showUserNote);
     }
   }, [teaLog?.timerSettings]);
+
+  useEffect(() => {
+    if (gradeRestored || !teaGrades || teaGrades.length === 0) return;
+    const savedGradeId = (teaLog?.timerSettings as any)?.selectedGradeId;
+    if (savedGradeId) {
+      const found = teaGrades.find((g: any) => g.id === savedGradeId);
+      if (found) setSelectedGrade(found);
+    }
+    setGradeRestored(true);
+  }, [teaGrades, teaLog, gradeRestored]);
 
   const form = useForm({
     resolver: zodResolver(insertTeaSchema.partial()),

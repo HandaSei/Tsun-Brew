@@ -2,10 +2,11 @@ import { useLogs, useUpdateLog, useDeleteLog, usePublicLogs } from "@/hooks/use-
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useTeaTypes, getTeaTypeColor } from "@/hooks/use-tea-types";
-import { useState, memo } from "react";
+import { useAllTeaGrades } from "@/hooks/use-teas";
+import { useState, memo, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import type { CollectionPhrase } from "@shared/schema";
+import type { CollectionPhrase, TeaGrade } from "@shared/schema";
 import { ScoreWidget } from "@/components/ScoreWidget";
 
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,8 @@ const TeaListItem = memo(({
   setActiveTimerTeaId,
   updateLog,
   deleteLog,
-  setLocation
+  setLocation,
+  teaGrades,
 }: { 
   log: any;
   user: any;
@@ -52,10 +54,23 @@ const TeaListItem = memo(({
   updateLog: any;
   deleteLog: any;
   setLocation: any;
+  teaGrades: TeaGrade[];
 }) => {
   const teaLog = log;
   const myLogForTea = myLogs?.find((ml: any) => ml.teaId === log.tea.id);
   const isInMyList = !!myLogForTea;
+  const [selectedGrade, setSelectedGrade] = useState<TeaGrade | null>(null);
+  const [gradeRestored, setGradeRestored] = useState(false);
+
+  useEffect(() => {
+    if (gradeRestored || !teaGrades || teaGrades.length === 0) return;
+    const savedGradeId = (log.timerSettings as any)?.selectedGradeId;
+    if (savedGradeId) {
+      const found = teaGrades.find((g: any) => g.id === savedGradeId);
+      if (found) setSelectedGrade(found);
+    }
+    setGradeRestored(true);
+  }, [teaGrades, log.timerSettings, gradeRestored]);
 
   const timerOpen = activeTimerTeaId === log.tea.id;
   const setTimerOpen = (open: boolean) => {
@@ -162,7 +177,14 @@ const TeaListItem = memo(({
           <DialogContent className="max-w-[340px] p-0 overflow-hidden mx-auto" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
             <div className="p-1 sm:p-2">
               <h3 className="text-center font-display text-2xl mb-0.5">{log.tea.name}</h3>
-              <BrewTimer tea={log.tea} teaLog={log} showControls={!!isOwner} />
+              <BrewTimer 
+                tea={log.tea} 
+                teaLog={log} 
+                showControls={!!isOwner}
+                grades={teaGrades.length > 0 ? teaGrades : undefined}
+                selectedGrade={selectedGrade}
+                onSelectGrade={setSelectedGrade}
+              />
             </div>
           </DialogContent>
         </Dialog>
@@ -232,6 +254,7 @@ export default function MyList() {
   const isLoading = isOwner ? false : isPublicLoading;
 
   const { data: teaTypes } = useTeaTypes();
+  const { data: allTeaGrades } = useAllTeaGrades();
   const { data: collectionPhrases } = useQuery<CollectionPhrase[]>({
     queryKey: ["/api/collection-phrases"],
   });
@@ -310,6 +333,7 @@ export default function MyList() {
           updateLog={updateLog}
           deleteLog={deleteLog}
           setLocation={setLocation}
+          teaGrades={(allTeaGrades || []).filter((g: any) => g.teaId === log.tea.id)}
         />
       ))}
     </div>
