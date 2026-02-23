@@ -34,6 +34,7 @@ export function useAuth() {
     },
     onSuccess: (data) => {
       queryClient.setQueryData([api.auth.me.path], data);
+      queryClient.invalidateQueries();
       toast({ title: "Welcome!", description: "Account created successfully." });
     },
     onError: (error: Error) => {
@@ -55,6 +56,7 @@ export function useAuth() {
     },
     onSuccess: (data) => {
       queryClient.setQueryData([api.auth.me.path], data);
+      queryClient.invalidateQueries();
       toast({ title: "Welcome back!", description: "Logged in successfully." });
     },
     onError: (error: Error) => {
@@ -68,6 +70,7 @@ export function useAuth() {
     },
     onSuccess: () => {
       queryClient.setQueryData([api.auth.me.path], null);
+      queryClient.invalidateQueries();
       setLocation("/");
       toast({ title: "Goodbye", description: "Logged out successfully." });
     },
