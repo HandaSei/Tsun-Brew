@@ -70,7 +70,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         "tsun-brew-theme-v2",
         "tsun-brew-theme-v3"
       ];
-      keysToClear.forEach(k => localStorage.removeItem(k));
+      keysToClear.forEach(k => { try { localStorage.removeItem(k); } catch {} });
       
       // If no theme or buggy "dark", default to "dusk"
       if (stored === "dark" || !stored) {
