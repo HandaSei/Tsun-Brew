@@ -90,10 +90,10 @@ Preferred communication style: Simple, everyday language.
 - **Role System**: Three-tier roles (admin, mod, user) for access control
 
 ### Data Storage
-- **Database**: PostgreSQL
+- **Database**: PostgreSQL hosted on Neon (external), connection via `NEON_DATABASE_URL` env var (falls back to `DATABASE_URL`)
 - **ORM**: Drizzle ORM with drizzle-zod for schema-to-validation integration
 - **Schema Location**: `shared/schema.ts` (shared between client and server)
-- **Migrations**: Drizzle Kit with `db:push` command
+- **Migrations**: Drizzle Kit with `db:push` command (use `DATABASE_URL="$NEON_DATABASE_URL" npm run db:push` for Neon)
 
 ### Key Data Models
 - **Users**: Authentication and role management

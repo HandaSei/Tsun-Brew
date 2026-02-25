@@ -45,3 +45,8 @@ waitForPort = 5000
 
 [objectStorage]
 defaultBucketID = "replit-objstore-eec5c7ae-956e-487e-93ee-dda4bfe744fc"
+
+[userenv]
+
+[userenv.shared]
+NEON_DATABASE_URL = "postgresql://neondb_owner:npg_5BldM1rESLFt@ep-sparkling-bread-alfwlok0-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"

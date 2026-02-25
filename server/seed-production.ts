@@ -100,11 +100,12 @@ export async function seedProductionData() {
     await db.insert(teas).values([
       {
         name: "Da Hong Pao",
+        slug: "da-hong-pao",
         description: "",
         photoUrl: "https://i.postimg.cc/D72yP9nY/da-hong-pao-scaled.jpg",
         type: "Oolong",
         origin: "Wu Yi, Fujian, China",
-        cultivar: "",
+        cultivar: [],
         averageScore: 0,
         recommendedTemp: 85,
         recommendedDuration: 60,
@@ -125,11 +126,12 @@ export async function seedProductionData() {
       },
       {
         name: "Yue Guang Bai",
+        slug: "yue-guang-bai",
         description: "",
         photoUrl: "https://i.postimg.cc/63w9mD6f/image.png",
         type: "White",
         origin: "Yunnan",
-        cultivar: "",
+        cultivar: [],
         averageScore: 0,
         createdById: adminId,
       },
