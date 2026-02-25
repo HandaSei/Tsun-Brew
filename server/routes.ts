@@ -6,6 +6,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { type User } from "@shared/schema";
 import { seedProductionData } from "./seed-production";
+import { pool } from "./db";
 
 function findTeaType(types: any[], teaType: string) {
   const lower = teaType.toLowerCase();
@@ -19,7 +20,16 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Set up authentication (passport)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_sessions (
+      sid VARCHAR NOT NULL COLLATE "default",
+      sess JSON NOT NULL,
+      expire TIMESTAMP(6) NOT NULL,
+      CONSTRAINT session_pkey PRIMARY KEY (sid)
+    );
+    CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON user_sessions (expire);
+  `);
+
   setupAuth(app);
   
   // Seed admin user

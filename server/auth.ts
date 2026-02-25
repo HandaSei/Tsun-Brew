@@ -52,7 +52,7 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     store: new PgStore({
       pool: pool as any,
-      createTableIfMissing: true,
+      createTableIfMissing: false,
       tableName: "user_sessions",
     }),
     cookie: {
