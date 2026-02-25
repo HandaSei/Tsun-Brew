@@ -166,6 +166,11 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async setEmailVerified(id: number): Promise<User> {
+    const [updated] = await db.update(users).set({ emailVerified: true }).where(eq(users.id, id)).returning();
+    return updated;
+  }
+
   async createVerificationCode(code: InsertVerificationCode): Promise<VerificationCode> {
     const [created] = await db.insert(verificationCodes).values(code as any).returning();
     return created;
