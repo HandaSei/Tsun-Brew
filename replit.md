@@ -5,6 +5,10 @@
 Tsun Brew is a full-stack web application for tea enthusiasts to discover, track, and brew teas. Users can browse a tea library, log their tastings with personal scores, track brewing sessions with a timer, and share brewing guides and reviews. The app features role-based access control with admin, moderator, and user roles.
 
 ## Recent Changes
+- Vercel deployment support: refactored server into `server/app.ts` (createApp) + `server/index.ts` (listen), created `api/index.ts` (Vercel serverless handler with singleton pattern), `vercel.json` (build config + SPA/API rewrites); `process.env.VERCEL` skips static file serving since Vercel handles it natively
+- Custom teas excluded from trending: computeTrendingTeas and getTrendingTeas now join with teas table filtering isCustom=false; prevents user private teas from appearing in global trending lists
+- Email verification fix: added missing setEmailVerified method to DatabaseStorage class (was declared in IStorage interface but not implemented)
+- Separate Neon databases per environment: NEON_DATABASE_URL set in development (EU Central) and production (US West) environments separately
 - Mobile background timer fix: Rewrote BrewTimer to use timestamp-based countdown (endTimeRef + Date.now()) instead of interval-based, preventing timer pause when browser is backgrounded on Android/iOS
 - Service worker (sw.js) handles background timer notifications with START_TIMER/CANCEL_TIMER messages and scheduled setTimeout
 - Wake Lock API prevents screen sleep during active brewing sessions

@@ -1,5 +1,4 @@
 import type { Express } from "express";
-import { type Server } from "http";
 import { setupAuth, seedAdmin } from "./auth";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
@@ -16,10 +15,7 @@ function findTeaType(types: any[], teaType: string) {
     types.find(t => t.name.toLowerCase().startsWith(lower));
 }
 
-export async function registerRoutes(
-  httpServer: Server,
-  app: Express
-): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS user_sessions (
       sid VARCHAR NOT NULL COLLATE "default",
@@ -773,5 +769,4 @@ export async function registerRoutes(
     res.json(pref);
   });
 
-  return httpServer;
 }
