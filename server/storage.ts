@@ -786,6 +786,7 @@ export class DatabaseStorage implements IStorage {
         brewCount: sql<number>`COALESCE(SUM(${teaLogs.totalBrews}), 0)`.as("brew_count"),
       })
       .from(teaLogs)
+      .innerJoin(teas, and(eq(teaLogs.teaId, teas.id), eq(teas.isCustom, false)))
       .where(and(gt(teaLogs.lastBrewedAt, cutoff), gt(teaLogs.totalBrews, 0)))
       .groupBy(teaLogs.teaId)
       .orderBy(sql`brew_count DESC`)
@@ -804,6 +805,7 @@ export class DatabaseStorage implements IStorage {
           brewCount: sql<number>`COALESCE(SUM(${teaLogs.totalBrews}), 0)`.as("brew_count"),
         })
         .from(teaLogs)
+        .innerJoin(teas, and(eq(teaLogs.teaId, teas.id), eq(teas.isCustom, false)))
         .where(gt(teaLogs.totalBrews, 0))
         .groupBy(teaLogs.teaId)
         .orderBy(sql`brew_count DESC`)
@@ -838,7 +840,7 @@ export class DatabaseStorage implements IStorage {
         sortOrder: trendingTeasCache.sortOrder,
       })
       .from(trendingTeasCache)
-      .innerJoin(teas, eq(trendingTeasCache.teaId, teas.id))
+      .innerJoin(teas, and(eq(trendingTeasCache.teaId, teas.id), eq(teas.isCustom, false)))
       .orderBy(trendingTeasCache.sortOrder)
       .limit(10);
 
