@@ -22,8 +22,10 @@ export async function registerRoutes(app: Express): Promise<void> {
       sess JSON NOT NULL,
       expire TIMESTAMP(6) NOT NULL,
       CONSTRAINT session_pkey PRIMARY KEY (sid)
-    );
-    CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON user_sessions (expire);
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON user_sessions (expire)
   `);
 
   setupAuth(app);
