@@ -7,8 +7,18 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User } from "../shared/schema.js";
 import { pool } from "./db";
-import { sendVerificationEmail, sendPasswordResetEmail } from "./email";
 import connectPgSimple from "connect-pg-simple";
+
+// Email stubs - email sending disabled until RESEND_API_KEY is configured
+async function sendVerificationEmail(to: string, code: string): Promise<boolean> {
+  console.log(`[Email Disabled] Verification code for ${to}: ${code}`);
+  return true;
+}
+
+async function sendPasswordResetEmail(to: string, resetLink: string): Promise<boolean> {
+  console.log(`[Email Disabled] Password reset link for ${to}: ${resetLink}`);
+  return true;
+}
 
 const PgStore = connectPgSimple(session);
 
