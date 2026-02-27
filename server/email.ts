@@ -1,11 +1,22 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend: Resend | null = null;
+
+function getResend(): Resend {
+  if (!resend) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY is not set. Email sending is unavailable.");
+    }
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
+
 const FROM_EMAIL = "Tsun Brew <noreply@nottsunbrew.com>";
 
 export async function sendVerificationEmail(to: string, code: string): Promise<boolean> {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to,
       subject: "Tsun Brew - Verify Your Email",
@@ -33,7 +44,7 @@ export async function sendVerificationEmail(to: string, code: string): Promise<b
 
 export async function sendPasswordResetEmail(to: string, resetLink: string): Promise<boolean> {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to,
       subject: "Tsun Brew - Reset Your Password",
