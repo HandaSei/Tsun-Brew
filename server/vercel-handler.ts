@@ -1,4 +1,4 @@
-import { createApp } from "../server/app";
+import { createApp } from "./app";
 import type { Express } from "express";
 
 let app: Express | null = null;
