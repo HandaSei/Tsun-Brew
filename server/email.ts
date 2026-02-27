@@ -1,10 +1,28 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resendClient: Resend | null = null;
+
+function getResend(): Resend | null {
+  if (!_resendClient) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.warn("RESEND_API_KEY is not set. Email functionality will be disabled.");
+      return null;
+    }
+    _resendClient = new Resend(apiKey);
+  }
+  return _resendClient;
+}
+
 const FROM_EMAIL = "Tsun Brew <noreply@nottsunbrew.com>";
 
 export async function sendVerificationEmail(to: string, code: string): Promise<boolean> {
   try {
+    const resend = getResend();
+    if (!resend) {
+      console.error("Cannot send verification email: RESEND_API_KEY is not configured");
+      return false;
+    }
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
       to,
@@ -33,6 +51,11 @@ export async function sendVerificationEmail(to: string, code: string): Promise<b
 
 export async function sendPasswordResetEmail(to: string, resetLink: string): Promise<boolean> {
   try {
+    const resend = getResend();
+    if (!resend) {
+      console.error("Cannot send reset email: RESEND_API_KEY is not configured");
+      return false;
+    }
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
       to,
