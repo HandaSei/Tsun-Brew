@@ -1,6 +1,6 @@
 import { defineConfig } from "drizzle-kit";
 
-const connectionString = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
+const connectionString = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL || process.env.POSTGRES_URL;
 
 if (!connectionString) {
   throw new Error("NEON_DATABASE_URL or DATABASE_URL must be set. Ensure the database is provisioned.");
