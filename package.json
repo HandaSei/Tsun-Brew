@@ -4,6 +4,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
+    "predev": "rm -rf node_modules/resend",
     "dev": "NODE_ENV=development tsx --tsconfig tsconfig.json server/index.ts",
     "build": "tsx script/build.ts",
     "start": "NODE_ENV=production node dist/index.cjs",

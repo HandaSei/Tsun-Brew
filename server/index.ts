@@ -1,3 +1,4 @@
+// Server entry point - resend dependency removed, email stubs inlined in auth.ts
 import { createServer } from "http";
 import { createApp, log } from "./app";
 
