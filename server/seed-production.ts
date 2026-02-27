@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, teas, teaTypes, cultivars, siteSettings, heroPhrases, teaLogs, pages, footerLinks } from "@shared/schema";
+import { users, teas, teaTypes, cultivars, siteSettings, heroPhrases, teaLogs, pages, footerLinks } from "../shared/schema.js";
 import { eq, sql } from "drizzle-orm";
 
 export async function seedProductionData() {

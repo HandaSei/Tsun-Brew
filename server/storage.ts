@@ -16,7 +16,7 @@ import {
   type TeaGrade, type InsertTeaGrade,
   type UserPreference, type InsertUserPreference,
   type ScoreDefinition, type InsertScoreDefinition
-} from "@shared/schema";
+} from "../shared/schema.js";
 import { db } from "./db";
 import { eq, desc, and, gt, or, avg, count, sql } from "drizzle-orm";
 

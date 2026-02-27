@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import { setupAuth, seedAdmin } from "./auth";
 import { storage } from "./storage";
-import { api } from "@shared/routes";
+import { api } from "../shared/routes.js";
 import { z } from "zod";
-import { type User, insertScoreDefinitionSchema } from "@shared/schema";
+import { type User, insertScoreDefinitionSchema } from "../shared/schema.js";
 import { seedProductionData } from "./seed-production";
 import { pool } from "./db";
 
