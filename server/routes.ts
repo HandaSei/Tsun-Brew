@@ -3,7 +3,7 @@ import { setupAuth, seedAdmin } from "./auth";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { type User } from "@shared/schema";
+import { type User, insertScoreDefinitionSchema } from "@shared/schema";
 import { seedProductionData } from "./seed-production";
 import { pool } from "./db";
 
@@ -201,7 +201,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
   app.get(api.teas.get.path, async (req, res) => {
-    const tea = await storage.getTeaBySlug(req.params.slug);
+    const tea = await storage.getTeaBySlug(req.params.slug as string);
     if (!tea) {
       return res.status(404).json({ message: "Tea not found" });
     }
@@ -351,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
   app.get(api.logs.publicList.path, async (req, res) => {
-    const username = req.params.username;
+    const username = req.params.username as string;
     const user = await storage.getUserByUsername(username);
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -708,7 +708,7 @@ export async function registerRoutes(app: Express): Promise<void> {
     const user = req.user as User;
     if (user.role !== 'admin') return res.sendStatus(403);
     const input = api.scoringSystems.create.input.parse(req.body);
-    const system = await storage.createScoringSystem(input);
+    const system = await storage.createScoringSystem(input as any);
     res.status(201).json(system);
   });
 
@@ -717,7 +717,7 @@ export async function registerRoutes(app: Express): Promise<void> {
     const user = req.user as User;
     if (user.role !== 'admin') return res.sendStatus(403);
     const input = api.scoringSystems.update.input.parse(req.body);
-    const system = await storage.updateScoringSystem(Number(req.params.id), input);
+    const system = await storage.updateScoringSystem(Number(req.params.id), input as any);
     res.json(system);
   });
 
